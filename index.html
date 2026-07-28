@@ -42,49 +42,51 @@
     <div style="{{ heroGridBg }}"></div>
     <div style="position:relative; max-width:760px; margin:0 auto; padding:0 40px; text-align:center;">
       <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:{{ vars.accent }}; margin-bottom:18px;">Industrial Technology · VFD Training</div>
-      <h1 style="font-size:44px; line-height:1.15; margin:0 0 18px 0; font-weight:800; color:{{ vars.text }}; letter-spacing:-.01em;">Centro de Capacitación<br>Industrial Technology</h1>
-      <p style="font-size:17px; line-height:1.6; color:{{ vars.textDim }}; margin:0 auto 32px auto; max-width:56ch;">Capacitación técnica especializada en variadores de frecuencia multimarca — módulos, evaluaciones y fichas de estudio pensados para técnicos e ingenieros de mantenimiento industrial.</p>
+      <h1 style="font-size:44px; line-height:1.15; margin:0 0 18px 0; font-weight:800; color:{{ vars.text }}; letter-spacing:-.01em;">Centro exclusivo de<br>Capacitación Técnica</h1>
+      <p style="font-size:17px; line-height:1.6; color:{{ vars.textDim }}; margin:0 auto 32px auto; max-width:56ch;">Este sitio reúne únicamente capacitaciones técnicas sobre variadores de frecuencia industriales — módulos, evaluaciones y fichas de estudio organizados por marca, para técnicos e ingenieros de mantenimiento.</p>
       <a href="#cursos" style="{{ ctaStyle }}">Ver capacitaciones disponibles ↓</a>
     </div>
   </section>
 
   <section id="cursos" style="position:relative; z-index:2; padding:72px 40px 90px 40px; max-width:1180px; margin:0 auto;">
-    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:20px; margin-bottom:24px; border-bottom:1px solid {{ vars.line }}; padding-bottom:18px;">
+    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:20px; margin-bottom:40px; border-bottom:1px solid {{ vars.line }}; padding-bottom:18px;">
       <div>
         <h2 style="font-size:24px; margin:0 0 6px 0; color:{{ vars.text }}; font-weight:700;">Capacitaciones disponibles</h2>
-        <p style="margin:0; font-size:14px; color:{{ vars.textDim }};">Selecciona una marca y luego un equipo para comenzar o continuar tu evaluación técnica.</p>
+        <p style="margin:0; font-size:14px; color:{{ vars.textDim }};">Organizadas por marca. Elegí un equipo para comenzar o continuar tu evaluación técnica.</p>
       </div>
       <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:{{ vars.textDim }}; white-space:nowrap;">Progreso guardado en este navegador</div>
     </div>
 
-    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:24px;">
-      <sc-for list="{{ brands }}" as="b" hint-placeholder-count="2">
-        <button onClick="{{ b.onClick }}" style="{{ b.tabStyle }}">{{ b.label }}</button>
-      </sc-for>
-    </div>
-
-    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:20px;">
-      <sc-for list="{{ courses }}" as="c" hint-placeholder-count="3">
-        <div style="{{ c.cardStyle }}">
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
-            <span style="{{ c.brandBadgeStyle }}">{{ c.brand }}</span>
-            <div style="{{ c.ringStyle }}">
-              <div style="{{ c.ringInnerStyle }}">{{ c.ringLabel }}</div>
-            </div>
-          </div>
-
-          <h3 style="font-size:17px; margin:0 0 6px 0; color:{{ vars.text }}; font-weight:700;">{{ c.title }}</h3>
-          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:{{ vars.accent }}; letter-spacing:.05em; margin-bottom:10px;">{{ c.model }}</div>
-          <p style="font-size:13.5px; line-height:1.6; color:{{ vars.textDim }}; margin:0 0 20px 0; min-height:58px;">{{ c.desc }}</p>
-
-          <div style="height:4px; border-radius:2px; background:{{ vars.lineSoft }}; overflow:hidden; margin-bottom:16px;">
-            <div style="{{ c.barFillStyle }}"></div>
-          </div>
-
-          <a href="{{ c.href }}" style="{{ c.buttonStyle }}">{{ c.buttonLabel }}</a>
+    <sc-for list="{{ brandSections }}" as="section" hint-placeholder-count="2">
+      <div style="margin-bottom:44px;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+          <h3 style="font-size:15px; margin:0; font-family:'IBM Plex Mono',monospace; letter-spacing:.1em; text-transform:uppercase; color:{{ vars.accent }}; font-weight:700;">{{ section.name }}</h3>
+          <div style="flex:1; height:1px; background:{{ vars.line }};"></div>
         </div>
-      </sc-for>
-    </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:20px;">
+          <sc-for list="{{ section.courses }}" as="c" hint-placeholder-count="2">
+            <div style="{{ c.cardStyle }}">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+                <span style="{{ c.brandBadgeStyle }}">{{ c.brand }}</span>
+                <div style="{{ c.ringStyle }}">
+                  <div style="{{ c.ringInnerStyle }}">{{ c.ringLabel }}</div>
+                </div>
+              </div>
+
+              <h3 style="font-size:17px; margin:0 0 6px 0; color:{{ vars.text }}; font-weight:700;">{{ c.title }}</h3>
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:{{ vars.accent }}; letter-spacing:.05em; margin-bottom:10px;">{{ c.model }}</div>
+              <p style="font-size:13.5px; line-height:1.6; color:{{ vars.textDim }}; margin:0 0 20px 0; min-height:58px;">{{ c.desc }}</p>
+
+              <div style="height:4px; border-radius:2px; background:{{ vars.lineSoft }}; overflow:hidden; margin-bottom:16px;">
+                <div style="{{ c.barFillStyle }}"></div>
+              </div>
+
+              <a href="{{ c.href }}" style="{{ c.buttonStyle }}">{{ c.buttonLabel }}</a>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
   </section>
 
   <footer id="contacto" style="{{ footerStyle }}; position:relative; z-index:2;">
@@ -113,7 +115,6 @@
 class Component extends DCLogic {
   state = {
     theme: this.props.defaultTheme || 'dark',
-    activeBrand: 'Todos',
     progress: {}
   };
 
@@ -145,9 +146,14 @@ class Component extends DCLogic {
 
   courseDefs() {
     return [
-      { id: 'vacon-nxp', title: 'VACON NXP', brand: 'VACON', model: 'Serie NXP · Variador de frecuencia', desc: 'Seguridad eléctrica, arquitectura de potencia, tarjetas de control y diagnóstico de fallas.', href: 'capacitaciones/vacon-nxp/index.html', locked: false },
-      { id: 'vacon-nxc', title: 'VACON NXC', brand: 'VACON', model: 'Serie NXC · Convertidor regenerativo (AFE)', desc: 'Próximamente: fundamentos, parametrización y diagnóstico del panel AFE / convertidor regenerativo VACON NXC.', href: '#', locked: this.props.showComingSoon ?? true },
-      { id: 'abb-acs800', title: 'ABB ACS800', brand: 'ABB', model: 'Serie ACS800 · Variador de frecuencia', desc: 'Fundamentos de instalación, parametrización y mantenimiento preventivo del equipo.', href: '#', locked: this.props.showComingSoon ?? true }
+      { id: 'vacon-nxp', title: 'VACON NXP', brand: 'VACON', model: 'Hardware · Comisionamiento · Diagnóstico', desc: 'Arquitectura de hardware, puesta en marcha y diagnóstico de fallas del variador VACON NXP.', href: 'capacitaciones/vacon/vacon-nxp.html', locked: false },
+      { id: 'vacon-nxp-aplicaciones', title: 'VACON NXP — Parametrización y Aplicaciones', brand: 'VACON', model: 'Parámetros · Macros de aplicación', desc: 'Configuración de parámetros y macros de aplicación del VACON NXP para distintos procesos industriales.', href: 'capacitaciones/vacon/vacon-nxp-aplicaciones.html', locked: false },
+      { id: 'vacon-nxc', title: 'VACON NXC', brand: 'VACON', model: 'Convertidor regenerativo AFE', desc: 'Fundamentos, filtro LCL, precarga y diagnóstico de fallas del convertidor regenerativo Active Front End VACON NXC.', href: 'capacitaciones/vacon/vacon-nxc.html', locked: false },
+      { id: 'abb-acs1000', title: 'ABB ACS1000', brand: 'ABB', model: 'Variador de frecuencia de media tensión', desc: 'Arquitectura, diagnóstico y arranque del variador de frecuencia de media tensión ABB ACS1000.', href: 'capacitaciones/abb/abb-acs1000.html', locked: false },
+      { id: 'abb-acs800', title: 'ABB ACS800', brand: 'ABB', model: 'Fundamentos · Puesta en marcha · Diagnóstico', desc: 'Arquitectura, parametrización, macros y diagnóstico de fallas del variador ABB ACS800 con firmware estándar.', href: 'capacitaciones/abb/abb-acs800.html', locked: false },
+      { id: 'abb-acs800-isu', title: 'ABB ACS800 — ISU (IGBT Supply Unit)', brand: 'ABB', model: 'Rectificador regenerativo activo', desc: 'Arquitectura de potencia, parametrización de control DC/reactiva, protecciones eléctricas y diagnóstico de fallas del front-end activo (ISU) del ACS800.', href: 'capacitaciones/abb/abb-acs800-isu.html', locked: false },
+      { id: 'abb-acs800-firmware', title: 'ABB ACS800-17 — Programa de Control Estándar: Configuración y Diagnóstico Avanzado', brand: 'ABB', model: 'Firmware estándar · Grupos de parámetros', desc: 'Grupos de parámetros 10 a 99, macros, entradas/salidas programables, control de freno y análisis completo de fallos del firmware estándar ACS800-17.', href: 'capacitaciones/abb/abb-acs800-firmware.html', locked: false },
+      { id: 'abb-acs800-drivewindow', title: 'ABB ACS800 — DriveWindow 2: Graficar, Respaldar y Monitorear Parámetros', brand: 'ABB', model: 'DriveWindow 2 · Software de PC', desc: 'Uso operativo de DriveWindow 2 para monitorear señales en tiempo real, configurar tendencias/gráficos, datalogger, y respaldar/restaurar/comparar parámetros de variadores ABB.', href: 'capacitaciones/abb/abb-acs800-drivewindow.html', locked: false }
     ];
   }
 
@@ -170,14 +176,6 @@ class Component extends DCLogic {
     const ctaStyle = `display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:${isLight ? '#ffffff' : '#0a0e13'}; background:${v.accent}; padding:14px 26px; border-radius:5px; text-decoration:none;`;
 
     const footerStyle = `background:${v.bgAlt}; border-top:1px solid ${v.line};`;
-
-    const activeBrand = this.state.activeBrand || 'Todos';
-    const brandNames = ['Todos', ...Array.from(new Set(this.courseDefs().map(c => c.brand)))];
-    const brands = brandNames.map(name => {
-      const isActive = name === activeBrand;
-      const tabStyle = `font-family:'IBM Plex Mono',monospace; font-size:11.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; padding:9px 18px; border-radius:6px; cursor:pointer; outline:none; border:1px solid ${isActive ? v.accent : v.line}; background:${isActive ? v.accent : 'transparent'}; color:${isActive ? (isLight ? '#ffffff' : '#0a0e13') : v.textDim};`;
-      return { label: name, tabStyle, onClick: () => this.setState({ activeBrand: name }) };
-    });
 
     const allCourses = this.courseDefs().map(c => {
       const p = this.state.progress[c.id] || { done: 0, total: 0 };
@@ -205,13 +203,17 @@ class Component extends DCLogic {
       return { ...c, cardStyle, brandBadgeStyle, ringStyle, ringInnerStyle, ringLabel, barFillStyle, buttonStyle, buttonLabel };
     });
 
-    const courses = activeBrand === 'Todos' ? allCourses : allCourses.filter(c => c.brand === activeBrand);
+    const brandOrder = Array.from(new Set(this.courseDefs().map(c => c.brand)));
+    const brandSections = brandOrder.map(name => ({
+      name,
+      courses: allCourses.filter(c => c.brand === name)
+    }));
 
     return {
       vars: v,
       pageStyle, headerStyle, navLinkStyle, themeSwitchStyle, themeKnobStyle,
       heroStyle, heroGridBg, pageLogoWatermarkStyle, ctaStyle, footerStyle,
-      brands, courses,
+      brandSections,
       year: new Date().getFullYear(),
       toggleTheme: () => this.setState(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' }))
     };

@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABB ACS800 · DriveWindow 2: Graficar, Respaldar y Monitorear Parámetros</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #10141c;
+    --panel: #171d2a;
+    --panel-raised: #1f2738;
+    --line: #2b3448;
+    --text: #e8ecf3;
+    --text-dim: #8b93a7;
+    --sky: #6f93d6;
+    --sky-dim: #223257;
+    --emerald: #7ec13f;
+    --emerald-dim: #3a5323;
+    --red: #e2593c;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+  :root.light-theme{
+    --bg: #f4f6fa;
+    --panel: #ffffff;
+    --panel-raised: #eef1f7;
+    --line: #d8dee8;
+    --text: #1b2230;
+    --text-dim: #5c6577;
+    --sky-dim: #e2eaf7;
+    --emerald-dim: #e6f5d9;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  ::selection{background:var(--sky-dim);color:var(--text);}
+
+  @keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+  @keyframes slideInLeft{ from{opacity:0; transform:translateX(-14px);} to{opacity:1; transform:translateX(0);} }
+  @keyframes logoIn{ from{opacity:0; transform:scale(.9);} to{opacity:1; transform:scale(1);} }
+  .reveal{opacity:0; transform:translateY(18px); transition:opacity .55s cubic-bezier(.2,.7,.3,1), transform .55s cubic-bezier(.2,.7,.3,1);}
+  .reveal.in{opacity:1; transform:translateY(0);}
+
+  .app{display:flex; min-height:100vh;}
+  .sidebar{
+    width:280px; flex-shrink:0; background:var(--panel);
+    border-right:1px solid var(--line);
+    padding:22px 16px; position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .brand{padding:4px 8px 20px 8px; border-bottom:1px solid var(--line); margin-bottom:16px;}
+  .brand-logo{width:100%; max-width:170px; display:block; margin:0 0 14px 0; background:#fff; border-radius:6px; padding:8px 10px; animation:logoIn .8s cubic-bezier(.2,.8,.3,1);}
+  .brand .tag{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--emerald); text-transform:uppercase;}
+  .brand h1{font-size:17px; margin:6px 0 2px 0; line-height:1.25;}
+  .brand p{font-size:12px; color:var(--text-dim); margin:0;}
+
+  .navlist{list-style:none; margin:0; padding:0;}
+  .navitem{display:flex; align-items:center; gap:10px; padding:10px 10px; border-radius:6px; cursor:pointer; margin-bottom:2px; border:1px solid transparent; transition:background .2s ease, transform .2s ease;}
+  .navitem:hover{background:var(--panel-raised); transform:translateX(2px);}
+  .navitem.active{background:var(--panel-raised); border-color:var(--line);}
+  .led{width:9px; height:9px; border-radius:50%; flex-shrink:0; background:#3a4048; box-shadow:inset 0 0 0 1px rgba(0,0,0,.4);}
+  .led.done{background:var(--emerald); box-shadow:0 0 6px rgba(126,193,63,.7);}
+  .led.partial{background:var(--sky); box-shadow:0 0 6px rgba(111,147,214,.6);}
+  .navitem .num{font-family:var(--mono); font-size:11px; color:var(--text-dim); width:18px;}
+  .navitem .label{font-size:13.5px;}
+  .navitem.active .label{color:var(--sky);}
+
+  .sidebar-foot{margin-top:18px; padding-top:14px; border-top:1px solid var(--line); font-family:var(--mono); font-size:11px; color:var(--text-dim);}
+  .themebtn{margin-top:10px; width:100%; font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.04em; background:transparent; color:var(--text-dim); border:1px solid var(--line); padding:8px 10px; border-radius:6px; cursor:pointer;}
+  .themebtn:hover{color:var(--text); border-color:var(--sky);}
+
+  .main{flex:1; padding:36px 44px; max-width:920px; animation:fadeIn .5s ease;}
+  @media (max-width: 860px){ .app{flex-direction:column;} .sidebar{width:100%; height:auto; position:relative; border-right:none; border-bottom:1px solid var(--line);} .main{padding:24px;} }
+
+  .modhead{margin-bottom:8px;}
+  .modhead .eyebrow{font-family:var(--mono); font-size:11.5px; color:var(--sky); letter-spacing:.1em; text-transform:uppercase; margin:0 0 6px 0;}
+  .modhead h2{font-size:26px; margin:0 0 6px 0; line-height:1.2;}
+  .modhead .sub{color:var(--text-dim); font-size:14px; max-width:62ch; margin:0;}
+
+  .tabs{display:flex; gap:6px; margin:20px 0 22px 0; border-bottom:1px solid var(--line);}
+  .tab{font-family:var(--mono); font-size:12.5px; letter-spacing:.03em; padding:9px 14px; cursor:pointer; color:var(--text-dim); border-bottom:2px solid transparent; text-transform:uppercase;}
+  .tab:hover{color:var(--text);}
+  .tab.active{color:var(--sky); border-bottom-color:var(--sky);}
+
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:20px 22px; margin-bottom:14px; transition:transform .25s ease, border-color .25s ease;}
+  .card:hover{transform:translateY(-2px); border-color:var(--sky);}
+  .card h3{margin:18px 0 8px 0; font-size:14.5px; color:var(--sky); display:flex; align-items:center; gap:8px;}
+  .card h3:first-child{margin-top:0;}
+  .card p{margin:0 0 10px 0; font-size:14px; line-height:1.65;}
+  .card ul, .card ol{margin:8px 0 12px 0; padding-left:18px;}
+  .card li{font-size:13.5px; line-height:1.7; margin-bottom:5px;}
+
+  .note{margin:12px 0; padding:11px 13px; background:rgba(111,147,214,.08); border-left:3px solid var(--sky); font-size:12.5px; color:var(--text-dim); border-radius:0 5px 5px 0;}
+  .note.warn{background:rgba(226,89,60,.08); border-left-color:var(--red);}
+
+  table.tech{width:100%; border-collapse:collapse; font-family:var(--mono); font-size:12px; margin:6px 0 14px 0;}
+  table.tech th, table.tech td{padding:7px 9px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top;}
+  table.tech th{color:var(--sky); font-weight:600; background:var(--panel-raised);}
+  table.tech td{color:var(--text-dim);}
+
+  .fig{margin:14px 0 6px 0; text-align:center;}
+  .fig img{width:100%; max-width:460px; display:block; margin:0 auto; border-radius:6px; border:1px solid var(--line); background:#f5f3ee;}
+  .fig figcaption{font-family:var(--mono); font-size:10.5px; color:var(--text-dim); margin-top:6px;}
+
+  .placeholder{border:1px dashed var(--line); border-radius:8px; padding:16px; text-align:center; font-size:12px; color:var(--text-dim); margin:12px 0;}
+
+  .cardsgrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:14px; margin-top:6px;}
+  .flash{perspective:1000px; height:130px; cursor:pointer;}
+  .flash-inner{position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d;}
+  .flash.flipped .flash-inner{transform:rotateY(180deg);}
+  .flash-face{position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--line); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:12px;}
+  .flash-front{background:var(--panel-raised);}
+  .flash-front .acr{font-family:var(--mono); font-size:19px; color:var(--sky); font-weight:600;}
+  .flash-front .hint{font-size:10px; color:var(--text-dim); margin-top:8px; text-transform:uppercase; letter-spacing:.05em;}
+  .flash-back{background:var(--sky-dim); transform:rotateY(180deg);}
+  .flash-back .full{font-size:12px; font-weight:600; margin-bottom:5px;}
+  .flash-back .desc{font-size:11px; color:var(--text-dim); line-height:1.4;}
+
+  .ovwgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; margin-top:10px;}
+  .ovwcard{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px 18px; cursor:pointer; transition:transform .2s ease, border-color .2s ease;}
+  .ovwcard:hover{border-color:var(--sky); transform:translateY(-3px);}
+  .ovwcard .top{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .ovwcard .t-title{font-size:13.5px; font-weight:600;}
+  .ovwcard .t-sub{font-size:12px; color:var(--text-dim); line-height:1.4;}
+  .ovwcard .t-status{font-family:var(--mono); font-size:10.5px; text-transform:uppercase; color:var(--text-dim);}
+
+  .barwrap{height:5px; background:var(--panel-raised); border-radius:3px; overflow:hidden; margin-top:16px;}
+  .barfill{height:100%; background:linear-gradient(90deg, var(--sky), var(--emerald)); transition:width .4s;}
+
+  .qcounter{font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-bottom:10px;}
+  .qcard{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:22px;}
+  .qtext{font-size:15.5px; margin:0 0 18px 0; line-height:1.5;}
+  .opt{display:flex; align-items:center; gap:10px; padding:11px 14px; border:1px solid var(--line); border-radius:6px; margin-bottom:9px; cursor:pointer; font-size:13.5px; background:var(--panel-raised); transition:transform .15s ease, border-color .15s ease;}
+  .opt:hover{border-color:var(--sky); transform:translateX(3px);}
+  .opt.correct{border-color:var(--emerald); background:rgba(126,193,63,.1);}
+  .opt.wrong{border-color:var(--red); background:rgba(226,89,60,.1);}
+  .opt .bullet{width:18px; height:18px; border-radius:50%; border:1px solid var(--text-dim); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:10px; color:var(--text-dim);}
+  .opt.correct .bullet{border-color:var(--emerald); color:var(--emerald);}
+  .opt.wrong .bullet{border-color:var(--red); color:var(--red);}
+
+  .explain{margin-top:14px; padding:12px 14px; border-radius:6px; font-size:13px; line-height:1.55; background:var(--panel-raised); border:1px solid var(--line); display:none;}
+  .explain.show{display:block;}
+
+  .qnav{display:flex; justify-content:space-between; align-items:center; margin-top:20px;}
+  .btn{font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.04em; background:var(--sky); color:#0d1626; border:none; padding:10px 18px; border-radius:5px; cursor:pointer; font-weight:600; transition:transform .15s ease, background .2s ease;}
+  .btn:hover{background:#8faee0; transform:translateY(-1px);}
+  .btn.ghost{background:transparent; color:var(--text-dim); border:1px solid var(--line);}
+  .btn.ghost:hover{color:var(--text); border-color:var(--sky);}
+  .btn:disabled{opacity:.35; cursor:not-allowed;}
+
+  .quizresult{text-align:center; padding:40px 20px;}
+  .quizresult .score{font-family:var(--mono); font-size:50px; color:var(--sky); margin-bottom:6px;}
+  .quizresult .label{color:var(--text-dim); font-size:12.5px; margin-bottom:22px;}
+
+  .resetrow{margin-top:26px; padding-top:16px; border-top:1px solid var(--line);}
+  ::-webkit-scrollbar{width:10px;}
+  ::-webkit-scrollbar-thumb{background:#3a4a5a; border-radius:6px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  .flash:focus-visible{outline:2px solid var(--sky); outline-offset:2px;}
+
+  @media print{
+    .sidebar, .no-print, .themebtn, .resetrow{display:none !important;}
+    body{background:#fff; color:#111;}
+    .main{max-width:100%; padding:0;}
+    .card{border:1px solid #999; break-inside:avoid; box-shadow:none;}
+    table.tech th, table.tech td{color:#111; border-bottom:1px solid #999;}
+    table.tech th{background:#eee;}
+    .fig img{max-width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <nav class="sidebar">
+    <div class="brand">
+      <img class="brand-logo" src="../../assets/logo-industrial-technology.png" alt="Logo de la empresa">
+      <div class="tag">Capacitación técnica</div>
+      <h1>ABB ACS800 — DriveWindow 2</h1>
+      <p>Graficar, respaldar y monitorear parámetros de variadores ABB</p>
+    </div>
+    <ul class="navlist" id="navlist"></ul>
+    <div class="sidebar-foot">
+      <a href="../../index.html" style="color:var(--sky); text-decoration:none;">&larr; Volver al portal</a><br><br>
+      Manual DriveWindow 2 (ES) · progreso guardado en este navegador
+      <button class="themebtn" id="themeToggle">🌓 Cambiar tema</button>
+    </div>
+  </nav>
+
+  <main class="main" id="main"></main>
+</div>
+
+<script>
+/* ============================================================
+   HELPERS DE CONTENIDO
+   ============================================================ */
+const PLACEHOLDER = (txt) => `<div class="placeholder">🖼️ [Marcador de imagen: ${txt}]</div>`;
+const NOTE = (txt) => `<div class="note warn">⚠️ ${txt}</div>`;
+const INFO = (txt) => `<div class="note">💡 ${txt}</div>`;
+const H3 = (txt) => `<h3><span style="width:6px;height:6px;border-radius:50%;background:var(--sky);display:inline-block;"></span>${txt}</h3>`;
+const IMG = (src, caption, source) => `<figure class="fig">
+  <img src="img-drivewindow/${src}" alt="${caption}" loading="lazy">
+  <figcaption>${caption}${source ? ` — <span style="font-style:italic">${source}</span>` : ''}</figcaption>
+</figure>`;
+
+/* ============================================================
+   MÓDULOS
+   ============================================================ */
+const MODULES = [
+{ id:'overview', title:'Panel general', short:'Inicio', isOverview:true },
+
+{
+  id:'conceptos-base', title:'Conceptos base: árbol de navegación, conjuntos de elementos y elementos monitorizados', short:'Conceptos base',
+  eyebrow:'Módulo 01 · Fundamentos', sub:'Panel de árbol de navegación, conjuntos de elementos (All parameters / User defined) y las dos pestañas del panel de configuración de tendencia.',
+  content:`
+    <div class="card">
+      <p>DriveWindow 2 organiza la información del accionamiento ("drive") a través de un <strong>Panel de árbol de navegación</strong> (Navigation tree panel), desde el cual se accede a cada accionamiento conectado y a sus datos de configuración, monitoreo y registro.</p>
+      ${PLACEHOLDER("Vista del panel de árbol de navegación (Navigation tree panel) de DriveWindow 2 mostrando un accionamiento conectado")}
+
+      ${H3("Conjuntos de elementos")}
+      <p>Dentro de cada accionamiento, DriveWindow 2 agrupa las señales y parámetros en <strong>conjuntos de elementos</strong>, principalmente de dos tipos:</p>
+      <table class="tech">
+        <tr><th>Tipo de conjunto</th><th>Descripción</th></tr>
+        <tr><td>All parameters (Todos los parámetros)</td><td>Conjunto completo de parámetros del accionamiento</td></tr>
+        <tr><td>User defined (Definido por el usuario)</td><td>Conjunto personalizado, armado por el usuario según su necesidad de monitoreo o registro</td></tr>
+      </table>
+
+      ${H3("Panel de conjuntos de elementos y Panel de configuración de tendencia")}
+      <p>El <strong>Panel de conjuntos de elementos</strong> muestra los elementos disponibles para agregar a una tendencia. El <strong>Panel de configuración de tendencia</strong> es donde se arma qué se va a graficar o registrar, y tiene dos pestañas:</p>
+      <ul>
+        <li><strong>Monitor</strong> — seguimiento de señales en tiempo real (cubierto en el Módulo 02).</li>
+        <li><strong>Datalogger (Registro de datos)</strong> — registro de eventos con disparo (cubierto en el Módulo 04).</li>
+      </ul>
+
+      ${NOTE("Solo puede haber datos monitorizados si no están protegidos por código de acceso. Un elemento protegido por código de acceso en el accionamiento no puede agregarse al monitoreo hasta que se disponga del código correspondiente.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cómo se llama el panel desde el cual se accede a cada accionamiento conectado en DriveWindow 2?", options:["Panel de configuración de tendencia", "Panel de árbol de navegación (Navigation tree panel)", "Panel de conjuntos de elementos", "Panel de comparación de parámetros"], answer:1, explain:"El Panel de árbol de navegación (Navigation tree panel) es desde donde se accede a cada accionamiento (\"drive\") conectado." },
+    { q:"¿Cuáles son los dos tipos principales de conjuntos de elementos mencionados?", options:["Monitor y Datalogger", "All parameters (Todos los parámetros) y User defined (Definido por el usuario)", "Save As y Download", "Backup y Restore"], answer:1, explain:"Los conjuntos de elementos son de tipo All parameters (Todos los parámetros) y User defined (Definido por el usuario)." },
+    { q:"¿Cuáles son las dos pestañas del Panel de configuración de tendencia?", options:["Browsed y Faults", "Monitor y Datalogger (Registro de datos)", "Import y Export", "Backup y Backup Package"], answer:1, explain:"El Panel de configuración de tendencia tiene dos pestañas: Monitor y Datalogger (Registro de datos)." },
+    { q:"¿Qué condición debe cumplirse para que pueda haber datos monitorizados?", options:["El accionamiento debe estar detenido", "Los datos no deben estar protegidos por código de acceso", "Debe haber al menos dos accionamientos conectados", "El Datalogger 2 debe estar habilitado"], answer:1, explain:"Solo puede haber datos monitorizados si no están protegidos por código de acceso." },
+    { q:"¿Qué panel muestra los elementos disponibles para agregar a una tendencia?", options:["Panel de árbol de navegación", "Panel de configuración de tendencia", "Panel de conjuntos de elementos", "Panel de comparación de parámetros"], answer:2, explain:"El Panel de conjuntos de elementos es el que muestra los elementos disponibles para agregarlos a una tendencia." }
+  ]
+},
+
+{
+  id:'agregar-senales-monitor', title:'Cómo agregar señales al Monitor (tiempo real)', short:'Agregar señales al Monitor',
+  eyebrow:'Módulo 02 · Monitoreo en tiempo real', sub:'Botón "Add monitored items", alternativas de Portapapeles/arrastrar y colocar, y los comandos del menú Monitor.',
+  content:`
+    <div class="card">
+      <p>Para seguir señales en tiempo real, primero hay que agregarlas a la pestaña <strong>Monitor</strong> del Panel de configuración de tendencia. La forma directa es usando el botón <strong>"Add monitored items"</strong> (Añadir elementos monitorizados) de la barra de herramientas, o el comando <strong>"Add/Remove Items"</strong> (Añadir/eliminar elementos) del menú <strong>Monitor</strong>.</p>
+      ${PLACEHOLDER("Barra de herramientas de DriveWindow 2 con el botón 'Add monitored items' resaltado")}
+
+      ${H3("Alternativas para agregar elementos")}
+      <ul>
+        <li>Pegar desde el <strong>Portapapeles</strong> (Ctrl+V).</li>
+        <li><strong>Arrastrar y colocar</strong> elementos directamente desde el Panel de conjuntos de elementos hacia la tendencia.</li>
+      </ul>
+
+      ${H3("Comandos del menú Monitor")}
+      <table class="tech">
+        <tr><th>Comando</th><th>Función / atajo</th></tr>
+        <tr><td>Change Drive (Cambiar accionamiento)</td><td>Cambia el accionamiento sobre el que se está monitoreando</td></tr>
+        <tr><td>Start/Continue</td><td>Inicia o continúa el monitoreo — Ctrl+M</td></tr>
+        <tr><td>Stop monitoring</td><td>Detiene el monitoreo — Ctrl+Shift+M</td></tr>
+        <tr><td>Pause</td><td>Pausa el monitoreo — Ctrl+Shift+P</td></tr>
+        <tr><td>Clear</td><td>Borra los datos monitorizados acumulados</td></tr>
+        <tr><td>Fast Mode (Modo rápido)</td><td>Modo de muestreo acelerado para el monitoreo</td></tr>
+      </table>
+      ${INFO("Tener presentes los atajos de teclado (Ctrl+M para iniciar/continuar, Ctrl+Shift+M para detener, Ctrl+Shift+P para pausar) agiliza el trabajo en campo cuando se está monitoreando varias señales a la vez.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué botón de la barra de herramientas se usa para agregar señales al Monitor?", options:["Upload", "Add monitored items (Añadir elementos monitorizados)", "Backup Package", "Trig"], answer:1, explain:"El botón 'Add monitored items' (Añadir elementos monitorizados) de la barra de herramientas agrega señales a la pestaña Monitor." },
+    { q:"¿Cuál es el comando equivalente en el menú Monitor para agregar/quitar señales?", options:["Save As", "Add/Remove Items (Añadir/eliminar elementos)", "Compare", "Export"], answer:1, explain:"El comando 'Add/Remove Items' (Añadir/eliminar elementos) del menú Monitor cumple la misma función que el botón de la barra de herramientas." },
+    { q:"Además del botón de la barra de herramientas, ¿qué dos alternativas existen para agregar elementos a la tendencia?", options:["Solo mediante código de acceso", "Pegar desde el Portapapeles (Ctrl+V) o arrastrar y colocar", "Solo mediante el menú Datalogger", "Escribiendo el nombre del parámetro manualmente"], answer:1, explain:"Se puede pegar desde el Portapapeles (Ctrl+V) o usar arrastrar y colocar como alternativas al botón de la barra de herramientas." },
+    { q:"¿Qué atajo de teclado detiene el monitoreo (Stop monitoring)?", options:["Ctrl+M", "Ctrl+Shift+P", "Ctrl+Shift+M", "Ctrl+D"], answer:2, explain:"Stop monitoring usa el atajo Ctrl+Shift+M." },
+    { q:"¿Qué comando del menú Monitor habilita un muestreo acelerado?", options:["Clear", "Pause", "Fast Mode (Modo rápido)", "Change Drive"], answer:2, explain:"Fast Mode (Modo rápido) es el comando del menú Monitor que habilita un muestreo acelerado." }
+  ]
+},
+
+{
+  id:'config-grafico-monitor', title:'Configuración del gráfico del Monitor (ejes y escalas)', short:'Ejes y escalas del gráfico',
+  eyebrow:'Módulo 03 · Configuración del gráfico', sub:'Submenús Axis y Scaling, escala de canal, autoescala, restaurar predeterminados, intervalo y búfer de historial.',
+  content:`
+    <div class="card">
+      ${H3("Submenú Axis (Eje)")}
+      <p>Controla la duración y el rango vertical del gráfico del Monitor:</p>
+      <table class="tech">
+        <tr><th>Opción</th><th>Función</th></tr>
+        <tr><td>X Axis Length / X Length (Duración X)</td><td>Duración temporal visible del eje X del gráfico</td></tr>
+        <tr><td>Y Axis Maximum</td><td>Valor máximo del eje Y</td></tr>
+        <tr><td>Y Axis Minimum</td><td>Valor mínimo del eje Y</td></tr>
+      </table>
+
+      ${H3("Submenú Scaling (Escala)")}
+      <p>Permite ajustar la escala individual de cada canal (Channel 1 a Channel 6). El cuadro <strong>Channel Scaling</strong> (Escala de canal) define la escala mediante un <strong>coeficiente/offset</strong>, o bien mediante valores directos en <strong>y=0</strong> / <strong>y=100</strong>, según lo configurado en <strong>"Graph Preferences"</strong> (Preferencias de gráficos).</p>
+      ${PLACEHOLDER("Cuadro Channel Scaling (Escala de canal) de DriveWindow 2 mostrando los campos de coeficiente/offset")}
+
+      ${H3("Comandos de escala")}
+      <ul>
+        <li><strong>Autoscaling</strong> (Escala automática) — ajusta automáticamente los ejes al rango de los datos graficados.</li>
+        <li><strong>Restore Defaults</strong> (Restaurar predeterminados) — vuelve la configuración de ejes/escala a sus valores por defecto.</li>
+      </ul>
+
+      ${H3("Intervalo y búfer de historial")}
+      <p>El comando <strong>Interval</strong> (Intervalo) define la frecuencia de muestreo del monitoreo, mientras que <strong>History Buffer</strong> (Búfer de historial) controla cuánta historia de datos se conserva disponible para el gráfico.</p>
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué controla la opción 'X Axis Length / X Length (Duración X)' del submenú Axis?", options:["El valor máximo del eje Y", "La duración temporal visible del eje X del gráfico", "El coeficiente de escala del canal", "La frecuencia de muestreo"], answer:1, explain:"X Axis Length / X Length (Duración X) controla la duración temporal visible en el eje X del gráfico." },
+    { q:"¿En qué cuadro se define la escala de un canal mediante coeficiente/offset o valores en y=0/y=100?", options:["Trig Settings", "Channel Scaling (Escala de canal)", "Select Restore Type", "Parameter Comparison"], answer:1, explain:"El cuadro Channel Scaling (Escala de canal) define la escala del canal mediante coeficiente/offset o valores en y=0/y=100, según Graph Preferences." },
+    { q:"¿Qué comando ajusta automáticamente los ejes al rango de los datos graficados?", options:["Restore Defaults", "Autoscaling (Escala automática)", "Fast Mode", "Interval"], answer:1, explain:"Autoscaling (Escala automática) ajusta automáticamente los ejes al rango de los datos." },
+    { q:"¿Qué comando devuelve la configuración de ejes/escala a sus valores por defecto?", options:["Autoscaling", "Restore Defaults (Restaurar predeterminados)", "Clear", "History Buffer"], answer:1, explain:"Restore Defaults (Restaurar predeterminados) devuelve la configuración a sus valores por defecto." },
+    { q:"¿Qué controla el comando 'History Buffer' (Búfer de historial)?", options:["La frecuencia de muestreo del monitoreo", "Cuánta historia de datos se conserva disponible para el gráfico", "El nodo de dirección del accionamiento", "El tipo de restauración de parámetros"], answer:1, explain:"History Buffer (Búfer de historial) controla cuánta historia de datos queda disponible para el gráfico, mientras que Interval define la frecuencia de muestreo." }
+  ]
+},
+
+{
+  id:'uso-datalogger', title:'Uso del Datalogger (registro de eventos con disparo)', short:'Datalogger (registro con disparo)',
+  eyebrow:'Módulo 04 · Registro de datos', sub:'Menú Datalogger, configuración de disparo (Trig Settings) y la diferencia con los elementos monitorizados.',
+  content:`
+    <div class="card">
+      <p>El <strong>Datalogger</strong> (Registro de datos) permite capturar señales alrededor de un evento de interés, usando un mecanismo de disparo. Sus comandos principales, en el menú <strong>Datalogger</strong>, son:</p>
+      <table class="tech">
+        <tr><th>Comando</th><th>Función</th></tr>
+        <tr><td>Add/Remove Items</td><td>Agrega o quita elementos a registrar</td></tr>
+        <tr><td>Upload (Cargar)</td><td>Carga los datos registrados desde el accionamiento</td></tr>
+        <tr><td>Start</td><td>Inicia el registro</td></tr>
+        <tr><td>Stop</td><td>Detiene el registro</td></tr>
+        <tr><td>Trig (Disparo)</td><td>Fuerza manualmente el disparo del registro</td></tr>
+        <tr><td>Clear</td><td>Borra el registro capturado</td></tr>
+        <tr><td>Clear Graph (Borrar gráfico)</td><td>Borra solo la representación gráfica, sin borrar los datos capturados</td></tr>
+      </table>
+
+      ${H3("Submenú Trig Settings (Configuración de disparo)")}
+      <table class="tech">
+        <tr><th>Parámetro</th><th>Función</th></tr>
+        <tr><td>Pre-Trig (ms) (Disparo previo)</td><td>Tiempo en milisegundos de datos capturados ANTES del disparo</td></tr>
+        <tr><td>Conditions (Condiciones)</td><td>Condiciones que definen cuándo se produce el disparo</td></tr>
+        <tr><td>Variable</td><td>Variable que se evalúa para el disparo</td></tr>
+        <tr><td>Level (Nivel)</td><td>Nivel/umbral de la variable que dispara el registro</td></tr>
+        <tr><td>Hysteresis (Histéresis)</td><td>Margen de histéresis alrededor del nivel de disparo</td></tr>
+      </table>
+      ${PLACEHOLDER("Cuadro Trig Settings (Configuración de disparo) de DriveWindow 2 con los campos Pre-Trig, Conditions, Variable, Level e Hysteresis")}
+
+      ${INFO("Si el accionamiento tiene dos registros de datos, un selector 'Datalogger 2' (Registro de datos 2) permite trabajar sobre el segundo registro por separado del primero.")}
+
+      ${NOTE("A diferencia de los elementos monitorizados (Módulo 02), los elementos que se agregan al Datalogger NO quedan bloqueados en el conjunto de elementos.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué comando del menú Datalogger fuerza manualmente el disparo del registro?", options:["Upload", "Trig (Disparo)", "Clear Graph", "Add/Remove Items"], answer:1, explain:"Trig (Disparo) fuerza manualmente el disparo del registro de datos." },
+    { q:"¿Qué diferencia hay entre 'Clear' y 'Clear Graph' en el menú Datalogger?", options:["Son exactamente lo mismo", "Clear borra el registro capturado; Clear Graph solo borra la representación gráfica sin borrar los datos capturados", "Clear Graph borra los datos y Clear solo la imagen", "Ninguno de los dos borra información"], answer:1, explain:"Clear borra el registro capturado, mientras que Clear Graph (Borrar gráfico) solo borra la representación gráfica sin eliminar los datos ya capturados." },
+    { q:"¿Qué controla el parámetro 'Pre-Trig (ms)' (Disparo previo) en Trig Settings?", options:["El nivel de la variable de disparo", "El tiempo en milisegundos de datos capturados antes del disparo", "La histéresis del nivel de disparo", "La cantidad de canales a registrar"], answer:1, explain:"Pre-Trig (ms) define cuántos milisegundos de datos previos al disparo quedan capturados en el registro." },
+    { q:"¿Para qué sirve el selector 'Datalogger 2' (Registro de datos 2)?", options:["Para duplicar automáticamente el registro 1", "Para trabajar sobre el segundo registro de datos, si el accionamiento tiene dos", "Para exportar el registro a un segundo archivo", "Para comparar dos accionamientos distintos"], answer:1, explain:"El selector Datalogger 2 (Registro de datos 2) permite trabajar sobre el segundo registro de datos cuando el accionamiento cuenta con dos." },
+    { q:"¿Qué diferencia clave existe entre los elementos monitorizados y los elementos registrados por el Datalogger?", options:["No hay ninguna diferencia", "Los elementos registrados NO se bloquean en el conjunto de elementos, a diferencia de los monitorizados", "Los elementos registrados requieren siempre código de acceso y los monitorizados no", "El Datalogger no admite señales digitales"], answer:1, explain:"A diferencia de los elementos monitorizados, los elementos registrados por el Datalogger no quedan bloqueados en el conjunto de elementos." }
+  ]
+},
+
+{
+  id:'lectura-tendencias', title:'Lectura y análisis de tendencias (trend viewer)', short:'Lectura de tendencias',
+  eyebrow:'Módulo 05 · Análisis de tendencias', sub:'Panel de visualización de tendencia, desplazamiento/zoom, cursor gráfico, y exportar/copiar tendencias.',
+  content:`
+    <div class="card">
+      <p>El <strong>Panel de visualización de tendencia</strong> es donde se leen e interpretan los datos ya graficados, tanto del <strong>Monitor</strong> como del <strong>Datalogger</strong>, cada uno en su propia pestaña dentro del mismo panel.</p>
+
+      ${H3("Navegación del gráfico")}
+      <ul>
+        <li><strong>Desplazamiento</strong> — recorrer la tendencia en el tiempo.</li>
+        <li><strong>Ampliación/reducción</strong> (zoom) — acercar o alejar el detalle de la señal graficada.</li>
+        <li><strong>Cursor gráfico</strong> — marcador posicionable sobre la tendencia, con sus propias opciones de lectura puntual de valores.</li>
+      </ul>
+      ${PLACEHOLDER("Panel de visualización de tendencia mostrando el cursor gráfico posicionado sobre una señal analógica")}
+
+      ${H3("Señales analógicas y digitales")}
+      <p>El panel de visualización de tendencia representa tanto <strong>tendencias de señales analógicas</strong> (curvas continuas) como <strong>tendencias de señales digitales</strong> (estados discretos on/off en el tiempo).</p>
+
+      ${H3("Copiar y exportar tendencias")}
+      <ul>
+        <li><strong>Copiar tendencias al Portapapeles</strong> — para pegarlas en otro documento o informe.</li>
+        <li><strong>Exportar tendencias a un archivo</strong> — para guardarlas como archivo independiente.</li>
+      </ul>
+      <p>También es posible realizar la <strong>apertura de un archivo de gráfico</strong> previamente guardado, para revisarlo sin necesidad de estar conectado en línea al accionamiento.</p>
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué panel se usa para leer e interpretar los datos ya graficados del Monitor y del Datalogger?", options:["Panel de árbol de navegación", "Panel de visualización de tendencia", "Panel de conjuntos de elementos", "Panel de configuración de tendencia"], answer:1, explain:"El Panel de visualización de tendencia es donde se leen los datos graficados, tanto de Monitor como de Datalogger, en pestañas separadas." },
+    { q:"¿Qué elemento permite leer valores puntuales posicionándose sobre la tendencia?", options:["El botón Autoscaling", "El cursor gráfico", "El comando Trig", "El submenú Axis"], answer:1, explain:"El cursor gráfico es el marcador posicionable sobre la tendencia que permite leer valores puntuales." },
+    { q:"¿Qué dos tipos de señales puede representar el panel de visualización de tendencia?", options:["Solo señales analógicas", "Tendencias de señales analógicas y digitales", "Solo señales digitales", "Solo parámetros de configuración"], answer:1, explain:"El panel representa tanto tendencias de señales analógicas (curvas continuas) como digitales (estados discretos)." },
+    { q:"¿Qué dos formas existen de sacar una tendencia del panel hacia otro lugar?", options:["Solo se puede imprimir", "Copiar tendencias al Portapapeles, o exportar tendencias a un archivo", "Solo exportar, no se puede copiar", "No es posible sacar una tendencia del panel"], answer:1, explain:"Se puede copiar la tendencia al Portapapeles, o exportarla a un archivo." },
+    { q:"¿Es posible revisar un gráfico guardado sin estar conectado en línea al accionamiento?", options:["No, siempre requiere conexión en línea", "Sí, mediante la apertura de un archivo de gráfico previamente guardado", "Solo si el accionamiento tiene Datalogger 2", "Solo mediante el Backup Package"], answer:1, explain:"Es posible abrir un archivo de gráfico guardado previamente para revisarlo sin estar en línea." }
+  ]
+},
+
+{
+  id:'guardar-restaurar-comparar-parametros', title:'Guardar, restaurar y comparar parámetros (archivo .par vía menú Parameters)', short:'Guardar/restaurar parámetros',
+  eyebrow:'Módulo 06 · Gestión de parámetros', sub:'Save As (Ctrl+S), Download (Ctrl+D) con Select Restore Type, Compare, y el submenú Export.',
+  content:`
+    <div class="card">
+      ${H3("Guardar parámetros: Save As")}
+      <p>El comando <strong>"Save As"</strong> (Guardar como), con atajo <strong>Ctrl+S</strong>, se encuentra en el submenú <strong>Parameters</strong> (Parámetros) del menú <strong>File</strong>, o también en el menú contextual del accionamiento/archivo de parámetros. Al guardar, DriveWindow 2 solicita un comentario en el cuadro <strong>File Comment</strong> (Comentario de archivo).</p>
+      ${PLACEHOLDER("Cuadro File Comment (Comentario de archivo) al ejecutar Save As sobre un archivo de parámetros")}
+
+      ${H3("Restaurar parámetros: Download")}
+      <p>El comando <strong>"Download"</strong> (Descargar), atajo <strong>Ctrl+D</strong>, restaura parámetros hacia el accionamiento. Al ejecutarlo, se abre el cuadro <strong>Select Restore Type</strong> (Seleccionar tipo de restauración), donde se elige si se restauran <strong>parámetros de usuario</strong> y/o <strong>resultados de ciclo ID</strong>.</p>
+
+      ${NOTE("⚠️ Advertencia del manual: detener toda actividad en línea antes de descargar parámetros, por el alto tráfico DDCS que genera esta operación.")}
+
+      ${H3("Comparar parámetros: Compare")}
+      <p>El comando <strong>"Compare"</strong> (Comparar) abre el cuadro <strong>Parameter Comparison</strong> (Comparación de parámetros), con botones <strong>Print</strong> y <strong>Export</strong> para documentar el resultado de la comparación.</p>
+      <p>Cita textual del manual: <em>"Es una buena práctica realizar una comparación de parámetros después de restaurar los parámetros, para comprobar que la restauración se haya hecho correctamente."</em></p>
+
+      ${H3("Submenú Export (Exportar)")}
+      <table class="tech">
+        <tr><th>Opción</th><th>Alcance</th></tr>
+        <tr><td>Selected (Seleccionados)</td><td>Exporta solo los parámetros seleccionados</td></tr>
+        <tr><td>All Drives (Todos los accionamientos)</td><td>Exporta los parámetros de todos los accionamientos</td></tr>
+      </table>
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuál es el comando y atajo para guardar parámetros a un archivo?", options:["Download (Ctrl+D)", "Save As (Ctrl+S)", "Compare (Ctrl+C)", "Upload (Ctrl+U)"], answer:1, explain:"Save As (Guardar como), con atajo Ctrl+S, guarda los parámetros a un archivo, y solicita un comentario en File Comment." },
+    { q:"Al ejecutar Save As, ¿qué cuadro solicita DriveWindow 2 para documentar el archivo?", options:["Select Restore Type", "File Comment (Comentario de archivo)", "Parameter Comparison", "Select Drives"], answer:1, explain:"Al guardar, se solicita un comentario en el cuadro File Comment (Comentario de archivo)." },
+    { q:"¿Qué cuadro se abre al ejecutar Download (Ctrl+D) para restaurar parámetros?", options:["Parameter Comparison", "Select Restore Type (Seleccionar tipo de restauración)", "Backup Package", "Trig Settings"], answer:1, explain:"Al descargar (Download, Ctrl+D) se abre Select Restore Type, donde se elige restaurar parámetros de usuario y/o resultados de ciclo ID." },
+    { q:"Según el manual, ¿qué es buena práctica hacer después de restaurar parámetros?", options:["Reiniciar el accionamiento sin verificar nada más", "Realizar una comparación de parámetros para comprobar que la restauración se haya hecho correctamente", "Borrar inmediatamente el archivo .par usado", "Ejecutar automáticamente un Backup Package"], answer:1, explain:"Cita textual del manual: es buena práctica comparar parámetros después de restaurar, para comprobar que la restauración se haya hecho correctamente — esto se hace con el comando Compare." },
+    { q:"¿Por qué advierte el manual detener toda actividad en línea antes de descargar (Download) parámetros?", options:["Porque el accionamiento se apaga automáticamente", "Por el alto tráfico DDCS que genera la operación de descarga", "Porque el Datalogger se borra automáticamente", "No hay ninguna advertencia asociada a Download"], answer:1, explain:"El manual advierte detener toda actividad en línea antes de descargar parámetros, debido al alto tráfico DDCS que esta operación genera." }
+  ]
+},
+
+{
+  id:'backup-restore-software-sistema', title:'Copia de seguridad completa del software de sistema (Backup Package / Restore)', short:'Backup completo del sistema',
+  eyebrow:'Módulo 07 · Respaldo del sistema', sub:'Diferencia con el Módulo 06: respaldo total de la FPROM/tarjeta AMC vía paquete .BPG, no solo parámetros.',
+  content:`
+    <div class="card">
+      ${NOTE("Diferencia clave con el Módulo 06: mientras que Save As / Download trabajan sobre un archivo .par de parámetros, este módulo cubre el respaldo TOTAL del software de sistema — la FPROM / tarjeta AMC completa — mediante un paquete de copia de seguridad (Backup Package).")}
+
+      ${H3("Submenú System Software (Software de sistema)")}
+      <table class="tech">
+        <tr><th>Comando</th><th>Función</th></tr>
+        <tr><td>Backup</td><td>Respalda el software de sistema del accionamiento seleccionado</td></tr>
+        <tr><td>Backup All</td><td>Respalda el software de sistema de todos los accionamientos</td></tr>
+        <tr><td>Restore</td><td>Restaura el software de sistema desde un respaldo</td></tr>
+        <tr><td>Backup Package</td><td>Administra el paquete de copia de seguridad (archivo .BPG)</td></tr>
+      </table>
+
+      ${H3("Procedimiento citado del manual")}
+      <ol>
+        <li>Cree un nuevo paquete de copia de seguridad o abra uno existente.</li>
+        <li>Realice una copia de seguridad de todos los accionamientos o seleccione los accionamientos a copiar.</li>
+        <li>Espere mientras que se realiza la copia de seguridad.</li>
+        <li>Guarde el paquete de copia de seguridad.</li>
+        <li>Cierre el paquete de copia de seguridad.</li>
+      </ol>
+      ${PLACEHOLDER("Cuadro Select Drives (Seleccionar accionamientos) con el botón Backup de DriveWindow 2")}
+      <p>El cuadro <strong>Select Drives</strong> (Seleccionar accionamientos) presenta el botón <strong>Backup</strong> para lanzar la copia de seguridad de los accionamientos elegidos, y el resultado se administra como <strong>Backup Package</strong> (archivo <strong>*.BPG</strong>).</p>
+
+      ${NOTE("⚠️ Advertencia textual exacta del manual: \"La dirección de nodo 1 se reserva para los repuestos. Si su red de accionamientos contiene un accionamiento con la dirección de nodo 1, la restauración de una copia de seguridad a accionamientos con direcciones nodo diferentes no es posible, a no ser que desconecte el nodo 1 antes de intentar la restauración.\"")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué diferencia principal hay entre este módulo y el Módulo 06 (Save As/Download)?", options:["No hay ninguna diferencia, son el mismo procedimiento", "Este módulo cubre el respaldo total del software de sistema (FPROM/tarjeta AMC) vía paquete .BPG, no solo un archivo de parámetros .par", "Este módulo solo aplica a señales monitorizadas", "Este módulo reemplaza por completo al Módulo 06"], answer:1, explain:"El Módulo 06 trabaja sobre archivos .par de parámetros; este módulo cubre el respaldo total del software de sistema (FPROM/tarjeta AMC) mediante un paquete de copia de seguridad (.BPG)." },
+    { q:"¿Qué comando del submenú System Software respalda el software de sistema de TODOS los accionamientos?", options:["Backup", "Backup All", "Restore", "Backup Package"], answer:1, explain:"Backup All respalda el software de sistema de todos los accionamientos, a diferencia de Backup que actúa sobre uno seleccionado." },
+    { q:"¿Cuál es el primer paso del procedimiento citado para hacer un respaldo completo?", options:["Guardar el paquete de copia de seguridad", "Crear un nuevo paquete de copia de seguridad o abrir uno existente", "Cerrar el paquete de copia de seguridad", "Seleccionar los accionamientos a copiar"], answer:1, explain:"El primer paso citado es crear un nuevo paquete de copia de seguridad o abrir uno existente." },
+    { q:"¿Con qué extensión de archivo se administra el paquete de copia de seguridad?", options:["*.par", "*.BPG", "*.txt", "*.csv"], answer:1, explain:"El paquete de copia de seguridad se administra como archivo *.BPG (Backup Package)." },
+    { q:"Según la advertencia textual del manual, ¿qué ocurre si la red de accionamientos contiene un equipo con dirección de nodo 1 al intentar restaurar a accionamientos con direcciones distintas?", options:["No hay ninguna restricción, se puede restaurar sin problema", "La restauración no es posible a no ser que se desconecte el nodo 1 antes de intentarla, porque esa dirección está reservada para los repuestos", "El accionamiento con nodo 1 se reinicia automáticamente", "Solo se puede restaurar si todos los accionamientos tienen dirección de nodo 1"], answer:1, explain:"El manual advierte textualmente que la dirección de nodo 1 se reserva para los repuestos, y que la restauración a accionamientos con direcciones diferentes no es posible a no ser que se desconecte el nodo 1 antes de intentarla." }
+  ]
+},
+
+{
+  id:'buenas-practicas-precauciones', title:'Buenas prácticas y precauciones en campo', short:'Buenas prácticas de campo',
+  eyebrow:'Módulo 08 · Buenas prácticas', sub:'Control tomado, monitoreo en línea, coincidencia de macro, decisiones tras la descarga, y respaldo previo obligatorio.',
+  content:`
+    <div class="card">
+      ${H3("Control tomado por otro maestro")}
+      <p>No se puede guardar, restaurar, comparar ni imprimir parámetros de un accionamiento mientras esté <strong>tomado el control</strong> por otro maestro — en ese caso, el comando correspondiente aparece <strong>atenuado</strong> (deshabilitado) en la interfaz.</p>
+
+      ${H3("Antes de backup, restauración o descarga")}
+      <ul>
+        <li><strong>Detener toda monitorización</strong> en curso.</li>
+        <li><strong>Poner DriveWindow fuera de línea</strong> antes de ejecutar el backup, la restauración o la descarga.</li>
+      </ul>
+
+      ${H3("Verificación de macro de aplicación")}
+      <p>Antes de restaurar un archivo de parámetros, <strong>verificar que la macro de aplicación coincida</strong> entre el archivo a restaurar y el accionamiento de destino.</p>
+
+      ${H3("Decisiones tras la descarga (Download)")}
+      <p>Después de completar una descarga de parámetros, hay dos decisiones a tomar:</p>
+      <ol>
+        <li>Decidir si se fuerza el almacenamiento en memoria <strong>FLASH</strong> (opciones <strong>Yes/No</strong>).</li>
+        <li>Decidir si se reinicia el accionamiento.</li>
+      </ol>
+
+      ${NOTE("Recordar tener siempre una copia de seguridad completa antes de restaurar parámetros — este recordatorio conecta directamente con el flujo del Módulo 07 (Backup Package) como red de seguridad previa a cualquier restauración.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué ocurre con los comandos de guardar/restaurar/comparar/imprimir parámetros si el accionamiento tiene el control tomado por otro maestro?", options:["Funcionan con normalidad", "El comando correspondiente aparece atenuado (deshabilitado) en la interfaz", "Se ejecutan automáticamente sin confirmación", "Solo se deshabilita el comando Compare"], answer:1, explain:"Mientras el accionamiento tiene el control tomado por otro maestro, el comando de guardar/restaurar/comparar/imprimir parámetros aparece atenuado." },
+    { q:"¿Qué se debe hacer antes de ejecutar un backup, restauración o descarga?", options:["Aumentar el Interval del Monitor", "Detener toda monitorización y poner DriveWindow fuera de línea", "Activar el Datalogger 2", "Cambiar la escala de todos los canales"], answer:1, explain:"Antes de backup/restauración/descarga hay que detener toda monitorización en curso y poner DriveWindow fuera de línea." },
+    { q:"¿Qué se debe verificar respecto a la macro de aplicación antes de restaurar un archivo de parámetros?", options:["No es necesario verificar nada relacionado con macros", "Que la macro de aplicación coincida entre el archivo a restaurar y el accionamiento de destino", "Que la macro sea siempre 'FABRICA'", "Que el archivo no tenga macro asignada"], answer:1, explain:"Antes de restaurar, hay que verificar que la macro de aplicación del archivo coincida con la del accionamiento de destino." },
+    { q:"Después de completar una descarga (Download) de parámetros, ¿qué dos decisiones hay que tomar?", options:["Elegir el color del gráfico y el nombre del archivo", "Decidir si se fuerza el almacenamiento en memoria FLASH (Yes/No) y si se reinicia el accionamiento", "Decidir el Interval y el History Buffer", "Elegir entre Backup y Backup All"], answer:1, explain:"Tras la descarga, hay que decidir si se fuerza el almacenamiento en memoria FLASH (Yes/No) y si se reinicia el accionamiento." },
+    { q:"¿Qué recordatorio de buenas prácticas conecta este módulo con el Módulo 07 (Backup Package)?", options:["Cambiar siempre la dirección de nodo antes de restaurar", "Tener siempre una copia de seguridad completa antes de restaurar parámetros", "Usar siempre Fast Mode al restaurar", "Restaurar siempre resultados de ciclo ID, nunca parámetros de usuario"], answer:1, explain:"El recordatorio de tener siempre una copia de seguridad completa antes de restaurar parámetros conecta con el flujo de Backup Package del Módulo 07 como red de seguridad previa." }
+  ]
+}
+];
+
+/* ============================================================
+   ESTADO + PERSISTENCIA (localStorage)
+   ============================================================ */
+const STORAGE_KEY = 'abb-acs800-drivewindow_training_progress_v1';
+const THEME_KEY = 'capacitacion-theme';
+
+const state = {
+  currentId: 'overview',
+  view: 'learn',
+  quizProgress: {},
+  quizIndex: {},
+};
+MODULES.forEach(m=>{
+  if(m.quiz){ state.quizProgress[m.id] = { answered: new Array(m.quiz.length).fill(null) }; state.quizIndex[m.id] = 0; }
+});
+
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const saved = JSON.parse(raw);
+    MODULES.forEach(m=>{
+      if(!m.quiz) return;
+      const savedAnswers = saved && saved[m.id];
+      if(Array.isArray(savedAnswers) && savedAnswers.length === m.quiz.length){
+        state.quizProgress[m.id].answered = savedAnswers;
+      }
+    });
+  }catch(e){ console.warn('No se pudo cargar el progreso guardado:', e); }
+}
+function saveProgress(){
+  try{
+    const data = {};
+    MODULES.forEach(m=>{ if(m.quiz) data[m.id] = state.quizProgress[m.id].answered; });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }catch(e){ console.warn('No se pudo guardar el progreso:', e); }
+  syncPortalProgress();
+}
+function syncPortalProgress(){
+  try{
+    const teachable = MODULES.filter(m=>!m.isOverview);
+    const total = teachable.reduce((s,m)=>s+m.quiz.length,0);
+    const done = teachable.reduce((s,m)=>s+state.quizProgress[m.id].answered.filter(a=>a!==null).length,0);
+    localStorage.setItem('vfd_progress_abb-acs800-drivewindow', JSON.stringify({ done, total }));
+  }catch(e){ console.warn('No se pudo sincronizar el progreso con el portal:', e); }
+}
+function resetAllProgress(){
+  MODULES.forEach(m=>{
+    if(!m.quiz) return;
+    state.quizProgress[m.id].answered = new Array(m.quiz.length).fill(null);
+    state.quizIndex[m.id] = 0;
+  });
+  saveProgress();
+  render();
+}
+loadProgress();
+syncPortalProgress();
+
+/* ============================================================
+   TEMA
+   ============================================================ */
+function applyTheme(){
+  const saved = localStorage.getItem(THEME_KEY);
+  if(saved === 'light'){ document.documentElement.classList.add('light-theme'); }
+  else { document.documentElement.classList.remove('light-theme'); }
+}
+applyTheme();
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  const isLight = document.documentElement.classList.toggle('light-theme');
+  localStorage.setItem(THEME_KEY, isLight ? 'light' : 'dark');
+});
+
+/* ============================================================
+   ANIMACIÓN DE ENTRADA
+   ============================================================ */
+function animateIn(container){
+  const items = container.querySelectorAll('.modhead, .card, .fig, .ovwcard, .qcard, .barwrap, .flash');
+  items.forEach((el,i)=>{ el.classList.add('reveal'); el.style.transitionDelay = Math.min(i*70,560)+'ms'; });
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ items.forEach(el=>el.classList.add('in')); }));
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+function ledStateFor(m){
+  if(m.isOverview) return '';
+  const p = state.quizProgress[m.id];
+  if(!p) return '';
+  const answeredCount = p.answered.filter(a=>a!==null).length;
+  if(answeredCount===0) return '';
+  if(answeredCount < m.quiz.length) return 'partial';
+  return 'done';
+}
+let sidebarAnimated = false;
+function renderSidebar(){
+  const ul = document.getElementById('navlist');
+  ul.innerHTML = '';
+  MODULES.forEach((m,i)=>{
+    const li = document.createElement('li');
+    li.className = 'navitem' + (state.currentId===m.id ? ' active' : '');
+    if(!sidebarAnimated){ li.style.animation = `slideInLeft .45s cubic-bezier(.2,.7,.3,1) ${i*35}ms both`; }
+    const ledClass = ledStateFor(m);
+    li.innerHTML = `
+      ${m.isOverview ? '<span class="led"></span>' : `<span class="led ${ledClass}"></span>`}
+      <span class="num">${m.isOverview ? '★' : String(i).padStart(2,'0')}</span>
+      <span class="label">${m.short}</span>
+    `;
+    li.onclick = ()=>{ state.currentId = m.id; state.view = 'learn'; render(); window.scrollTo(0,0); };
+    ul.appendChild(li);
+  });
+  sidebarAnimated = true;
+}
+
+/* ============================================================
+   OVERVIEW
+   ============================================================ */
+function renderOverview(){
+  const teachable = MODULES.filter(m=>!m.isOverview);
+  const totalQ = teachable.reduce((s,m)=>s+m.quiz.length,0);
+  const answeredQ = teachable.reduce((s,m)=>s+state.quizProgress[m.id].answered.filter(a=>a!==null).length,0);
+  const pct = totalQ ? Math.round(answeredQ/totalQ*100) : 0;
+
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="modhead">
+      <p class="eyebrow">Capacitación · ABB ACS800 — DriveWindow 2</p>
+      <h2>Biblioteca de módulos</h2>
+      <p class="sub">Navega libremente entre los ${teachable.length} módulos. Cada uno tiene su contenido técnico y su quiz — el progreso se guarda automáticamente en este navegador.</p>
+    </div>
+    <div class="barwrap"><div class="barfill" style="width:${pct}%"></div></div>
+    <p style="font-family:var(--mono); font-size:11.5px; color:var(--text-dim); margin:8px 0 24px 0;">${answeredQ} / ${totalQ} preguntas respondidas · ${pct}%</p>
+    ${pct===100 ? `
+    <div class="card" style="border-color:var(--emerald); background:var(--emerald-dim);">
+      <h3 style="color:var(--emerald); margin-top:0;">🏆 Capacitación completa</h3>
+      <p style="margin-bottom:0;">Completaste el quiz de los ${teachable.length} módulos de la capacitación ABB ACS800 — DriveWindow 2: Graficar, Respaldar y Monitorear Parámetros. Puedes reintentar cualquier módulo cuando quieras para reforzar los conceptos con menos aciertos.</p>
+    </div>` : ''}
+    <div class="ovwgrid">
+      ${teachable.map((m,i)=>{
+        const p = state.quizProgress[m.id];
+        const answered = p.answered.filter(a=>a!==null).length;
+        const correct = p.answered.reduce((s,a)=> s + (a===true?1:0), 0);
+        let status = 'sin iniciar';
+        if(answered>0 && answered<m.quiz.length) status = `en curso · ${answered}/${m.quiz.length}`;
+        if(answered===m.quiz.length) status = `completo · ${correct}/${m.quiz.length} correctas`;
+        const startBadge = m.id==='conceptos-base' ? `<span style="font-family:var(--mono); font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--emerald); border:1px solid var(--emerald); border-radius:4px; padding:2px 6px; margin-left:8px;">Empieza aquí</span>` : '';
+        return `<div class="ovwcard" data-id="${m.id}">
+          <div class="top"><span class="t-title">${String(i).padStart(2,'0')} · ${m.title}${startBadge}</span><span class="led ${ledStateFor(m)}"></span></div>
+          <div class="t-sub">${m.sub}</div>
+          <div class="t-status" style="margin-top:10px;">${status}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="resetrow">
+      <button class="btn ghost" id="resetAllBtn">Borrar todo el progreso guardado</button>
+    </div>
+  `;
+  const resetBtn = document.getElementById('resetAllBtn');
+  if(resetBtn){
+    resetBtn.onclick = ()=>{
+      if(confirm('¿Borrar el progreso guardado de todos los módulos? Esta acción no se puede deshacer.')){
+        resetAllProgress();
+      }
+    };
+  }
+  main.querySelectorAll('.ovwcard').forEach(el=>{
+    el.onclick = ()=>{ state.currentId = el.dataset.id; state.view = 'learn'; render(); window.scrollTo(0,0); };
+  });
+  animateIn(main);
+}
+
+/* ============================================================
+   MÓDULO (learn / quiz)
+   ============================================================ */
+function renderModule(m){
+  const main = document.getElementById('main');
+  const hasCards = !!m.flashcards;
+  main.innerHTML = `
+    <div class="modhead">
+      <p class="eyebrow">${m.eyebrow}</p>
+      <h2>${m.title}</h2>
+      <p class="sub">${m.sub}</p>
+    </div>
+    <div class="tabs no-print">
+      <div class="tab ${state.view==='learn'?'active':''}" data-v="learn">Aprender</div>
+      <div class="tab ${state.view==='quiz'?'active':''}" data-v="quiz">Quiz (${m.quiz.length})</div>
+      <div style="margin-left:auto; align-self:center;"><button class="btn ghost" id="printBtn" style="font-size:10.5px; padding:6px 12px;">🖨️ Imprimir esta unidad</button></div>
+    </div>
+    <div id="modbody"></div>
+  `;
+  main.querySelectorAll('.tab').forEach(t=>{ t.onclick = ()=>{ state.view = t.dataset.v; render(); }; });
+  const printBtn = document.getElementById('printBtn');
+  if(printBtn) printBtn.onclick = ()=> window.print();
+  const body = document.getElementById('modbody');
+  if(state.view==='learn'){
+    body.innerHTML = m.content;
+    if(hasCards) renderFlashcards(m);
+  } else {
+    renderQuiz(m, body);
+  }
+  animateIn(main);
+}
+
+function renderFlashcards(m){
+  const grid = document.getElementById('flashgrid');
+  if(!grid) return;
+  grid.innerHTML = m.flashcards.map((f)=>`
+    <div class="flash" tabindex="0" role="button" aria-label="Tarjeta ${f.acr}, presiona Enter o Espacio para revelar">
+      <div class="flash-inner">
+        <div class="flash-face flash-front"><div class="acr">${f.acr}</div><div class="hint">toca para revelar</div></div>
+        <div class="flash-face flash-back"><div class="full">${f.full}</div><div class="desc">${f.desc}</div></div>
+      </div>
+    </div>
+  `).join('');
+  grid.querySelectorAll('.flash').forEach(el=>{
+    el.onclick = ()=> el.classList.toggle('flipped');
+    el.onkeydown = (e)=>{
+      if(e.key==='Enter' || e.key===' ' || e.key==='Spacebar'){
+        e.preventDefault();
+        el.classList.toggle('flipped');
+      }
+    };
+  });
+}
+
+/* ---------- Quiz engine ---------- */
+function renderQuiz(m, body){
+  const progress = state.quizProgress[m.id];
+  const total = m.quiz.length;
+  const answeredAll = progress.answered.every(a=>a!==null);
+
+  if(answeredAll){
+    const correct = progress.answered.filter(a=>a===true).length;
+    const missed = m.quiz.map((q,qi)=>({q,qi})).filter(x=>progress.answered[x.qi]===false);
+    body.innerHTML = `
+      <div class="qcard">
+        <div class="quizresult">
+          <div class="score">${correct}/${total}</div>
+          <div class="label">respuestas correctas en este módulo</div>
+          <button class="btn ghost" id="retryBtn">Reintentar quiz</button>
+        </div>
+        ${missed.length ? `
+        <div style="text-align:left; margin-top:10px;">
+          <h3 style="color:var(--red);">Preguntas a repasar (${missed.length})</h3>
+          ${missed.map(x=>`
+            <div class="note warn" style="margin:10px 0;">
+              <strong>${x.q.q}</strong><br>
+              Respuesta correcta: ${x.q.options[x.q.answer]}<br>
+              ${x.q.explain}
+            </div>
+          `).join('')}
+        </div>` : ''}
+      </div>
+    `;
+    document.getElementById('retryBtn').onclick = ()=>{
+      progress.answered = new Array(total).fill(null);
+      state.quizIndex[m.id] = 0;
+      saveProgress();
+      render();
+    };
+    return;
+  }
+
+  let idx = state.quizIndex[m.id];
+  if(progress.answered[idx]!==null){
+    idx = progress.answered.findIndex(a=>a===null);
+    state.quizIndex[m.id] = idx;
+  }
+  const q = m.quiz[idx];
+  body.innerHTML = `
+    <div class="qcounter">Pregunta ${idx+1} de ${total}</div>
+    <div class="qcard">
+      <p class="qtext">${q.q}</p>
+      <div id="optlist">
+        ${q.options.map((o,oi)=>`<div class="opt" data-oi="${oi}"><span class="bullet">${String.fromCharCode(65+oi)}</span><span>${o}</span></div>`).join('')}
+      </div>
+      <div class="explain" id="explainBox">${q.explain}</div>
+      <div class="qnav">
+        <span style="font-family:var(--mono); font-size:11px; color:var(--text-dim);">selecciona una opción</span>
+        <button class="btn" id="nextBtn" disabled>Siguiente</button>
+      </div>
+    </div>
+  `;
+  let picked = false;
+  document.querySelectorAll('#optlist .opt').forEach(el=>{
+    el.onclick = ()=>{
+      if(picked) return;
+      picked = true;
+      const oi = parseInt(el.dataset.oi);
+      const isCorrect = oi===q.answer;
+      progress.answered[idx] = isCorrect;
+      saveProgress();
+      document.querySelectorAll('#optlist .opt').forEach(o2=>{
+        const oi2 = parseInt(o2.dataset.oi);
+        if(oi2===q.answer) o2.classList.add('correct');
+        else if(oi2===oi) o2.classList.add('wrong');
+      });
+      document.getElementById('explainBox').classList.add('show');
+      const nb = document.getElementById('nextBtn');
+      nb.disabled = false;
+      nb.onclick = ()=>{
+        state.quizIndex[m.id] = idx+1 < total ? idx+1 : idx;
+        render();
+      };
+      renderSidebar();
+    };
+  });
+}
+
+/* ============================================================
+   RENDER PRINCIPAL
+   ============================================================ */
+function render(){
+  renderSidebar();
+  const m = MODULES.find(mm=>mm.id===state.currentId);
+  if(m.isOverview) renderOverview();
+  else renderModule(m);
+}
+
+render();
+</script>
+</body>
+</html>

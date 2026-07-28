@@ -1,0 +1,757 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABB ACS800 · Fundamentos, Puesta en Marcha y Diagnóstico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #10141c;
+    --panel: #171d2a;
+    --panel-raised: #1f2738;
+    --line: #2b3448;
+    --text: #e8ecf3;
+    --text-dim: #8b93a7;
+    --sky: #6f93d6;
+    --sky-dim: #223257;
+    --emerald: #7ec13f;
+    --emerald-dim: #3a5323;
+    --red: #e2593c;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+  :root.light-theme{
+    --bg: #f4f6fa;
+    --panel: #ffffff;
+    --panel-raised: #eef1f7;
+    --line: #d8dee8;
+    --text: #1b2230;
+    --text-dim: #5c6577;
+    --sky-dim: #e2eaf7;
+    --emerald-dim: #e6f5d9;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  ::selection{background:var(--sky-dim);color:var(--text);}
+
+  @keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+  @keyframes slideInLeft{ from{opacity:0; transform:translateX(-14px);} to{opacity:1; transform:translateX(0);} }
+  @keyframes logoIn{ from{opacity:0; transform:scale(.9);} to{opacity:1; transform:scale(1);} }
+  .reveal{opacity:0; transform:translateY(18px); transition:opacity .55s cubic-bezier(.2,.7,.3,1), transform .55s cubic-bezier(.2,.7,.3,1);}
+  .reveal.in{opacity:1; transform:translateY(0);}
+
+  .app{display:flex; min-height:100vh;}
+  .sidebar{
+    width:280px; flex-shrink:0; background:var(--panel);
+    border-right:1px solid var(--line);
+    padding:22px 16px; position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .brand{padding:4px 8px 20px 8px; border-bottom:1px solid var(--line); margin-bottom:16px;}
+  .brand-logo{width:100%; max-width:170px; display:block; margin:0 0 14px 0; background:#fff; border-radius:6px; padding:8px 10px; animation:logoIn .8s cubic-bezier(.2,.8,.3,1);}
+  .brand .tag{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--emerald); text-transform:uppercase;}
+  .brand h1{font-size:17px; margin:6px 0 2px 0; line-height:1.25;}
+  .brand p{font-size:12px; color:var(--text-dim); margin:0;}
+
+  .navlist{list-style:none; margin:0; padding:0;}
+  .navitem{display:flex; align-items:center; gap:10px; padding:10px 10px; border-radius:6px; cursor:pointer; margin-bottom:2px; border:1px solid transparent; transition:background .2s ease, transform .2s ease;}
+  .navitem:hover{background:var(--panel-raised); transform:translateX(2px);}
+  .navitem.active{background:var(--panel-raised); border-color:var(--line);}
+  .led{width:9px; height:9px; border-radius:50%; flex-shrink:0; background:#3a4048; box-shadow:inset 0 0 0 1px rgba(0,0,0,.4);}
+  .led.done{background:var(--emerald); box-shadow:0 0 6px rgba(126,193,63,.7);}
+  .led.partial{background:var(--sky); box-shadow:0 0 6px rgba(111,147,214,.6);}
+  .navitem .num{font-family:var(--mono); font-size:11px; color:var(--text-dim); width:18px;}
+  .navitem .label{font-size:13.5px;}
+  .navitem.active .label{color:var(--sky);}
+
+  .sidebar-foot{margin-top:18px; padding-top:14px; border-top:1px solid var(--line); font-family:var(--mono); font-size:11px; color:var(--text-dim);}
+  .themebtn{margin-top:10px; width:100%; font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.04em; background:transparent; color:var(--text-dim); border:1px solid var(--line); padding:8px 10px; border-radius:6px; cursor:pointer;}
+  .themebtn:hover{color:var(--text); border-color:var(--sky);}
+
+  .main{flex:1; padding:36px 44px; max-width:920px; animation:fadeIn .5s ease;}
+  @media (max-width: 860px){ .app{flex-direction:column;} .sidebar{width:100%; height:auto; position:relative; border-right:none; border-bottom:1px solid var(--line);} .main{padding:24px;} }
+
+  .modhead{margin-bottom:8px;}
+  .modhead .eyebrow{font-family:var(--mono); font-size:11.5px; color:var(--sky); letter-spacing:.1em; text-transform:uppercase; margin:0 0 6px 0;}
+  .modhead h2{font-size:26px; margin:0 0 6px 0; line-height:1.2;}
+  .modhead .sub{color:var(--text-dim); font-size:14px; max-width:62ch; margin:0;}
+
+  .tabs{display:flex; gap:6px; margin:20px 0 22px 0; border-bottom:1px solid var(--line);}
+  .tab{font-family:var(--mono); font-size:12.5px; letter-spacing:.03em; padding:9px 14px; cursor:pointer; color:var(--text-dim); border-bottom:2px solid transparent; text-transform:uppercase;}
+  .tab:hover{color:var(--text);}
+  .tab.active{color:var(--sky); border-bottom-color:var(--sky);}
+
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:20px 22px; margin-bottom:14px; transition:transform .25s ease, border-color .25s ease;}
+  .card:hover{transform:translateY(-2px); border-color:var(--sky);}
+  .card h3{margin:18px 0 8px 0; font-size:14.5px; color:var(--sky); display:flex; align-items:center; gap:8px;}
+  .card h3:first-child{margin-top:0;}
+  .card p{margin:0 0 10px 0; font-size:14px; line-height:1.65;}
+  .card ul, .card ol{margin:8px 0 12px 0; padding-left:18px;}
+  .card li{font-size:13.5px; line-height:1.7; margin-bottom:5px;}
+
+  .note{margin:12px 0; padding:11px 13px; background:rgba(111,147,214,.08); border-left:3px solid var(--sky); font-size:12.5px; color:var(--text-dim); border-radius:0 5px 5px 0;}
+  .note.warn{background:rgba(226,89,60,.08); border-left-color:var(--red);}
+
+  table.tech{width:100%; border-collapse:collapse; font-family:var(--mono); font-size:12px; margin:6px 0 14px 0;}
+  table.tech th, table.tech td{padding:7px 9px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top;}
+  table.tech th{color:var(--sky); font-weight:600; background:var(--panel-raised);}
+  table.tech td{color:var(--text-dim);}
+
+  .fig{margin:14px 0 6px 0; text-align:center;}
+  .fig img{width:100%; max-width:460px; display:block; margin:0 auto; border-radius:6px; border:1px solid var(--line); background:#f5f3ee;}
+  .fig figcaption{font-family:var(--mono); font-size:10.5px; color:var(--text-dim); margin-top:6px;}
+
+  .placeholder{border:1px dashed var(--line); border-radius:8px; padding:16px; text-align:center; font-size:12px; color:var(--text-dim); margin:12px 0;}
+
+  .cardsgrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:14px; margin-top:6px;}
+  .flash{perspective:1000px; height:130px; cursor:pointer;}
+  .flash-inner{position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d;}
+  .flash.flipped .flash-inner{transform:rotateY(180deg);}
+  .flash-face{position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--line); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:12px;}
+  .flash-front{background:var(--panel-raised);}
+  .flash-front .acr{font-family:var(--mono); font-size:19px; color:var(--sky); font-weight:600;}
+  .flash-front .hint{font-size:10px; color:var(--text-dim); margin-top:8px; text-transform:uppercase; letter-spacing:.05em;}
+  .flash-back{background:var(--sky-dim); transform:rotateY(180deg);}
+  .flash-back .full{font-size:12px; font-weight:600; margin-bottom:5px;}
+  .flash-back .desc{font-size:11px; color:var(--text-dim); line-height:1.4;}
+
+  .ovwgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; margin-top:10px;}
+  .ovwcard{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px 18px; cursor:pointer; transition:transform .2s ease, border-color .2s ease;}
+  .ovwcard:hover{border-color:var(--sky); transform:translateY(-3px);}
+  .ovwcard .top{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .ovwcard .t-title{font-size:13.5px; font-weight:600;}
+  .ovwcard .t-sub{font-size:12px; color:var(--text-dim); line-height:1.4;}
+  .ovwcard .t-status{font-family:var(--mono); font-size:10.5px; text-transform:uppercase; color:var(--text-dim);}
+
+  .barwrap{height:5px; background:var(--panel-raised); border-radius:3px; overflow:hidden; margin-top:16px;}
+  .barfill{height:100%; background:linear-gradient(90deg, var(--sky), var(--emerald)); transition:width .4s;}
+
+  .qcounter{font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-bottom:10px;}
+  .qcard{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:22px;}
+  .qtext{font-size:15.5px; margin:0 0 18px 0; line-height:1.5;}
+  .opt{display:flex; align-items:center; gap:10px; padding:11px 14px; border:1px solid var(--line); border-radius:6px; margin-bottom:9px; cursor:pointer; font-size:13.5px; background:var(--panel-raised); transition:transform .15s ease, border-color .15s ease;}
+  .opt:hover{border-color:var(--sky); transform:translateX(3px);}
+  .opt.correct{border-color:var(--emerald); background:rgba(126,193,63,.1);}
+  .opt.wrong{border-color:var(--red); background:rgba(226,89,60,.1);}
+  .opt .bullet{width:18px; height:18px; border-radius:50%; border:1px solid var(--text-dim); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:10px; color:var(--text-dim);}
+  .opt.correct .bullet{border-color:var(--emerald); color:var(--emerald);}
+  .opt.wrong .bullet{border-color:var(--red); color:var(--red);}
+
+  .explain{margin-top:14px; padding:12px 14px; border-radius:6px; font-size:13px; line-height:1.55; background:var(--panel-raised); border:1px solid var(--line); display:none;}
+  .explain.show{display:block;}
+
+  .qnav{display:flex; justify-content:space-between; align-items:center; margin-top:20px;}
+  .btn{font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.04em; background:var(--sky); color:#0d1626; border:none; padding:10px 18px; border-radius:5px; cursor:pointer; font-weight:600; transition:transform .15s ease, background .2s ease;}
+  .btn:hover{background:#8faee0; transform:translateY(-1px);}
+  .btn.ghost{background:transparent; color:var(--text-dim); border:1px solid var(--line);}
+  .btn.ghost:hover{color:var(--text); border-color:var(--sky);}
+  .btn:disabled{opacity:.35; cursor:not-allowed;}
+
+  .quizresult{text-align:center; padding:40px 20px;}
+  .quizresult .score{font-family:var(--mono); font-size:50px; color:var(--sky); margin-bottom:6px;}
+  .quizresult .label{color:var(--text-dim); font-size:12.5px; margin-bottom:22px;}
+
+  .resetrow{margin-top:26px; padding-top:16px; border-top:1px solid var(--line);}
+  ::-webkit-scrollbar{width:10px;}
+  ::-webkit-scrollbar-thumb{background:#3a4a5a; border-radius:6px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  .flash:focus-visible{outline:2px solid var(--sky); outline-offset:2px;}
+
+  @media print{
+    .sidebar, .no-print, .themebtn, .resetrow{display:none !important;}
+    body{background:#fff; color:#111;}
+    .main{max-width:100%; padding:0;}
+    .card{border:1px solid #999; break-inside:avoid; box-shadow:none;}
+    table.tech th, table.tech td{color:#111; border-bottom:1px solid #999;}
+    table.tech th{background:#eee;}
+    .fig img{max-width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <nav class="sidebar">
+    <div class="brand">
+      <img class="brand-logo" src="../../assets/logo-industrial-technology.png" alt="Logo de la empresa">
+      <div class="tag">Capacitación técnica</div>
+      <h1>ABB ACS800</h1>
+      <p>Fundamentos, puesta en marcha y diagnóstico de fallas — firmware estándar</p>
+    </div>
+    <ul class="navlist" id="navlist"></ul>
+    <div class="sidebar-foot">
+      <a href="../../index.html" style="color:var(--sky); text-decoration:none;">&larr; Volver al portal</a><br><br>
+      Manual ACS800 firmware estándar · progreso guardado en este navegador
+      <button class="themebtn" id="themeToggle">🌓 Cambiar tema</button>
+    </div>
+  </nav>
+
+  <main class="main" id="main"></main>
+</div>
+
+<script>
+/* ============================================================
+   HELPERS DE CONTENIDO
+   ============================================================ */
+const PLACEHOLDER = (txt) => `<div class="placeholder">🖼️ [Marcador de imagen: ${txt}]</div>`;
+const NOTE = (txt) => `<div class="note warn">⚠️ ${txt}</div>`;
+const INFO = (txt) => `<div class="note">💡 ${txt}</div>`;
+const H3 = (txt) => `<h3><span style="width:6px;height:6px;border-radius:50%;background:var(--sky);display:inline-block;"></span>${txt}</h3>`;
+const IMG = (src, caption, source) => `<figure class="fig">
+  <img src="img-acs800/${src}" alt="${caption}" loading="lazy">
+  <figcaption>${caption}${source ? ` — <span style="font-style:italic">${source}</span>` : ''}</figcaption>
+</figure>`;
+
+/* ============================================================
+   MÓDULOS
+   ============================================================ */
+const MODULES = [
+{ id:'overview', title:'Panel general', short:'Inicio', isOverview:true },
+
+{
+  id:'arquitectura-componentes', title:'Arquitectura y componentes ACS800-17', short:'Arquitectura y componentes',
+  eyebrow:'Módulo 01 · Fundamentos', sub:'Rectificador, circuito intermedio e inversor; panel CDP 312R; tarjeta de control RMIO; variante -17 con front-end activo.',
+  content:`
+    <div class="card">
+      <p>El variador ABB ACS800 sigue la topología clásica de un convertidor de frecuencia: <strong>rectificador → circuito intermedio (bus de CC) → inversor</strong>. La energía de la red se rectifica a corriente continua, se filtra/almacena en el circuito intermedio, y el inversor la convierte nuevamente en corriente alterna de frecuencia y tensión variables para alimentar al motor.</p>
+
+      ${H3("Panel de control CDP 312R")}
+      <p>La interfaz de operación local del ACS800 es el panel de control <strong>CDP 312R</strong>, desde el cual se navega por los distintos modos de operación, se leen señales en tiempo real y se ajustan parámetros.</p>
+
+      ${H3("Tarjeta de control RMIO")}
+      <p>La tarjeta de control del ACS800 es la <strong>RMIO</strong>, responsable del procesamiento de las señales de control, la interfaz de E/S y la comunicación con el panel CDP 312R y con herramientas de PC como DriveWindow.</p>
+      ${PLACEHOLDER("Vista de la tarjeta de control RMIO instalada en el ACS800, con sus conectores de E/S y de panel")}
+
+      ${H3("ACS800 estándar vs. variante ACS800-17")}
+      <table class="tech">
+        <tr><th>Variante</th><th>Etapa de entrada (rectificador)</th><th>Característica</th></tr>
+        <tr><td>ACS800 estándar</td><td>Rectificador de diodos o de tiristores</td><td>Rectificación pasiva, unidireccional (sin regeneración a red)</td></tr>
+        <tr><td>ACS800-17</td><td>IGBT Supply Unit (ISU) / módulo ACA635</td><td>Front-end activo: rectificador regenerativo basado en IGBT</td></tr>
+      </table>
+      ${NOTE("La variante ACS800-17 incorpora la IGBT Supply Unit (ISU, módulo ACA635) como etapa de entrada en lugar del rectificador de diodos/tiristores del ACS800 estándar. Este front-end activo es la base del Módulo 06 de esta capacitación.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuál es la secuencia de etapas de potencia de un ACS800?", options:["Inversor → circuito intermedio → rectificador", "Rectificador → circuito intermedio (bus de CC) → inversor", "Solo un inversor, sin etapa de rectificación", "Rectificador → inversor, sin circuito intermedio"], answer:1, explain:"El ACS800 sigue la topología clásica: rectificador → circuito intermedio de CC → inversor, que finalmente alimenta al motor." },
+    { q:"¿Cómo se llama el panel de control local del ACS800?", options:["RMIO", "ACA635", "CDP 312R", "DriveWindow"], answer:2, explain:"El panel de control local del ACS800 es el CDP 312R." },
+    { q:"¿Cuál es la tarjeta de control del ACS800?", options:["CDP 312R", "RMIO", "ISU", "ACA635"], answer:1, explain:"La tarjeta de control del ACS800 es la RMIO." },
+    { q:"¿Qué diferencia principal tiene la variante ACS800-17 respecto al ACS800 estándar?", options:["Usa un panel de control distinto", "Su etapa de entrada es una IGBT Supply Unit (ISU/ACA635), un front-end activo, en vez de un rectificador de diodos/tiristores", "No tiene circuito intermedio", "Solo funciona en baja tensión"], answer:1, explain:"El ACS800-17 reemplaza el rectificador pasivo (diodos/tiristores) del ACS800 estándar por una IGBT Supply Unit (módulo ACA635), un front-end activo regenerativo." },
+    { q:"¿Qué tipo de rectificación usa el ACS800 estándar en su etapa de entrada?", options:["Front-end activo con IGBT", "Rectificador de diodos o de tiristores (pasivo, unidireccional)", "No tiene rectificador", "Rectificador regenerativo con filtro LCL"], answer:1, explain:"El ACS800 estándar emplea un rectificador de diodos o de tiristores, de tipo pasivo y unidireccional, a diferencia del front-end activo de la variante -17." }
+  ]
+},
+
+{
+  id:'panel-control-navegacion', title:'Panel de control y navegación', short:'Panel de control',
+  eyebrow:'Módulo 02 · Operación', sub:'Los cuatro modos del CDP 312R y la fila de estado que acompaña la pantalla.',
+  content:`
+    <div class="card">
+      <p>El panel CDP 312R organiza la operación del ACS800 en <strong>cuatro modos</strong> de navegación:</p>
+      <table class="tech">
+        <tr><th>Modo</th><th>Función</th></tr>
+        <tr><td>ACT</td><td>Señales actuales (valores en tiempo real: velocidad, corriente, tensión, etc.)</td></tr>
+        <tr><td>PAR</td><td>Parámetros (lectura y edición de los grupos de parámetros)</td></tr>
+        <tr><td>FUNC</td><td>Asistentes de puesta en marcha y funciones de carga/descarga de parámetros</td></tr>
+        <tr><td>DRIVE</td><td>Selección del convertidor a controlar (cuando el panel se comparte entre varios equipos)</td></tr>
+      </table>
+      ${PLACEHOLDER("Panel CDP 312R mostrando los cuatro modos ACT / PAR / FUNC / DRIVE en la fila de navegación")}
+
+      ${H3("Fila de estado de la pantalla")}
+      <p>Además de los modos de navegación, la pantalla del CDP 312R muestra una fila de estado permanente con:</p>
+      <ul>
+        <li><strong>Número ID</strong> del parámetro o señal que se está visualizando.</li>
+        <li><strong>L/R</strong> — indica si el control está en Local o Remoto.</li>
+        <li><strong>Dirección de giro</strong> — representada como <strong>-&gt;</strong> (adelante) o <strong>&lt;-</strong> (reversa).</li>
+        <li><strong>Referencia</strong> — el valor de consigna activo.</li>
+        <li><strong>Estado de E/S</strong> — estado de las entradas/salidas digitales y analógicas.</li>
+      </ul>
+      ${INFO("Reconocer de un vistazo la fila de estado (L/R, dirección, referencia, E/S) es útil en campo para diagnosticar rápido si un equipo está detenido por estar en modo Local cuando se esperaba Remoto, o por una referencia en cero.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuáles son los cuatro modos de navegación del panel CDP 312R?", options:["ACT, PAR, FUNC, DRIVE", "RUN, STOP, FAULT, RESET", "LOCAL, REMOTO, AUTO, MANUAL", "MENU, PARAM, FAULT, INFO"], answer:0, explain:"El CDP 312R organiza la navegación en cuatro modos: ACT (señales actuales), PAR (parámetros), FUNC (asistentes/carga-descarga) y DRIVE (selección de convertidor)." },
+    { q:"¿Qué función cumple el modo PAR del panel CDP 312R?", options:["Muestra señales en tiempo real", "Permite leer y editar los grupos de parámetros", "Selecciona el convertidor a controlar", "Ejecuta asistentes de puesta en marcha"], answer:1, explain:"El modo PAR (parámetros) es donde se leen y editan los grupos de parámetros del ACS800." },
+    { q:"¿Para qué sirve el modo DRIVE del panel?", options:["Para ver el historial de fallas", "Para seleccionar el convertidor a controlar cuando el panel se comparte entre varios equipos", "Para cambiar el idioma del panel", "Para ejecutar la Marcha de ID"], answer:1, explain:"El modo DRIVE permite seleccionar a qué convertidor apunta el panel cuando este se comparte entre varios equipos." },
+    { q:"En la fila de estado del panel, ¿qué indica L/R?", options:["El nivel de carga del motor", "Si el control está en Local o Remoto", "La dirección de giro", "El número de identificación del parámetro"], answer:1, explain:"L/R en la fila de estado indica si el equipo está en control Local o Remoto." },
+    { q:"¿Cómo se representa la dirección de giro en la fila de estado del CDP 312R?", options:["Con las letras F/R", "Con los símbolos -> (adelante) y <- (reversa)", "Con un número de 0 a 100", "No se muestra la dirección de giro"], answer:1, explain:"La dirección de giro se representa con los símbolos -> (adelante) y <- (reversa) en la fila de estado." }
+  ]
+},
+
+{
+  id:'puesta-marcha-marcha-id', title:'Puesta en marcha y Marcha de ID', short:'Puesta en marcha / Marcha ID',
+  eyebrow:'Módulo 03 · Comisionamiento', sub:'Asistente guiado vs. arranque limitado, el grupo 99 DATOS DE PARTIDA, y la advertencia de seguridad de la Marcha de ID.',
+  content:`
+    <div class="card">
+      <p>El ACS800 ofrece dos caminos para poner en marcha el equipo por primera vez: un <strong>asistente guiado</strong> de puesta en marcha (que conduce paso a paso por los datos mínimos requeridos), o un <strong>arranque limitado</strong> sin asistente, cargando manualmente los parámetros del grupo <strong>99 DATOS DE PARTIDA</strong>.</p>
+
+      ${H3("Grupo 99 DATOS DE PARTIDA")}
+      <p>Este grupo concentra los parámetros fundamentales de puesta en marcha, entre ellos los dos siguientes, cuya selección exacta debe respetarse:</p>
+      <table class="tech">
+        <tr><th>Parámetro</th><th>Nombre</th><th>Selecciones</th></tr>
+        <tr><td>99.04</td><td>MODO CTRL MOTOR</td><td>DTC / ESCALAR</td></tr>
+        <tr><td>99.10</td><td>MARCHA IDENT MOT</td><td>IDENT MAGN / ESTANDAR / REDUCIDA</td></tr>
+      </table>
+
+      ${H3("¿Qué es la Marcha de ID?")}
+      <p>La <strong>Marcha de identificación del motor (Marcha de ID)</strong>, seleccionada mediante 99.10 <strong>MARCHA IDENT MOT</strong>, es el procedimiento por el cual el ACS800 mide las características eléctricas reales del motor conectado para ajustar su modelo interno de control — especialmente relevante cuando 99.04 <strong>MODO CTRL MOTOR</strong> está en <strong>DTC</strong> (control directo de par).</p>
+
+      ${NOTE("Advertencia de seguridad citada del manual: durante la Marcha de ID en su modalidad ESTANDAR o REDUCIDA, el motor GIRA a un 50–80% de la velocidad nominal. Esto debe tenerse en cuenta antes de ejecutarla — el eje del motor y la carga acoplada deben estar en condiciones seguras para ese giro.")}
+
+      <p>Las tres selecciones de 99.10 MARCHA IDENT MOT son:</p>
+      <ul>
+        <li><strong>IDENT MAGN</strong> — identificación de magnetización, sin hacer girar el motor.</li>
+        <li><strong>ESTANDAR</strong> — Marcha de ID estándar, con giro del motor entre 50–80% de la velocidad nominal.</li>
+        <li><strong>REDUCIDA</strong> — Marcha de ID reducida, también con giro del motor en ese mismo rango.</li>
+      </ul>
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuáles son los dos caminos disponibles para la puesta en marcha inicial de un ACS800?", options:["Solo el asistente guiado, no hay alternativa", "Un asistente guiado paso a paso, o un arranque limitado cargando manualmente el grupo 99 DATOS DE PARTIDA", "Solo mediante DriveWindow", "Solo mediante el modo DRIVE del panel"], answer:1, explain:"El ACS800 permite un asistente guiado de puesta en marcha o un arranque limitado sin asistente, ajustando manualmente el grupo 99 DATOS DE PARTIDA." },
+    { q:"¿Qué selecciones exactas admite el parámetro 99.04 MODO CTRL MOTOR?", options:["DTC / ESCALAR", "MANUAL / AUTO", "LOCAL / REMOTO", "IDENT MAGN / ESTANDAR"], answer:0, explain:"99.04 MODO CTRL MOTOR se selecciona entre DTC (control directo de par) o ESCALAR." },
+    { q:"¿Qué selecciones exactas admite el parámetro 99.10 MARCHA IDENT MOT?", options:["DTC / ESCALAR", "IDENT MAGN / ESTANDAR / REDUCIDA", "FABRICA / MANUAL/AUTO / CTRL PID", "LOCAL / REMOTO"], answer:1, explain:"99.10 MARCHA IDENT MOT se selecciona entre IDENT MAGN, ESTANDAR o REDUCIDA." },
+    { q:"Según el manual, ¿qué ocurre con el motor durante la Marcha de ID en modalidad ESTANDAR o REDUCIDA?", options:["El motor permanece completamente detenido", "El motor gira a un 50–80% de la velocidad nominal", "El motor gira a velocidad nominal completa (100%)", "El motor gira en sentido inverso a máxima velocidad"], answer:1, explain:"El manual advierte explícitamente que durante la Marcha de ID estándar o reducida el motor gira entre 50 y 80% de su velocidad nominal — una advertencia de seguridad a tener en cuenta antes de ejecutarla." },
+    { q:"¿Cuál de las tres opciones de 99.10 MARCHA IDENT MOT NO hace girar el motor?", options:["ESTANDAR", "REDUCIDA", "IDENT MAGN", "Las tres opciones hacen girar el motor por igual"], answer:2, explain:"IDENT MAGN es la identificación de magnetización, que no hace girar el motor, a diferencia de ESTANDAR y REDUCIDA." }
+  ]
+},
+
+{
+  id:'macros-parametrizacion', title:'Macros de aplicación y parametrización', short:'Macros y parametrización',
+  eyebrow:'Módulo 04 · Parametrización', sub:'Las cinco macros del parámetro 99.02 y los grupos de parámetros clave para configurar una aplicación.',
+  content:`
+    <div class="card">
+      <p>El parámetro <strong>99.02</strong> selecciona la <strong>macro de aplicación</strong> del ACS800, un conjunto predefinido de valores de parámetros orientado a un tipo de proceso o esquema de control. Las macros exactas disponibles son:</p>
+      <table class="tech">
+        <tr><th>Macro (99.02)</th><th>Orientación</th></tr>
+        <tr><td>FABRICA</td><td>Configuración de fábrica, punto de partida genérico</td></tr>
+        <tr><td>MANUAL/AUTO</td><td>Conmutación entre dos fuentes de referencia/mando (manual y automática)</td></tr>
+        <tr><td>CTRL PID</td><td>Control de proceso mediante lazo PID</td></tr>
+        <tr><td>CRTL PAR</td><td>Control de par</td></tr>
+        <tr><td>CTRL SEC</td><td>Control secuencial</td></tr>
+      </table>
+      ${NOTE("La macro 'CRTL PAR' se cita tal como aparece en el manual/panel (así, sin la 'O' de 'CONTROL'); no es un error de tipeo de esta capacitación.")}
+      <p>Además de estas cinco macros predefinidas, el ACS800 permite guardar <strong>macros de usuario</strong>, generadas a partir de una configuración de parámetros ya ajustada por el usuario.</p>
+
+      ${H3("Grupos de parámetros clave")}
+      <p>Independientemente de la macro elegida como punto de partida, la puesta a punto fina de una aplicación recorre estos grupos:</p>
+      <table class="tech">
+        <tr><th>Grupo</th><th>Nombre</th></tr>
+        <tr><td>10</td><td>MARCHA/PARO/DIR</td></tr>
+        <tr><td>11</td><td>SELEC REFERENCIA</td></tr>
+        <tr><td>20</td><td>LIMITES</td></tr>
+        <tr><td>21</td><td>MARCHA/PARO</td></tr>
+        <tr><td>22</td><td>ACEL/DECEL</td></tr>
+        <tr><td>30</td><td>FUNCIONES FALLOS</td></tr>
+        <tr><td>42</td><td>CONTROL FRENO</td></tr>
+      </table>
+      ${INFO("El grupo 30 FUNCIONES FALLOS incluye, entre otros, el parámetro que define el comportamiento ante un FALLO EXTERNO — este mismo grupo/numeración de 'FALLO EXTERNO' del programa estándar se retoma en el Módulo 06, donde se aclara que NO debe confundirse con el parámetro EARTH FAULT LEVEL de la Unidad de Alimentación IGBT (ISU), que en su propio manual también usa la numeración 30.03 pero para un parámetro completamente distinto.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué parámetro selecciona la macro de aplicación del ACS800?", options:["99.04", "99.10", "99.02", "30.03"], answer:2, explain:"El parámetro 99.02 selecciona la macro de aplicación." },
+    { q:"¿Cuáles son las cinco macros de aplicación exactas disponibles en 99.02?", options:["FABRICA, MANUAL/AUTO, CTRL PID, CRTL PAR, CTRL SEC", "DTC, ESCALAR, IDENT MAGN, ESTANDAR, REDUCIDA", "ACT, PAR, FUNC, DRIVE, AUTO", "SOBRETENS CC, SUBTENS CC, FALLO A TIERRA, SOBRETMP INV, MODULO COMUN"], answer:0, explain:"Las cinco macros exactas del parámetro 99.02 son FABRICA, MANUAL/AUTO, CTRL PID, CRTL PAR y CTRL SEC." },
+    { q:"Además de las cinco macros predefinidas, ¿qué otra posibilidad ofrece el ACS800?", options:["No admite ninguna otra opción", "Guardar macros de usuario a partir de una configuración ya ajustada", "Solo permite usar la macro FABRICA", "Descargar macros desde DriveWindow únicamente"], answer:1, explain:"El ACS800 permite generar y guardar macros de usuario a partir de una parametrización ya realizada." },
+    { q:"¿Qué grupo de parámetros corresponde a ACEL/DECEL?", options:["Grupo 10", "Grupo 20", "Grupo 22", "Grupo 42"], answer:2, explain:"El grupo 22 corresponde a ACEL/DECEL." },
+    { q:"¿Qué grupo de parámetros corresponde a CONTROL FRENO?", options:["Grupo 30", "Grupo 42", "Grupo 21", "Grupo 11"], answer:1, explain:"El grupo 42 corresponde a CONTROL FRENO." }
+  ]
+},
+
+{
+  id:'diagnostico-fallas-drivewindow', title:'Diagnóstico de fallas y uso de DriveWindow', short:'Diagnóstico y DriveWindow',
+  eyebrow:'Módulo 05 · Diagnóstico', sub:'Códigos de falla del programa estándar y el flujo de trabajo para monitorear señales en tiempo real con DriveWindow.',
+  content:`
+    <div class="card">
+      ${H3("Códigos de falla del programa estándar")}
+      <p>El ACS800 identifica cada condición de falla con un nombre y un número de código, tal como se muestran en el panel:</p>
+      <table class="tech">
+        <tr><th>Código (nombre en panel)</th><th>Número</th></tr>
+        <tr><td>SOBRETENS CC</td><td>3210</td></tr>
+        <tr><td>SUBTENS CC</td><td>3220</td></tr>
+        <tr><td>FALLO A TIERRA</td><td>2330</td></tr>
+        <tr><td>SOBRETMP INV</td><td>4290</td></tr>
+        <tr><td>MODULO COMUN</td><td>7510</td></tr>
+        <tr><td>ENCODER</td><td>7301</td></tr>
+        <tr><td>ENCODER A&lt;&gt;B</td><td>7302</td></tr>
+        <tr><td>FALLO PANEL</td><td>5300</td></tr>
+        <tr><td>FALLO EXTERNO</td><td>9000</td></tr>
+        <tr><td>START INTERL</td><td>FF8D</td></tr>
+        <tr><td>REGENERATIVO</td><td>FF51</td></tr>
+      </table>
+      ${INFO("ENCODER (7301) y ENCODER A<>B (7302) son códigos distintos: el primero es una falla general de encoder, el segundo apunta puntualmente a una discrepancia entre los canales A y B del encoder (por ejemplo, cableado invertido o pérdida de uno de los dos canales).")}
+
+      ${H3("Flujo de trabajo en DriveWindow")}
+      <p>Para diagnosticar y graficar señales en tiempo real desde una PC, el procedimiento en DriveWindow es:</p>
+      <ol>
+        <li>Ubicarse en las pestañas <strong>Browsed</strong>, <strong>Control</strong> o <strong>Faults</strong> según lo que se quiera revisar.</li>
+        <li>Hacer <strong>clic derecho</strong> sobre la lista de señales y elegir <strong>"Lock/Unlock Items"</strong> para habilitar la edición de la selección de señales.</li>
+        <li>Usar el ícono <strong>"Activate/Deactivate Items"</strong> para activar las señales de interés.</li>
+        <li>Usar <strong>"Add Monitored Items"</strong> para agregarlas a la lista de monitoreo.</li>
+        <li>Pasar a la pestaña <strong>Monitor/Datalogger</strong> para graficarlas en tiempo real.</li>
+      </ol>
+      ${PLACEHOLDER("Captura de pantalla de DriveWindow mostrando las pestañas Browsed/Control/Faults y el menú contextual 'Lock/Unlock Items'")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué número de código corresponde a SOBRETENS CC?", options:["3220", "3210", "2330", "4290"], answer:1, explain:"SOBRETENS CC corresponde al código 3210." },
+    { q:"¿Qué número de código corresponde a FALLO A TIERRA?", options:["2330", "3210", "7510", "9000"], answer:0, explain:"FALLO A TIERRA corresponde al código 2330." },
+    { q:"¿Qué diferencia hay entre los códigos ENCODER (7301) y ENCODER A<>B (7302)?", options:["Son exactamente el mismo código repetido", "ENCODER es una falla general del encoder; ENCODER A<>B apunta puntualmente a una discrepancia entre los canales A y B", "7301 es de software y 7302 es de hardware sin relación con el encoder", "No existen ambos códigos, solo uno de ellos es real"], answer:1, explain:"ENCODER (7301) es una falla general del encoder, mientras que ENCODER A<>B (7302) señala específicamente una discrepancia entre los canales A y B del encoder." },
+    { q:"En el flujo de trabajo de DriveWindow, ¿qué acción sigue después de hacer clic derecho y elegir 'Lock/Unlock Items'?", options:["Cerrar el programa", "Usar el ícono 'Activate/Deactivate Items' para activar las señales de interés", "Ir directo a la pestaña Faults sin más pasos", "Reiniciar el variador"], answer:1, explain:"Tras desbloquear la edición con 'Lock/Unlock Items', el siguiente paso es usar el ícono 'Activate/Deactivate Items' para activar las señales deseadas." },
+    { q:"¿En qué pestaña de DriveWindow se grafican en tiempo real las señales ya agregadas con 'Add Monitored Items'?", options:["Browsed", "Control", "Monitor/Datalogger", "Faults"], answer:2, explain:"La pestaña Monitor/Datalogger es donde se grafican en tiempo real las señales previamente agregadas con 'Add Monitored Items'." }
+  ]
+},
+
+{
+  id:'introduccion-isu', title:'Introducción al ISU (IGBT Supply Unit)', short:'Introducción al ISU',
+  eyebrow:'Módulo 06 · Front-end activo', sub:'Módulo breve y conceptual sobre el front-end activo de la variante ACS800-17, sin tabla completa de parámetros.',
+  content:`
+    <div class="card">
+      ${INFO("Este módulo es intencionalmente breve y conceptual — no incluye la tabla completa de parámetros 24.xx/95.xx de la ISU, que queda fuera del alcance de este esquema técnico verificado.")}
+
+      <p>La <strong>IGBT Supply Unit (ISU)</strong>, introducida en el Módulo 01 como la etapa de entrada de la variante <strong>ACS800-17</strong> (módulo ACA635), es un <strong>rectificador regenerativo</strong>: a diferencia del rectificador pasivo de diodos/tiristores del ACS800 estándar, la ISU aplica <strong>control DTC (control directo de par)</strong> también del lado de la red, no solo del lado del motor.</p>
+
+      ${H3("Filtro LCL y calidad de red")}
+      <p>La ISU trabaja junto con un <strong>filtro LCL</strong> en su conexión a red. Gracias al control DTC del lado de red y al filtro LCL, la ISU logra un <strong>menor THD (distorsión armónica total)</strong> de corriente que los rectificadores convencionales de 6 o 12 pulsos.</p>
+
+      ${H3("Protección de fallo a tierra: dos esquemas de red")}
+      <p>La forma de proteger contra fallo a tierra en el lado de la ISU depende del esquema de puesta a tierra de la red de alimentación:</p>
+      <table class="tech">
+        <tr><th>Tipo de red</th><th>Método de protección</th></tr>
+        <tr><td>Red flotante / IT (sin neutro puesto a tierra)</td><td>Dispositivo Bender, basado en el principio de medición <strong>AMP</strong></td></tr>
+        <tr><td>Red con neutro puesto a tierra / TN</td><td>Transductor de corriente interno, parámetro <strong>30.03 EARTH FAULT LEVEL</strong></td></tr>
+      </table>
+
+      ${NOTE("Ambigüedad de numeración a aclarar: el parámetro 30.03 EARTH FAULT LEVEL descrito arriba pertenece a la nomenclatura propia del manual de la ISU. Es un parámetro DISTINTO del 30.03 FALLO EXTERNO mencionado en el Módulo 05 (grupo 30 FUNCIONES FALLOS del programa estándar del ACS800). Ambos manuales — el del programa estándar y el de la ISU — reutilizan el mismo número de parámetro (30.03) para conceptos completamente distintos. Al trabajar sobre una unidad ACS800-17, hay que tener claro contra qué manual (programa estándar del inversor, o manual propio de la ISU) se está leyendo la numeración de parámetros antes de interpretar un valor de 30.03.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué tipo de control aplica la ISU en su etapa de conexión a red, a diferencia de un rectificador pasivo?", options:["Control escalar V/Hz", "Control DTC (control directo de par), también del lado de red", "No aplica ningún tipo de control, es totalmente pasiva", "Control PID de proceso"], answer:1, explain:"La ISU es un rectificador regenerativo que aplica control DTC también del lado de la red, a diferencia del rectificador pasivo de diodos/tiristores." },
+    { q:"¿Qué elemento pasivo acompaña a la ISU en su conexión a la red, contribuyendo a un menor THD?", options:["Un chopper de frenado", "Un filtro LCL", "Una resistencia de precarga únicamente", "Un transformador de aislación obligatorio"], answer:1, explain:"La ISU trabaja junto con un filtro LCL en su conexión a red, lo que junto al control DTC contribuye a un menor THD de corriente que los rectificadores de 6/12 pulsos." },
+    { q:"En una red flotante/IT (sin neutro a tierra), ¿cómo se protege contra fallo a tierra en el lado de la ISU?", options:["Con el parámetro 30.03 EARTH FAULT LEVEL y un transductor de corriente interno", "Con un dispositivo Bender basado en el principio de medición AMP", "No se requiere protección de fallo a tierra en redes IT", "Con un disyuntor diferencial estándar"], answer:1, explain:"En redes flotantes/IT, la protección se implementa con un dispositivo Bender basado en el principio AMP." },
+    { q:"En una red con neutro puesto a tierra (TN), ¿cómo se protege contra fallo a tierra en el lado de la ISU?", options:["Con un dispositivo Bender basado en el principio AMP", "Con un transductor de corriente interno y el parámetro 30.03 EARTH FAULT LEVEL", "No se requiere ninguna protección adicional", "Con el parámetro 99.10 MARCHA IDENT MOT"], answer:1, explain:"En redes TN (con neutro a tierra), se usa un transductor de corriente interno junto con el parámetro 30.03 EARTH FAULT LEVEL, propio del manual de la ISU." },
+    { q:"¿Por qué es importante distinguir el 30.03 EARTH FAULT LEVEL (manual ISU) del 30.03 FALLO EXTERNO (programa estándar, Módulo 05)?", options:["Porque son en realidad el mismo parámetro con dos nombres", "Porque ambos manuales reutilizan el mismo número de parámetro (30.03) para conceptos completamente distintos, y hay que saber contra qué manual se está leyendo", "Porque el 30.03 del programa estándar ya no existe en el ACS800-17", "Porque la numeración 30.03 solo aplica a la ISU y nunca al programa estándar"], answer:1, explain:"Es la misma numeración de parámetro (30.03) usada en dos manuales distintos del ACS800 con significados distintos — EARTH FAULT LEVEL en el manual de la ISU, y FALLO EXTERNO en el programa estándar — por lo que hay que identificar contra qué manual se está interpretando el parámetro." }
+  ]
+}
+];
+
+/* ============================================================
+   ESTADO + PERSISTENCIA (localStorage)
+   ============================================================ */
+const STORAGE_KEY = 'abb-acs800_training_progress_v1';
+const THEME_KEY = 'capacitacion-theme';
+
+const state = {
+  currentId: 'overview',
+  view: 'learn',
+  quizProgress: {},
+  quizIndex: {},
+};
+MODULES.forEach(m=>{
+  if(m.quiz){ state.quizProgress[m.id] = { answered: new Array(m.quiz.length).fill(null) }; state.quizIndex[m.id] = 0; }
+});
+
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const saved = JSON.parse(raw);
+    MODULES.forEach(m=>{
+      if(!m.quiz) return;
+      const savedAnswers = saved && saved[m.id];
+      if(Array.isArray(savedAnswers) && savedAnswers.length === m.quiz.length){
+        state.quizProgress[m.id].answered = savedAnswers;
+      }
+    });
+  }catch(e){ console.warn('No se pudo cargar el progreso guardado:', e); }
+}
+function saveProgress(){
+  try{
+    const data = {};
+    MODULES.forEach(m=>{ if(m.quiz) data[m.id] = state.quizProgress[m.id].answered; });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }catch(e){ console.warn('No se pudo guardar el progreso:', e); }
+  syncPortalProgress();
+}
+function syncPortalProgress(){
+  try{
+    const teachable = MODULES.filter(m=>!m.isOverview);
+    const total = teachable.reduce((s,m)=>s+m.quiz.length,0);
+    const done = teachable.reduce((s,m)=>s+state.quizProgress[m.id].answered.filter(a=>a!==null).length,0);
+    localStorage.setItem('vfd_progress_abb-acs800', JSON.stringify({ done, total }));
+  }catch(e){ console.warn('No se pudo sincronizar el progreso con el portal:', e); }
+}
+function resetAllProgress(){
+  MODULES.forEach(m=>{
+    if(!m.quiz) return;
+    state.quizProgress[m.id].answered = new Array(m.quiz.length).fill(null);
+    state.quizIndex[m.id] = 0;
+  });
+  saveProgress();
+  render();
+}
+loadProgress();
+syncPortalProgress();
+
+/* ============================================================
+   TEMA
+   ============================================================ */
+function applyTheme(){
+  const saved = localStorage.getItem(THEME_KEY);
+  if(saved === 'light'){ document.documentElement.classList.add('light-theme'); }
+  else { document.documentElement.classList.remove('light-theme'); }
+}
+applyTheme();
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  const isLight = document.documentElement.classList.toggle('light-theme');
+  localStorage.setItem(THEME_KEY, isLight ? 'light' : 'dark');
+});
+
+/* ============================================================
+   ANIMACIÓN DE ENTRADA
+   ============================================================ */
+function animateIn(container){
+  const items = container.querySelectorAll('.modhead, .card, .fig, .ovwcard, .qcard, .barwrap, .flash');
+  items.forEach((el,i)=>{ el.classList.add('reveal'); el.style.transitionDelay = Math.min(i*70,560)+'ms'; });
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ items.forEach(el=>el.classList.add('in')); }));
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+function ledStateFor(m){
+  if(m.isOverview) return '';
+  const p = state.quizProgress[m.id];
+  if(!p) return '';
+  const answeredCount = p.answered.filter(a=>a!==null).length;
+  if(answeredCount===0) return '';
+  if(answeredCount < m.quiz.length) return 'partial';
+  return 'done';
+}
+let sidebarAnimated = false;
+function renderSidebar(){
+  const ul = document.getElementById('navlist');
+  ul.innerHTML = '';
+  MODULES.forEach((m,i)=>{
+    const li = document.createElement('li');
+    li.className = 'navitem' + (state.currentId===m.id ? ' active' : '');
+    if(!sidebarAnimated){ li.style.animation = `slideInLeft .45s cubic-bezier(.2,.7,.3,1) ${i*35}ms both`; }
+    const ledClass = ledStateFor(m);
+    li.innerHTML = `
+      ${m.isOverview ? '<span class="led"></span>' : `<span class="led ${ledClass}"></span>`}
+      <span class="num">${m.isOverview ? '★' : String(i).padStart(2,'0')}</span>
+      <span class="label">${m.short}</span>
+    `;
+    li.onclick = ()=>{ state.currentId = m.id; state.view = 'learn'; render(); window.scrollTo(0,0); };
+    ul.appendChild(li);
+  });
+  sidebarAnimated = true;
+}
+
+/* ============================================================
+   OVERVIEW
+   ============================================================ */
+function renderOverview(){
+  const teachable = MODULES.filter(m=>!m.isOverview);
+  const totalQ = teachable.reduce((s,m)=>s+m.quiz.length,0);
+  const answeredQ = teachable.reduce((s,m)=>s+state.quizProgress[m.id].answered.filter(a=>a!==null).length,0);
+  const pct = totalQ ? Math.round(answeredQ/totalQ*100) : 0;
+
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="modhead">
+      <p class="eyebrow">Capacitación · ABB ACS800</p>
+      <h2>Biblioteca de módulos</h2>
+      <p class="sub">Navega libremente entre los ${teachable.length} módulos. Cada uno tiene su contenido técnico y su quiz — el progreso se guarda automáticamente en este navegador.</p>
+    </div>
+    <div class="barwrap"><div class="barfill" style="width:${pct}%"></div></div>
+    <p style="font-family:var(--mono); font-size:11.5px; color:var(--text-dim); margin:8px 0 24px 0;">${answeredQ} / ${totalQ} preguntas respondidas · ${pct}%</p>
+    ${pct===100 ? `
+    <div class="card" style="border-color:var(--emerald); background:var(--emerald-dim);">
+      <h3 style="color:var(--emerald); margin-top:0;">🏆 Capacitación completa</h3>
+      <p style="margin-bottom:0;">Completaste el quiz de los ${teachable.length} módulos de la capacitación ABB ACS800 — Fundamentos, Puesta en Marcha y Diagnóstico. Puedes reintentar cualquier módulo cuando quieras para reforzar los conceptos con menos aciertos.</p>
+    </div>` : ''}
+    <div class="ovwgrid">
+      ${teachable.map((m,i)=>{
+        const p = state.quizProgress[m.id];
+        const answered = p.answered.filter(a=>a!==null).length;
+        const correct = p.answered.reduce((s,a)=> s + (a===true?1:0), 0);
+        let status = 'sin iniciar';
+        if(answered>0 && answered<m.quiz.length) status = `en curso · ${answered}/${m.quiz.length}`;
+        if(answered===m.quiz.length) status = `completo · ${correct}/${m.quiz.length} correctas`;
+        const startBadge = m.id==='arquitectura-componentes' ? `<span style="font-family:var(--mono); font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--emerald); border:1px solid var(--emerald); border-radius:4px; padding:2px 6px; margin-left:8px;">Empieza aquí</span>` : '';
+        return `<div class="ovwcard" data-id="${m.id}">
+          <div class="top"><span class="t-title">${String(i).padStart(2,'0')} · ${m.title}${startBadge}</span><span class="led ${ledStateFor(m)}"></span></div>
+          <div class="t-sub">${m.sub}</div>
+          <div class="t-status" style="margin-top:10px;">${status}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="resetrow">
+      <button class="btn ghost" id="resetAllBtn">Borrar todo el progreso guardado</button>
+    </div>
+  `;
+  const resetBtn = document.getElementById('resetAllBtn');
+  if(resetBtn){
+    resetBtn.onclick = ()=>{
+      if(confirm('¿Borrar el progreso guardado de todos los módulos? Esta acción no se puede deshacer.')){
+        resetAllProgress();
+      }
+    };
+  }
+  main.querySelectorAll('.ovwcard').forEach(el=>{
+    el.onclick = ()=>{ state.currentId = el.dataset.id; state.view = 'learn'; render(); window.scrollTo(0,0); };
+  });
+  animateIn(main);
+}
+
+/* ============================================================
+   MÓDULO (learn / quiz)
+   ============================================================ */
+function renderModule(m){
+  const main = document.getElementById('main');
+  const hasCards = !!m.flashcards;
+  main.innerHTML = `
+    <div class="modhead">
+      <p class="eyebrow">${m.eyebrow}</p>
+      <h2>${m.title}</h2>
+      <p class="sub">${m.sub}</p>
+    </div>
+    <div class="tabs no-print">
+      <div class="tab ${state.view==='learn'?'active':''}" data-v="learn">Aprender</div>
+      <div class="tab ${state.view==='quiz'?'active':''}" data-v="quiz">Quiz (${m.quiz.length})</div>
+      <div style="margin-left:auto; align-self:center;"><button class="btn ghost" id="printBtn" style="font-size:10.5px; padding:6px 12px;">🖨️ Imprimir esta unidad</button></div>
+    </div>
+    <div id="modbody"></div>
+  `;
+  main.querySelectorAll('.tab').forEach(t=>{ t.onclick = ()=>{ state.view = t.dataset.v; render(); }; });
+  const printBtn = document.getElementById('printBtn');
+  if(printBtn) printBtn.onclick = ()=> window.print();
+  const body = document.getElementById('modbody');
+  if(state.view==='learn'){
+    body.innerHTML = m.content;
+    if(hasCards) renderFlashcards(m);
+  } else {
+    renderQuiz(m, body);
+  }
+  animateIn(main);
+}
+
+function renderFlashcards(m){
+  const grid = document.getElementById('flashgrid');
+  if(!grid) return;
+  grid.innerHTML = m.flashcards.map((f)=>`
+    <div class="flash" tabindex="0" role="button" aria-label="Tarjeta ${f.acr}, presiona Enter o Espacio para revelar">
+      <div class="flash-inner">
+        <div class="flash-face flash-front"><div class="acr">${f.acr}</div><div class="hint">toca para revelar</div></div>
+        <div class="flash-face flash-back"><div class="full">${f.full}</div><div class="desc">${f.desc}</div></div>
+      </div>
+    </div>
+  `).join('');
+  grid.querySelectorAll('.flash').forEach(el=>{
+    el.onclick = ()=> el.classList.toggle('flipped');
+    el.onkeydown = (e)=>{
+      if(e.key==='Enter' || e.key===' ' || e.key==='Spacebar'){
+        e.preventDefault();
+        el.classList.toggle('flipped');
+      }
+    };
+  });
+}
+
+/* ---------- Quiz engine ---------- */
+function renderQuiz(m, body){
+  const progress = state.quizProgress[m.id];
+  const total = m.quiz.length;
+  const answeredAll = progress.answered.every(a=>a!==null);
+
+  if(answeredAll){
+    const correct = progress.answered.filter(a=>a===true).length;
+    const missed = m.quiz.map((q,qi)=>({q,qi})).filter(x=>progress.answered[x.qi]===false);
+    body.innerHTML = `
+      <div class="qcard">
+        <div class="quizresult">
+          <div class="score">${correct}/${total}</div>
+          <div class="label">respuestas correctas en este módulo</div>
+          <button class="btn ghost" id="retryBtn">Reintentar quiz</button>
+        </div>
+        ${missed.length ? `
+        <div style="text-align:left; margin-top:10px;">
+          <h3 style="color:var(--red);">Preguntas a repasar (${missed.length})</h3>
+          ${missed.map(x=>`
+            <div class="note warn" style="margin:10px 0;">
+              <strong>${x.q.q}</strong><br>
+              Respuesta correcta: ${x.q.options[x.q.answer]}<br>
+              ${x.q.explain}
+            </div>
+          `).join('')}
+        </div>` : ''}
+      </div>
+    `;
+    document.getElementById('retryBtn').onclick = ()=>{
+      progress.answered = new Array(total).fill(null);
+      state.quizIndex[m.id] = 0;
+      saveProgress();
+      render();
+    };
+    return;
+  }
+
+  let idx = state.quizIndex[m.id];
+  if(progress.answered[idx]!==null){
+    idx = progress.answered.findIndex(a=>a===null);
+    state.quizIndex[m.id] = idx;
+  }
+  const q = m.quiz[idx];
+  body.innerHTML = `
+    <div class="qcounter">Pregunta ${idx+1} de ${total}</div>
+    <div class="qcard">
+      <p class="qtext">${q.q}</p>
+      <div id="optlist">
+        ${q.options.map((o,oi)=>`<div class="opt" data-oi="${oi}"><span class="bullet">${String.fromCharCode(65+oi)}</span><span>${o}</span></div>`).join('')}
+      </div>
+      <div class="explain" id="explainBox">${q.explain}</div>
+      <div class="qnav">
+        <span style="font-family:var(--mono); font-size:11px; color:var(--text-dim);">selecciona una opción</span>
+        <button class="btn" id="nextBtn" disabled>Siguiente</button>
+      </div>
+    </div>
+  `;
+  let picked = false;
+  document.querySelectorAll('#optlist .opt').forEach(el=>{
+    el.onclick = ()=>{
+      if(picked) return;
+      picked = true;
+      const oi = parseInt(el.dataset.oi);
+      const isCorrect = oi===q.answer;
+      progress.answered[idx] = isCorrect;
+      saveProgress();
+      document.querySelectorAll('#optlist .opt').forEach(o2=>{
+        const oi2 = parseInt(o2.dataset.oi);
+        if(oi2===q.answer) o2.classList.add('correct');
+        else if(oi2===oi) o2.classList.add('wrong');
+      });
+      document.getElementById('explainBox').classList.add('show');
+      const nb = document.getElementById('nextBtn');
+      nb.disabled = false;
+      nb.onclick = ()=>{
+        state.quizIndex[m.id] = idx+1 < total ? idx+1 : idx;
+        render();
+      };
+      renderSidebar();
+    };
+  });
+}
+
+/* ============================================================
+   RENDER PRINCIPAL
+   ============================================================ */
+function render(){
+  renderSidebar();
+  const m = MODULES.find(mm=>mm.id===state.currentId);
+  if(m.isOverview) renderOverview();
+  else renderModule(m);
+}
+
+render();
+</script>
+</body>
+</html>

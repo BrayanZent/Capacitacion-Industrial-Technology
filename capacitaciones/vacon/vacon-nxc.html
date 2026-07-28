@@ -1,0 +1,754 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VACON NXC · Convertidor Regenerativo AFE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0f1620;
+    --panel: #16202c;
+    --panel-raised: #1e2a38;
+    --line: #2b3a4a;
+    --text: #e6edf5;
+    --text-dim: #8fa0b3;
+    --sky: #38bdf8;
+    --sky-dim: #163244;
+    --emerald: #34d399;
+    --emerald-dim: #14332a;
+    --red: #f87171;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+  :root.light-theme{
+    --bg: #f3f6fa;
+    --panel: #ffffff;
+    --panel-raised: #eef2f7;
+    --line: #d7e0ea;
+    --text: #1b2530;
+    --text-dim: #5c6b7d;
+    --sky-dim: #e0f2fe;
+    --emerald-dim: #d4f5e4;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  ::selection{background:var(--sky-dim);color:var(--text);}
+
+  @keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+  @keyframes slideInLeft{ from{opacity:0; transform:translateX(-14px);} to{opacity:1; transform:translateX(0);} }
+  @keyframes logoIn{ from{opacity:0; transform:scale(.9);} to{opacity:1; transform:scale(1);} }
+  .reveal{opacity:0; transform:translateY(18px); transition:opacity .55s cubic-bezier(.2,.7,.3,1), transform .55s cubic-bezier(.2,.7,.3,1);}
+  .reveal.in{opacity:1; transform:translateY(0);}
+
+  .app{display:flex; min-height:100vh;}
+  .sidebar{
+    width:280px; flex-shrink:0; background:var(--panel);
+    border-right:1px solid var(--line);
+    padding:22px 16px; position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .brand{padding:4px 8px 20px 8px; border-bottom:1px solid var(--line); margin-bottom:16px;}
+  .brand-logo{width:100%; max-width:170px; display:block; margin:0 0 14px 0; background:#fff; border-radius:6px; padding:8px 10px; animation:logoIn .8s cubic-bezier(.2,.8,.3,1);}
+  .brand .tag{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--emerald); text-transform:uppercase;}
+  .brand h1{font-size:17px; margin:6px 0 2px 0; line-height:1.25;}
+  .brand p{font-size:12px; color:var(--text-dim); margin:0;}
+
+  .navlist{list-style:none; margin:0; padding:0;}
+  .navitem{display:flex; align-items:center; gap:10px; padding:10px 10px; border-radius:6px; cursor:pointer; margin-bottom:2px; border:1px solid transparent; transition:background .2s ease, transform .2s ease;}
+  .navitem:hover{background:var(--panel-raised); transform:translateX(2px);}
+  .navitem.active{background:var(--panel-raised); border-color:var(--line);}
+  .led{width:9px; height:9px; border-radius:50%; flex-shrink:0; background:#3a4048; box-shadow:inset 0 0 0 1px rgba(0,0,0,.4);}
+  .led.done{background:var(--emerald); box-shadow:0 0 6px rgba(52,211,153,.7);}
+  .led.partial{background:var(--sky); box-shadow:0 0 6px rgba(56,189,248,.6);}
+  .navitem .num{font-family:var(--mono); font-size:11px; color:var(--text-dim); width:18px;}
+  .navitem .label{font-size:13.5px;}
+  .navitem.active .label{color:var(--sky);}
+
+  .sidebar-foot{margin-top:18px; padding-top:14px; border-top:1px solid var(--line); font-family:var(--mono); font-size:11px; color:var(--text-dim);}
+  .themebtn{margin-top:10px; width:100%; font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.04em; background:transparent; color:var(--text-dim); border:1px solid var(--line); padding:8px 10px; border-radius:6px; cursor:pointer;}
+  .themebtn:hover{color:var(--text); border-color:var(--sky);}
+
+  .main{flex:1; padding:36px 44px; max-width:920px; animation:fadeIn .5s ease;}
+  @media (max-width: 860px){ .app{flex-direction:column;} .sidebar{width:100%; height:auto; position:relative; border-right:none; border-bottom:1px solid var(--line);} .main{padding:24px;} }
+
+  .modhead{margin-bottom:8px;}
+  .modhead .eyebrow{font-family:var(--mono); font-size:11.5px; color:var(--sky); letter-spacing:.1em; text-transform:uppercase; margin:0 0 6px 0;}
+  .modhead h2{font-size:26px; margin:0 0 6px 0; line-height:1.2;}
+  .modhead .sub{color:var(--text-dim); font-size:14px; max-width:62ch; margin:0;}
+
+  .tabs{display:flex; gap:6px; margin:20px 0 22px 0; border-bottom:1px solid var(--line);}
+  .tab{font-family:var(--mono); font-size:12.5px; letter-spacing:.03em; padding:9px 14px; cursor:pointer; color:var(--text-dim); border-bottom:2px solid transparent; text-transform:uppercase;}
+  .tab:hover{color:var(--text);}
+  .tab.active{color:var(--sky); border-bottom-color:var(--sky);}
+
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:20px 22px; margin-bottom:14px; transition:transform .25s ease, border-color .25s ease;}
+  .card:hover{transform:translateY(-2px); border-color:var(--sky);}
+  .card h3{margin:18px 0 8px 0; font-size:14.5px; color:var(--sky); display:flex; align-items:center; gap:8px;}
+  .card h3:first-child{margin-top:0;}
+  .card p{margin:0 0 10px 0; font-size:14px; line-height:1.65;}
+  .card ul, .card ol{margin:8px 0 12px 0; padding-left:18px;}
+  .card li{font-size:13.5px; line-height:1.7; margin-bottom:5px;}
+
+  .note{margin:12px 0; padding:11px 13px; background:rgba(56,189,248,.07); border-left:3px solid var(--sky); font-size:12.5px; color:var(--text-dim); border-radius:0 5px 5px 0;}
+  .note.warn{background:rgba(248,113,113,.08); border-left-color:var(--red);}
+
+  table.tech{width:100%; border-collapse:collapse; font-family:var(--mono); font-size:12px; margin:6px 0 14px 0;}
+  table.tech th, table.tech td{padding:7px 9px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top;}
+  table.tech th{color:var(--sky); font-weight:600; background:var(--panel-raised);}
+  table.tech td{color:var(--text-dim);}
+
+  .fig{margin:14px 0 6px 0; text-align:center;}
+  .fig img{width:100%; max-width:460px; display:block; margin:0 auto; border-radius:6px; border:1px solid var(--line); background:#f5f3ee;}
+  .fig figcaption{font-family:var(--mono); font-size:10.5px; color:var(--text-dim); margin-top:6px;}
+
+  .placeholder{border:1px dashed var(--line); border-radius:8px; padding:16px; text-align:center; font-size:12px; color:var(--text-dim); margin:12px 0;}
+
+  .cardsgrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:14px; margin-top:6px;}
+  .flash{perspective:1000px; height:130px; cursor:pointer;}
+  .flash-inner{position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d;}
+  .flash.flipped .flash-inner{transform:rotateY(180deg);}
+  .flash-face{position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--line); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:12px;}
+  .flash-front{background:var(--panel-raised);}
+  .flash-front .acr{font-family:var(--mono); font-size:19px; color:var(--sky); font-weight:600;}
+  .flash-front .hint{font-size:10px; color:var(--text-dim); margin-top:8px; text-transform:uppercase; letter-spacing:.05em;}
+  .flash-back{background:var(--sky-dim); transform:rotateY(180deg);}
+  .flash-back .full{font-size:12px; font-weight:600; margin-bottom:5px;}
+  .flash-back .desc{font-size:11px; color:var(--text-dim); line-height:1.4;}
+
+  .ovwgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; margin-top:10px;}
+  .ovwcard{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px 18px; cursor:pointer; transition:transform .2s ease, border-color .2s ease;}
+  .ovwcard:hover{border-color:var(--sky); transform:translateY(-3px);}
+  .ovwcard .top{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .ovwcard .t-title{font-size:13.5px; font-weight:600;}
+  .ovwcard .t-sub{font-size:12px; color:var(--text-dim); line-height:1.4;}
+  .ovwcard .t-status{font-family:var(--mono); font-size:10.5px; text-transform:uppercase; color:var(--text-dim);}
+
+  .barwrap{height:5px; background:var(--panel-raised); border-radius:3px; overflow:hidden; margin-top:16px;}
+  .barfill{height:100%; background:linear-gradient(90deg, var(--sky), var(--emerald)); transition:width .4s;}
+
+  .qcounter{font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-bottom:10px;}
+  .qcard{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:22px;}
+  .qtext{font-size:15.5px; margin:0 0 18px 0; line-height:1.5;}
+  .opt{display:flex; align-items:center; gap:10px; padding:11px 14px; border:1px solid var(--line); border-radius:6px; margin-bottom:9px; cursor:pointer; font-size:13.5px; background:var(--panel-raised); transition:transform .15s ease, border-color .15s ease;}
+  .opt:hover{border-color:var(--sky); transform:translateX(3px);}
+  .opt.correct{border-color:var(--emerald); background:rgba(52,211,153,.1);}
+  .opt.wrong{border-color:var(--red); background:rgba(248,113,113,.1);}
+  .opt .bullet{width:18px; height:18px; border-radius:50%; border:1px solid var(--text-dim); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:10px; color:var(--text-dim);}
+  .opt.correct .bullet{border-color:var(--emerald); color:var(--emerald);}
+  .opt.wrong .bullet{border-color:var(--red); color:var(--red);}
+
+  .explain{margin-top:14px; padding:12px 14px; border-radius:6px; font-size:13px; line-height:1.55; background:var(--panel-raised); border:1px solid var(--line); display:none;}
+  .explain.show{display:block;}
+
+  .qnav{display:flex; justify-content:space-between; align-items:center; margin-top:20px;}
+  .btn{font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.04em; background:var(--sky); color:#04222f; border:none; padding:10px 18px; border-radius:5px; cursor:pointer; font-weight:600; transition:transform .15s ease, background .2s ease;}
+  .btn:hover{background:#67cffb; transform:translateY(-1px);}
+  .btn.ghost{background:transparent; color:var(--text-dim); border:1px solid var(--line);}
+  .btn.ghost:hover{color:var(--text); border-color:var(--sky);}
+  .btn:disabled{opacity:.35; cursor:not-allowed;}
+
+  .quizresult{text-align:center; padding:40px 20px;}
+  .quizresult .score{font-family:var(--mono); font-size:50px; color:var(--sky); margin-bottom:6px;}
+  .quizresult .label{color:var(--text-dim); font-size:12.5px; margin-bottom:22px;}
+
+  .resetrow{margin-top:26px; padding-top:16px; border-top:1px solid var(--line);}
+  ::-webkit-scrollbar{width:10px;}
+  ::-webkit-scrollbar-thumb{background:#3a4a5a; border-radius:6px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  .flash:focus-visible{outline:2px solid var(--sky); outline-offset:2px;}
+
+  @media print{
+    .sidebar, .no-print, .themebtn, .resetrow{display:none !important;}
+    body{background:#fff; color:#111;}
+    .main{max-width:100%; padding:0;}
+    .card{border:1px solid #999; break-inside:avoid; box-shadow:none;}
+    table.tech th, table.tech td{color:#111; border-bottom:1px solid #999;}
+    table.tech th{background:#eee;}
+    .fig img{max-width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <nav class="sidebar">
+    <div class="brand">
+      <img class="brand-logo" src="../../assets/logo-industrial-technology.png" alt="Logo de la empresa">
+      <div class="tag">Capacitación técnica</div>
+      <h1>VACON NXC</h1>
+      <p>Convertidor regenerativo Active Front End — filtro LCL, precarga y diagnóstico de fallas</p>
+    </div>
+    <ul class="navlist" id="navlist"></ul>
+    <div class="sidebar-foot">
+      Manual AFE DPD01621A Rev. A · progreso guardado en este navegador
+      <button class="themebtn" id="themeToggle">🌓 Cambiar tema</button>
+      <a href="../../index.html" class="themebtn" style="display:block; text-align:center; text-decoration:none; margin-top:8px;">← Portal de capacitaciones</a>
+    </div>
+  </nav>
+
+  <main class="main" id="main"></main>
+</div>
+
+<script>
+/* ============================================================
+   HELPERS DE CONTENIDO
+   ============================================================ */
+const PLACEHOLDER = (txt) => `<div class="placeholder">🖼️ [Marcador de imagen: ${txt}]</div>`;
+const NOTE = (txt) => `<div class="note warn">⚠️ ${txt}</div>`;
+const INFO = (txt) => `<div class="note">💡 ${txt}</div>`;
+const H3 = (txt) => `<h3><span style="width:6px;height:6px;border-radius:50%;background:var(--sky);display:inline-block;"></span>${txt}</h3>`;
+const IMG = (src, caption, source) => `<figure class="fig">
+  <img src="img-nxc/${src}" alt="${caption}" loading="lazy">
+  <figcaption>${caption}${source ? ` — <span style="font-style:italic">${source}</span>` : ''}</figcaption>
+</figure>`;
+
+/* ============================================================
+   MÓDULOS
+   ============================================================ */
+const MODULES = [
+{ id:'overview', title:'Panel general', short:'Inicio', isOverview:true },
+
+{
+  id:'que-es-afe', title:'Qué es un Active Front End (AFE)', short:'Qué es un AFE',
+  eyebrow:'Módulo 01 · Fundamentos', sub:'Diferencia entre el AFE del VACON NXC y el rectificador pasivo de un NXP estándar.',
+  content:`
+    <div class="card">
+      <p>El VACON NXC es un convertidor regenerativo basado en tecnología <strong>Active Front End (AFE)</strong>. A diferencia del rectificador de diodos (puente pasivo) que trae un VACON NXP estándar en su etapa de entrada, la unidad AFE es <strong>bidireccional</strong>: puede rectificar CA→CC igual que un rectificador convencional, pero también invertir CC→CA para devolver energía a la red — es decir, regenera (§4.1).</p>
+
+      ${H3("Rectificador pasivo (NXP estándar) vs. Active Front End (NXC)")}
+      <table class="tech">
+        <tr><th>Característica</th><th>Rectificador pasivo (NXP)</th><th>Active Front End (NXC)</th></tr>
+        <tr><td>Flujo de energía</td><td>Solo CA → CC (unidireccional)</td><td>CA → CC y CC → CA (bidireccional)</td></tr>
+        <tr><td>Regeneración a red</td><td>No — la energía de frenado se disipa en resistencias/chopper</td><td>Sí — la unidad AFE devuelve la energía de frenado a la red</td></tr>
+        <tr><td>Distorsión de corriente</td><td>Mayor contenido armónico típico de un puente de diodos</td><td>Baja distorsión de corriente, referida en el manual como <strong>THDI</strong> (§4.1)</td></tr>
+      </table>
+
+      ${H3("Principio de control")}
+      <p>La unidad AFE controla su etapa de entrada mediante un <strong>Control de vector de lazo abierto</strong>, con una frecuencia de conmutación de <strong>3,6 kHz</strong> (Tabla 4, §4.4).</p>
+      ${NOTE("No confundir este 'Control de vector de lazo abierto' del AFE (que controla la etapa de entrada/red del NXC) con el control vectorial de motor que usa un NXP estándar para controlar su etapa de salida/motor — son controles de vector aplicados a etapas de potencia distintas del sistema.")}
+
+      ${H3("Configuración típica del sistema")}
+      <p>La configuración habitual es una unidad AFE alimentando un <strong>bus de CC común</strong> del cual cuelgan varias unidades inversoras (INU) que a su vez alimentan los motores (Fig. 7). El AFE se encarga de la interfaz con la red (rectificación/regeneración con baja THDI); los INU se encargan del control de cada motor.</p>
+      ${PLACEHOLDER("Diagrama de bloques: Red CA → filtro LCL → unidad AFE → bus de CC común → múltiples unidades INU → motores (Fig. 7, manual AFE)")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuál es la diferencia fundamental entre un rectificador pasivo (NXP estándar) y un Active Front End (AFE, NXC)?", options:["El AFE solo funciona a baja tensión", "El AFE es bidireccional: rectifica CA→CC e invierte CC→CA, regenerando energía a la red", "El rectificador pasivo también regenera energía", "No hay diferencia, son el mismo circuito"], answer:1, explain:"El manual AFE (§4.1) describe la unidad como bidireccional: puede rectificar y también invertir para devolver energía de frenado a la red, a diferencia del puente de diodos pasivo del NXP estándar." },
+    { q:"¿Cómo se denomina en el manual a la baja distorsión de corriente que caracteriza a la unidad AFE?", options:["THDV", "PWM Synch", "THDI", "Fan Cooling"], answer:2, explain:"El manual identifica esta característica como THDI (Total Harmonic Distortion de corriente) (§4.1)." },
+    { q:"¿Qué tipo de control usa la unidad AFE para su etapa de entrada, y a qué frecuencia de conmutación?", options:["Control escalar V/Hz, 50 Hz", "Control de vector de lazo abierto, 3,6 kHz", "Control vectorial de motor, 8 kHz", "Control PID, 1 kHz"], answer:1, explain:"Según la Tabla 4 (§4.4), la unidad AFE emplea Control de vector de lazo abierto con frecuencia de conmutación de 3,6 kHz." },
+    { q:"¿Por qué no debe confundirse el 'Control de vector de lazo abierto' del AFE con el control vectorial de motor de un NXP estándar?", options:["Son literalmente lo mismo", "Porque el del AFE controla la etapa de entrada/red, no la etapa de salida/motor", "Porque el AFE no tiene ningún tipo de control", "Porque el NXP no usa control vectorial"], answer:1, explain:"El control de vector de lazo abierto del AFE actúa sobre la interfaz con la red; el control vectorial de motor del NXP actúa sobre la etapa de salida hacia el motor. Son controles aplicados a etapas distintas del sistema." },
+    { q:"¿Cuál es la configuración típica de un sistema con unidad AFE según la Fig. 7 del manual?", options:["Una unidad AFE aislada, sin conexión a otros equipos", "Una unidad AFE alimentando un bus de CC común del que cuelgan varias unidades INU", "Varias unidades AFE sin bus de CC compartido", "Un AFE conectado directamente a cada motor sin bus de CC"], answer:1, explain:"La configuración típica descrita en la Fig. 7 es un AFE más varios inversores (INU) compartiendo un bus de CC común." }
+  ]
+},
+
+{
+  id:'arquitectura-potencia', title:'Arquitectura de potencia: unidad AFE + filtro LCL', short:'Arquitectura de potencia',
+  eyebrow:'Módulo 02 · Hardware', sub:'Componentes de la etapa de potencia, bastidores FI9/FI10/FI13 y el filtro LCL.',
+  content:`
+    <div class="card">
+      <p>La etapa de potencia de un sistema AFE se compone, según la Fig. 8 del manual (§4.1), de: la <strong>unidad AFE</strong>, el <strong>filtro LCL</strong>, el circuito de <strong>precarga</strong>, <strong>fusibles de CA y CC</strong>, y el <strong>contactor principal</strong>.</p>
+      ${PLACEHOLDER("Diagrama de bloques de la etapa de potencia AFE: red → fusibles CA → filtro LCL → contactor principal / precarga → unidad AFE → bus de CC → fusibles CC (Fig. 8, manual AFE)")}
+
+      ${H3("Bastidores (frame sizes)")}
+      <p>Las unidades AFE del NXC se fabrican en los bastidores <strong>FI9, FI10 y FI13</strong> (§3.1). </p>
+      ${NOTE("Estos bastidores del NXC (FI9, FI10, FI13) no deben confundirse con los bastidores FR4-FR11 usados en la nomenclatura del VACON NXP estándar — son series de codificación distintas para líneas de producto distintas.")}
+      <p>En el código de tipo del equipo, la letra <strong>«A»</strong> identifica a una unidad AFE (§3.1).</p>
+
+      ${H3("El filtro LCL")}
+      <p>El <strong>filtro LCL</strong> es el elemento pasivo que conecta la unidad AFE a la red, y es indispensable para su correcto funcionamiento (permite el control de corriente de la unidad AFE y contribuye a la baja THDI mencionada en el Módulo 1). El filtro LCL incorpora <strong>resistencias de descarga</strong> de sus condensadores, con dos variantes documentadas (§4.7.2, §4.7.2.1):</p>
+      <table class="tech">
+        <tr><th>Variante</th><th>Resistencia de descarga</th></tr>
+        <tr><td>Estándar</td><td>10 MΩ / 500 V / 0,5 W</td></tr>
+        <tr><td>Con relé de fallo a tierra</td><td>10 kΩ / 500 V / 2 W</td></tr>
+      </table>
+      ${INFO("La presencia de un relé de fallo a tierra en el filtro LCL cambia el valor de la resistencia de descarga especificada — es un dato a verificar en la placa/documentación del filtro concreto instalado antes de intervenir sobre él.")}
+    </div>
+  `,
+  quiz:[
+    { q:"Según la Fig. 8 del manual (§4.1), ¿qué elementos componen la etapa de potencia de un sistema AFE?", options:["Solo la unidad AFE y el motor", "Unidad AFE, filtro LCL, precarga, fusibles CA/CC y contactor principal", "Solo el filtro LCL", "Unidad AFE y un puente de diodos pasivo"], answer:1, explain:"La Fig. 8 (§4.1) muestra la unidad AFE, el filtro LCL, la precarga, los fusibles de CA y CC, y el contactor principal como componentes de la etapa de potencia." },
+    { q:"¿En qué bastidores (frame sizes) se fabrican las unidades AFE del VACON NXC?", options:["FR4, FR6, FR8", "FI9, FI10, FI13", "FR9, FR11, FR13", "No se especifican bastidores para el AFE"], answer:1, explain:"El manual (§3.1) identifica los bastidores FI9, FI10 y FI13 para las unidades AFE, distintos de la serie FR4-FR11 del NXP estándar." },
+    { q:"¿Qué letra de código de tipo identifica a una unidad AFE según el manual?", options:["N", "P", "A", "F"], answer:2, explain:"El manual (§3.1) indica que la letra «A» en el código de tipo identifica a una unidad AFE." },
+    { q:"¿Cuál es el valor de la resistencia de descarga estándar del filtro LCL (sin relé de fallo a tierra)?", options:["10 kΩ / 500 V / 2 W", "10 MΩ / 500 V / 0,5 W", "1 MΩ / 250 V / 1 W", "100 kΩ / 500 V / 0,5 W"], answer:1, explain:"La variante estándar del filtro LCL usa resistencias de descarga de 10 MΩ / 500 V / 0,5 W (§4.7.2)." },
+    { q:"¿Qué cambia en la resistencia de descarga del filtro LCL cuando el filtro incorpora un relé de fallo a tierra?", options:["No cambia nada", "Pasa a 10 kΩ / 500 V / 2 W", "Se elimina la resistencia de descarga", "Se duplica el valor de 10 MΩ"], answer:1, explain:"Con relé de fallo a tierra, la resistencia de descarga documentada es de 10 kΩ / 500 V / 2 W (§4.7.2.1), distinta de la variante estándar de 10 MΩ / 500 V / 0,5 W." }
+  ]
+},
+
+{
+  id:'precarga-conexion-red', title:'Circuito de precarga y conexión a red', short:'Precarga y conexión a red',
+  eyebrow:'Módulo 03 · Puesta en marcha', sub:'Por qué el AFE nunca debe conectarse a red sin precarga, y cómo dimensionar sus protecciones.',
+  content:`
+    <div class="card">
+      ${NOTE("La unidad AFE NO debe conectarse a la red sin el circuito de precarga habilitado y funcionando correctamente. La precarga limita la corriente de carga inicial de los condensadores del bus de CC; sin ella, la corriente de irrupción puede dañar componentes de potencia del propio AFE o del filtro LCL.")}
+
+      ${H3("Capacitancia del bus de CC por bastidor (Tabla 20, §4.14)")}
+      <p>El circuito de precarga se dimensiona según la resistencia de precarga y el rango de capacitancia del bus de CC soportado por cada bastidor:</p>
+      <table class="tech">
+        <tr><th>Bastidor</th><th>Resistencias de precarga</th><th>Capacitancia mín. – máx.</th></tr>
+        <tr><td>FI9</td><td>2 x 47 Ω</td><td>4950 – 30 000 µF</td></tr>
+        <tr><td>FI10</td><td>2 x 20 Ω</td><td>PLACEHOLDER — valor de capacitancia no citado en el esquema técnico verificado, confirmar contra Tabla 20 del manual</td></tr>
+        <tr><td>FI13</td><td>2 x 11 Ω</td><td>PLACEHOLDER — valor de capacitancia no citado en el esquema técnico verificado, confirmar contra Tabla 20 del manual</td></tr>
+      </table>
+      ${NOTE("Los valores de capacitancia mín./máx. para los bastidores FI10 y FI13 no fueron provistos en el esquema técnico verificado que sirve de fuente a este módulo — antes de usarlos en campo, confirmar los valores exactos contra la Tabla 20 del manual AFE (DPD01621A). No se completa aquí con una estimación.")}
+
+      ${H3("Selección de fusibles y disyuntores (Tablas 10-18)")}
+      <p>El manual documenta, en las Tablas 10 a 18, la selección de fusibles y disyuntores de CA para cada bastidor AFE.</p>
+      ${NOTE("El manual aclara explícitamente que un disyuntor NO ofrece el mismo nivel de protección que un fusible correctamente seleccionado. Donde el proyecto exija disyuntores en lugar de fusibles, debe validarse específicamente contra la tabla correspondiente al bastidor — no asumir equivalencia directa de calibre entre ambos tipos de protección.")}
+
+      ${H3("Protecciones de sobretensión y subtensión del bus de CC (Tabla 4)")}
+      <table class="tech">
+        <tr><th>Protección</th><th>NXA_5</th><th>NXA_6</th></tr>
+        <tr><td>Sobretensión</td><td>911 VCC</td><td>1200 VCC</td></tr>
+        <tr><td>Subtensión</td><td>333 VCC</td><td>460 VCC</td></tr>
+      </table>
+      ${INFO("Estos umbrales de sobretensión/subtensión del bus de CC son los que generan, respectivamente, las fallas de diagnóstico '2 Sobretensión' y '9 Subtensión' descritas en el Módulo 06.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Por qué la unidad AFE nunca debe conectarse a la red sin el circuito de precarga habilitado?", options:["Porque consume más energía sin precarga", "Porque sin precarga la corriente de irrupción de carga de los condensadores del bus de CC puede dañar componentes de potencia", "La precarga es opcional y solo mejora la eficiencia", "Porque afecta el color de los indicadores LED"], answer:1, explain:"La precarga limita la corriente de carga inicial de los condensadores del bus de CC; sin ella la corriente de irrupción puede dañar el AFE o el filtro LCL." },
+    { q:"Según la Tabla 20, ¿cuáles son las resistencias de precarga y el rango de capacitancia del bastidor FI9?", options:["2 x 20 Ω, sin capacitancia especificada", "2 x 47 Ω, 4950–30000 µF", "2 x 11 Ω, 4950–30000 µF", "4 x 47 Ω, 1000–5000 µF"], answer:1, explain:"El bastidor FI9 usa 2 resistencias de precarga de 47 Ω, con un rango de capacitancia del bus de CC de 4950 a 30000 µF (Tabla 20, §4.14)." },
+    { q:"¿Por qué este módulo no indica el rango de capacitancia mín./máx. de los bastidores FI10 y FI13?", options:["Porque no existen esos bastidores", "Porque el esquema técnico verificado no los incluyó; se marcan como PLACEHOLDER a confirmar contra la Tabla 20 del manual", "Porque son iguales al FI9", "Porque no llevan condensadores en el bus de CC"], answer:1, explain:"Siguiendo la regla de no inventar datos, se señala explícitamente con PLACEHOLDER que esos valores deben verificarse contra la Tabla 20 del manual en vez de estimarlos." },
+    { q:"¿Qué advierte el manual respecto al uso de disyuntores en lugar de fusibles para proteger la entrada de CA del AFE?", options:["Son exactamente equivalentes en todos los casos", "Un disyuntor NO ofrece el mismo nivel de protección que un fusible correctamente seleccionado", "Los disyuntores están prohibidos en cualquier instalación con AFE", "No hace falta ninguna protección de entrada"], answer:1, explain:"El manual aclara que un disyuntor no da la misma protección que un fusible, por lo que su selección debe validarse específicamente contra la tabla del bastidor correspondiente." },
+    { q:"Según la Tabla 4, ¿cuáles son los umbrales de sobretensión y subtensión del bus de CC para una unidad NXA_5?", options:["Sobretensión 1200 VCC / Subtensión 460 VCC", "Sobretensión 911 VCC / Subtensión 333 VCC", "Sobretensión 333 VCC / Subtensión 911 VCC", "No aplica protección de tensión al bus de CC"], answer:1, explain:"Para NXA_5, la Tabla 4 especifica sobretensión en 911 VCC y subtensión en 333 VCC (para NXA_6: 1200 VCC y 460 VCC respectivamente)." }
+  ]
+},
+
+{
+  id:'conexion-paralelo', title:'Conexión en paralelo de unidades AFE', short:'Conexión en paralelo',
+  eyebrow:'Módulo 04 · Exclusivo NXC', sub:'Parámetros P2.1.4, P2.2.2, P2.5.1 y P2.5.2 para operar varias unidades AFE en paralelo.',
+  content:`
+    <div class="card">
+      <p>La conexión en paralelo de varias unidades AFE alimentando el mismo bus de CC es una funcionalidad <strong>exclusiva del VACON NXC</strong> (§4.15) y requiere una configuración de parámetros específica para repartir correctamente la carga entre unidades.</p>
+
+      ${H3("Parámetro clave: AFE en paralelo (P2.1.4)")}
+      <p>El parámetro <strong>P2.1.4 «AFE en paralelo»</strong> se ajusta en <strong>1 / Sí</strong> para habilitar el funcionamiento en paralelo. Al activarlo, el sistema fija automáticamente la <strong>caída de tensión de CC en 4 %</strong>, valor que puede ajustarse posteriormente mediante el parámetro <strong>P2.2.2</strong>.</p>
+
+      ${H3("Guía rápida de puesta en marcha en paralelo")}
+      <table class="tech">
+        <tr><th>Parámetro</th><th>Nombre</th><th>Valor recomendado (guía rápida)</th></tr>
+        <tr><td>P2.1.4</td><td>AFE en paralelo</td><td>1 / Sí</td></tr>
+        <tr><td>P2.2.2</td><td>Ajuste de caída de CC</td><td>Ajustable — por defecto queda en 4 % al activar P2.1.4</td></tr>
+        <tr><td>P2.5.1</td><td>Caída</td><td>5 %</td></tr>
+        <tr><td>P2.5.2</td><td>PWM Synch</td><td>Habilitado</td></tr>
+      </table>
+
+      ${H3("Consideraciones de dimensionamiento")}
+      <ul>
+        <li>Al operar varias unidades AFE en paralelo, se debe aplicar una <strong>reducción de potencia del 5 %</strong> en cada unidad.</li>
+        <li>Cada unidad AFE en la configuración en paralelo requiere <strong>su propia protección de CA y de CC</strong> — la protección no se comparte entre unidades (§4.15).</li>
+      </ul>
+      ${INFO("El parámetro 'PWM Synch' (P2.5.2) sincroniza la modulación por ancho de pulso entre las unidades en paralelo; sin esta sincronización, las unidades podrían no compartir la carga de forma equilibrada.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿La conexión en paralelo de varias unidades AFE es una funcionalidad disponible en cualquier VACON NXP, o exclusiva de otra línea?", options:["Está disponible en cualquier NXP estándar", "Es una funcionalidad exclusiva del VACON NXC", "Solo funciona con rectificadores pasivos", "No existe la posibilidad de paralelizar unidades AFE"], answer:1, explain:"El manual (§4.15) presenta la conexión en paralelo de unidades AFE como una funcionalidad exclusiva del NXC." },
+    { q:"¿Qué hace el parámetro P2.1.4 'AFE en paralelo' al ajustarse en 1/Sí?", options:["Desactiva el filtro LCL", "Habilita el funcionamiento en paralelo y fija la caída de tensión de CC en 4 % (ajustable con P2.2.2)", "Cambia la frecuencia de conmutación a 3,6 kHz", "Activa la protección de sobretensión"], answer:1, explain:"P2.1.4 en 1/Sí habilita el modo paralelo y fija la caída de CC en 4%, valor luego ajustable mediante P2.2.2." },
+    { q:"En la guía rápida de puesta en marcha en paralelo, ¿qué valores se indican para P2.5.1 y P2.5.2?", options:["P2.5.1 'caída' al 5%, P2.5.2 'PWM Synch' habilitado", "P2.5.1 'PWM Synch' al 5%, P2.5.2 'caída' deshabilitado", "Ambos parámetros se dejan en su valor de fábrica sin cambios", "P2.5.1 y P2.5.2 no existen en el AFE"], answer:0, explain:"La guía rápida indica P2.5.1 'caída' al 5% y P2.5.2 'PWM Synch' habilitado." },
+    { q:"¿Qué reducción de potencia debe aplicarse a cada unidad AFE al operar en configuración en paralelo?", options:["10%", "5%", "No se requiere ninguna reducción", "25%"], answer:1, explain:"El manual indica una reducción de potencia del 5% en las unidades AFE que operan en paralelo (§4.15)." },
+    { q:"¿Es correcto que las unidades AFE en paralelo compartan una única protección de CA/CC común para todo el conjunto?", options:["Sí, comparten una sola protección", "No, cada unidad AFE requiere su propia protección de CA y de CC", "Solo la unidad maestra necesita protección", "Depende del bastidor utilizado"], answer:1, explain:"El manual especifica que cada unidad en la configuración en paralelo requiere su propia protección de CA/CC, sin compartirla entre unidades (§4.15)." }
+  ]
+},
+
+{
+  id:'ventilador-lcl', title:'Fuente del ventilador del filtro LCL y protección de sobrecalentamiento', short:'Ventilador filtro LCL',
+  eyebrow:'Módulo 05 · Refrigeración', sub:'Las dos variantes de alimentación del ventilador y el punto crítico de la protección de sobrecalentamiento.',
+  content:`
+    <div class="card">
+      <p>El filtro LCL requiere un ventilador de refrigeración cuya alimentación puede resolverse de dos maneras, según el manual (§5.3.3.1):</p>
+      <ul>
+        <li><strong>Fuente CC/CC integrada</strong>, tomada directamente desde el bus de CC.</li>
+        <li><strong>Fuente CC externa de 48 VCC.</strong></li>
+      </ul>
+
+      ${NOTE("Punto crítico de seguridad: si la protección de sobrecalentamiento del filtro LCL NO se conecta, por defecto esa protección NO está activada — y el filtro puede dañarse por sobrecalentamiento sin que el sistema lo detecte. La conexión de esta protección no es opcional en la práctica, aunque el equipo pueda arrancar sin ella conectada.")}
+
+      ${H3("Cómo se reporta el fallo según la variante de alimentación")}
+      <table class="tech">
+        <tr><th>Variante de alimentación del ventilador</th><th>Cómo se reporta el fallo</th></tr>
+        <tr><td>Fuente CC/CC integrada (desde el bus de CC)</td><td>El fallo aparece con el mismo código y mensaje que un fallo de ventilador de unidad: código <strong>«32 Fan Cooling»</strong></td></tr>
+        <tr><td>Fuente CC externa 48 VCC, vía entrada/salida digital</td><td>El parámetro <strong>P2.7.3</strong> solo aplica en esta variante (protección conectada por E/S)</td></tr>
+      </table>
+      ${INFO("El código '32 Fan Cooling' es el mismo mensaje usado tanto para un fallo del ventilador de la propia unidad como para un fallo del ventilador del filtro LCL alimentado por la fuente CC/CC integrada — al diagnosticar este código conviene verificar físicamente cuál de los dos ventiladores está fallando, ya que el mensaje no los distingue.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuáles son las dos variantes documentadas de alimentación del ventilador del filtro LCL?", options:["Solo alimentación desde red trifásica directa", "Fuente CC/CC integrada desde el bus de CC, o fuente CC externa de 48 VCC", "Solo baterías externas", "El filtro LCL no lleva ventilador"], answer:1, explain:"El manual (§5.3.3.1) documenta dos variantes: fuente CC/CC integrada tomada del bus de CC, o fuente CC externa de 48 VCC." },
+    { q:"¿Qué ocurre por defecto si la protección de sobrecalentamiento del filtro LCL no se conecta?", options:["Se activa automáticamente igual", "Por defecto NO está activada, y el filtro puede dañarse sin ser detectado", "El equipo no arranca hasta conectarla", "Genera una alarma inmediata aunque no esté conectada"], answer:1, explain:"El manual advierte que sin conectar esa protección, por defecto no está activada y el filtro LCL queda expuesto a daño por sobrecalentamiento no detectado (§5.3.3.1)." },
+    { q:"¿Con qué código de fallo aparece un problema del ventilador del filtro LCL cuando se alimenta por la fuente CC/CC integrada?", options:["Código 14 Sobrecalentamiento AFE", "Código 32 Fan Cooling (el mismo mensaje que un fallo de ventilador de unidad)", "Código 60 KLIXON", "No genera ningún código de fallo"], answer:1, explain:"Vía fuente CC/CC integrada, el fallo se reporta con el mismo código y mensaje '32 Fan Cooling' que un fallo de ventilador de unidad." },
+    { q:"¿Cuándo aplica el parámetro P2.7.3 en relación con el ventilador del filtro LCL?", options:["Siempre, sin importar la fuente de alimentación", "Solo cuando la protección de sobrecalentamiento va conectada por entrada/salida (variante de fuente CC externa 48 VCC)", "Solo en unidades en paralelo", "Nunca se usa para el filtro LCL"], answer:1, explain:"El manual indica que P2.7.3 solo aplica en la variante donde la protección va conectada vía E/S, es decir, con fuente CC externa." },
+    { q:"¿Por qué al recibir el código '32 Fan Cooling' conviene verificar físicamente qué ventilador está fallando?", options:["Porque ese código nunca corresponde a un ventilador real", "Porque el mismo mensaje se usa tanto para el ventilador de la unidad como para el del filtro LCL alimentado por la fuente CC/CC integrada", "Porque el código es exclusivo del filtro LCL", "Porque el código indica automáticamente cuál ventilador falló"], answer:1, explain:"El código 32 'Fan Cooling' no distingue entre el ventilador de la unidad y el del filtro LCL (vía fuente CC/CC integrada), por lo que requiere verificación física." }
+  ]
+},
+
+{
+  id:'diagnostico-fallas', title:'Diagnóstico: códigos de falla del AFE', short:'Diagnóstico de fallas',
+  eyebrow:'Módulo 06 · Diagnóstico', sub:'Tabla 27 (§6.3.6) — códigos de falla específicos del convertidor AFE, distintos en general de los del NXP estándar.',
+  content:`
+    <div class="card">
+      ${NOTE("Los códigos de falla del AFE listados en la Tabla 27 (§6.3.6) NO coinciden en general con los códigos de falla del NXP estándar — al diagnosticar una unidad NXC hay que usar esta tabla específica del manual AFE, no la tabla de fallas genérica del NXP.")}
+
+      ${H3("Tabla de códigos de falla del AFE (Tabla 27, §6.3.6)")}
+      <table class="tech">
+        <tr><th>Código</th><th>Descripción</th><th>Observación</th></tr>
+        <tr><td>1</td><td>Sobrecorriente</td><td></td></tr>
+        <tr><td>2</td><td>Sobretensión</td><td>Umbral de bus de CC según Tabla 4 (ver Módulo 03)</td></tr>
+        <tr><td>7</td><td>Disparo por saturación</td><td>No reseteable — contactar al distribuidor</td></tr>
+        <tr><td>8</td><td>Fallo del sistema</td><td>Subcódigos S7 a S11</td></tr>
+        <tr><td>9</td><td>Subtensión</td><td>Umbral de bus de CC según Tabla 4 (ver Módulo 03)</td></tr>
+        <tr><td>13</td><td>Sobreenfriamiento AFE</td><td>Por debajo de -10 °C</td></tr>
+        <tr><td>14</td><td>Sobrecalentamiento AFE</td><td>Fallo por encima de 90 °C; alarma ya en 85 °C</td></tr>
+        <tr><td>18</td><td>Desequilibrio</td><td>Solo advertencia; se da en unidades en paralelo</td></tr>
+        <tr><td>31 / 41</td><td>Temperatura de IGBT</td><td>Fallo de hardware</td></tr>
+        <tr><td>50</td><td>Fallo externo</td><td></td></tr>
+        <tr><td>58</td><td>Fallo PT100</td><td></td></tr>
+        <tr><td>60</td><td>KLIXON</td><td></td></tr>
+        <tr><td>61</td><td>Fallo de termistor</td><td></td></tr>
+      </table>
+
+      ${H3("Fallo 7 — Disparo por saturación")}
+      <p>El fallo <strong>«Disparo por saturación»</strong> (código 7) es particularmente importante desde el punto de vista de mantenimiento: el manual lo describe como <strong>no reseteable</strong> desde el propio equipo — ante este fallo, el procedimiento correcto es <strong>contactar al distribuidor</strong>, no intentar un reset local repetido.</p>
+
+      ${H3("Fallo 14 — Sobrecalentamiento AFE: dos niveles")}
+      <p>El fallo 14 tiene dos umbrales distintos que conviene diferenciar: se dispara una <strong>alarma a partir de 85 °C</strong>, y el <strong>fallo</strong> (disparo/trip) se produce por encima de <strong>90 °C</strong>. La alarma a 85°C es, en la práctica, una ventana de aviso antes de la desconexión por fallo a 90°C.</p>
+
+      ${H3("Fallo 18 — Desequilibrio: solo en unidades en paralelo")}
+      <p>El fallo 18 (Desequilibrio) es exclusivamente una <strong>advertencia</strong> — no un fallo que detenga el equipo — y se presenta en el contexto de <strong>unidades AFE en paralelo</strong> (ver Módulo 04) cuando se detecta un reparto desigual de corriente entre unidades.</p>
+
+      ${H3("Tipos de fallo (A / F / AR / FT)")}
+      <p>El AFE usa la misma clasificación de tipos de fallo que el NXP (A = Alarma, F = Fallo, AR = Fallo con reintento automático, FT = Fallo temporizado), pero aplicada al contexto específico de la unidad AFE — el significado de cada tipo es el mismo, pero los códigos de fallo a los que se aplican son los de la Tabla 27, propios del AFE.</p>
+      ${INFO("Este listado de tipos de fallo (A/F/AR/FT) es la misma nomenclatura general usada en la familia VACON NX, no un dato exclusivo del AFE — se repite aquí como contexto general, no como cita textual de una sección específica del manual AFE.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Los códigos de falla del AFE (Tabla 27) coinciden, en general, con los códigos de falla de un NXP estándar?", options:["Sí, son exactamente los mismos códigos", "No, en general no coinciden — hay que usar la tabla específica del manual AFE", "Solo coinciden los códigos de sobretensión", "El AFE no tiene tabla de fallas propia"], answer:1, explain:"El manual aclara que la Tabla 27 de fallas del AFE, en general, no coincide con la tabla de fallas del NXP estándar." },
+    { q:"¿Qué acción indica el manual ante el fallo 7 'Disparo por saturación'?", options:["Resetear el equipo repetidamente hasta que arranque", "No es reseteable — contactar al distribuidor", "Ignorar el fallo si el equipo sigue funcionando", "Cambiar el filtro LCL de inmediato"], answer:1, explain:"El fallo 7 (Disparo por saturación) se describe como no reseteable; el procedimiento correcto es contactar al distribuidor." },
+    { q:"¿Cuáles son los dos umbrales de temperatura asociados al fallo 14 (Sobrecalentamiento AFE)?", options:["Alarma a 85°C, fallo por encima de 90°C", "Alarma a 90°C, fallo por encima de 85°C", "Solo existe un umbral: 100°C", "Alarma a 50°C, fallo a 60°C"], answer:0, explain:"El fallo 14 tiene alarma a partir de 85°C y disparo por fallo por encima de 90°C." },
+    { q:"¿En qué contexto se presenta el fallo 18 (Desequilibrio), y qué tipo de evento es?", options:["Es un fallo grave que detiene cualquier unidad AFE individual", "Es solo una advertencia y se da en el contexto de unidades AFE en paralelo", "Es un código exclusivo del filtro LCL", "Ocurre únicamente durante la precarga"], answer:1, explain:"El fallo 18 es solo una advertencia (no detiene el equipo) y se presenta en unidades AFE configuradas en paralelo, por reparto desigual de corriente." },
+    { q:"¿Qué código corresponde a 'Sobreenfriamiento AFE' y bajo qué condición de temperatura se activa?", options:["Código 14, por encima de 90°C", "Código 13, por debajo de -10°C", "Código 9, por debajo de 0°C", "Código 31, por encima de 100°C"], answer:1, explain:"El código 13 (Sobreenfriamiento AFE) se activa cuando la temperatura cae por debajo de -10°C, según la Tabla 27." }
+  ]
+}
+];
+
+/* ============================================================
+   ESTADO + PERSISTENCIA (localStorage)
+   ============================================================ */
+const STORAGE_KEY = 'vacon-nxc_training_progress_v1';
+const THEME_KEY = 'capacitacion-theme';
+
+const state = {
+  currentId: 'overview',
+  view: 'learn',
+  quizProgress: {},
+  quizIndex: {},
+};
+MODULES.forEach(m=>{
+  if(m.quiz){ state.quizProgress[m.id] = { answered: new Array(m.quiz.length).fill(null) }; state.quizIndex[m.id] = 0; }
+});
+
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const saved = JSON.parse(raw);
+    MODULES.forEach(m=>{
+      if(!m.quiz) return;
+      const savedAnswers = saved && saved[m.id];
+      if(Array.isArray(savedAnswers) && savedAnswers.length === m.quiz.length){
+        state.quizProgress[m.id].answered = savedAnswers;
+      }
+    });
+  }catch(e){ console.warn('No se pudo cargar el progreso guardado:', e); }
+}
+function saveProgress(){
+  try{
+    const data = {};
+    MODULES.forEach(m=>{ if(m.quiz) data[m.id] = state.quizProgress[m.id].answered; });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }catch(e){ console.warn('No se pudo guardar el progreso:', e); }
+  syncPortalProgress();
+}
+function syncPortalProgress(){
+  try{
+    const teachable = MODULES.filter(m=>!m.isOverview);
+    const total = teachable.reduce((s,m)=>s+m.quiz.length,0);
+    const done = teachable.reduce((s,m)=>s+state.quizProgress[m.id].answered.filter(a=>a!==null).length,0);
+    localStorage.setItem('vfd_progress_vacon-nxc', JSON.stringify({ done, total }));
+  }catch(e){ console.warn('No se pudo sincronizar el progreso con el portal:', e); }
+}
+function resetAllProgress(){
+  MODULES.forEach(m=>{
+    if(!m.quiz) return;
+    state.quizProgress[m.id].answered = new Array(m.quiz.length).fill(null);
+    state.quizIndex[m.id] = 0;
+  });
+  saveProgress();
+  render();
+}
+loadProgress();
+syncPortalProgress();
+
+/* ============================================================
+   TEMA
+   ============================================================ */
+function applyTheme(){
+  const saved = localStorage.getItem(THEME_KEY);
+  if(saved === 'light'){ document.documentElement.classList.add('light-theme'); }
+  else { document.documentElement.classList.remove('light-theme'); }
+}
+applyTheme();
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  const isLight = document.documentElement.classList.toggle('light-theme');
+  localStorage.setItem(THEME_KEY, isLight ? 'light' : 'dark');
+});
+
+/* ============================================================
+   ANIMACIÓN DE ENTRADA
+   ============================================================ */
+function animateIn(container){
+  const items = container.querySelectorAll('.modhead, .card, .fig, .ovwcard, .qcard, .barwrap, .flash');
+  items.forEach((el,i)=>{ el.classList.add('reveal'); el.style.transitionDelay = Math.min(i*70,560)+'ms'; });
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ items.forEach(el=>el.classList.add('in')); }));
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+function ledStateFor(m){
+  if(m.isOverview) return '';
+  const p = state.quizProgress[m.id];
+  if(!p) return '';
+  const answeredCount = p.answered.filter(a=>a!==null).length;
+  if(answeredCount===0) return '';
+  if(answeredCount < m.quiz.length) return 'partial';
+  return 'done';
+}
+let sidebarAnimated = false;
+function renderSidebar(){
+  const ul = document.getElementById('navlist');
+  ul.innerHTML = '';
+  MODULES.forEach((m,i)=>{
+    const li = document.createElement('li');
+    li.className = 'navitem' + (state.currentId===m.id ? ' active' : '');
+    if(!sidebarAnimated){ li.style.animation = `slideInLeft .45s cubic-bezier(.2,.7,.3,1) ${i*35}ms both`; }
+    const ledClass = ledStateFor(m);
+    li.innerHTML = `
+      ${m.isOverview ? '<span class="led"></span>' : `<span class="led ${ledClass}"></span>`}
+      <span class="num">${m.isOverview ? '★' : String(i).padStart(2,'0')}</span>
+      <span class="label">${m.short}</span>
+    `;
+    li.onclick = ()=>{ state.currentId = m.id; state.view = 'learn'; render(); window.scrollTo(0,0); };
+    ul.appendChild(li);
+  });
+  sidebarAnimated = true;
+}
+
+/* ============================================================
+   OVERVIEW
+   ============================================================ */
+function renderOverview(){
+  const teachable = MODULES.filter(m=>!m.isOverview);
+  const totalQ = teachable.reduce((s,m)=>s+m.quiz.length,0);
+  const answeredQ = teachable.reduce((s,m)=>s+state.quizProgress[m.id].answered.filter(a=>a!==null).length,0);
+  const pct = totalQ ? Math.round(answeredQ/totalQ*100) : 0;
+
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="modhead">
+      <p class="eyebrow">Capacitación · VACON NXC</p>
+      <h2>Biblioteca de módulos</h2>
+      <p class="sub">Navega libremente entre los ${teachable.length} módulos. Cada uno tiene su contenido técnico y su quiz — el progreso se guarda automáticamente en este navegador.</p>
+    </div>
+    <div class="barwrap"><div class="barfill" style="width:${pct}%"></div></div>
+    <p style="font-family:var(--mono); font-size:11.5px; color:var(--text-dim); margin:8px 0 24px 0;">${answeredQ} / ${totalQ} preguntas respondidas · ${pct}%</p>
+    ${pct===100 ? `
+    <div class="card" style="border-color:var(--emerald); background:var(--emerald-dim);">
+      <h3 style="color:var(--emerald); margin-top:0;">🏆 Capacitación completa</h3>
+      <p style="margin-bottom:0;">Completaste el quiz de los ${teachable.length} módulos de la capacitación VACON NXC — Convertidor Regenerativo AFE. Puedes reintentar cualquier módulo cuando quieras para reforzar los conceptos con menos aciertos.</p>
+    </div>` : ''}
+    <div class="ovwgrid">
+      ${teachable.map((m,i)=>{
+        const p = state.quizProgress[m.id];
+        const answered = p.answered.filter(a=>a!==null).length;
+        const correct = p.answered.reduce((s,a)=> s + (a===true?1:0), 0);
+        let status = 'sin iniciar';
+        if(answered>0 && answered<m.quiz.length) status = `en curso · ${answered}/${m.quiz.length}`;
+        if(answered===m.quiz.length) status = `completo · ${correct}/${m.quiz.length} correctas`;
+        const startBadge = m.id==='que-es-afe' ? `<span style="font-family:var(--mono); font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--emerald); border:1px solid var(--emerald); border-radius:4px; padding:2px 6px; margin-left:8px;">Empieza aquí</span>` : '';
+        return `<div class="ovwcard" data-id="${m.id}">
+          <div class="top"><span class="t-title">${String(i).padStart(2,'0')} · ${m.title}${startBadge}</span><span class="led ${ledStateFor(m)}"></span></div>
+          <div class="t-sub">${m.sub}</div>
+          <div class="t-status" style="margin-top:10px;">${status}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="resetrow">
+      <button class="btn ghost" id="resetAllBtn">Borrar todo el progreso guardado</button>
+    </div>
+  `;
+  const resetBtn = document.getElementById('resetAllBtn');
+  if(resetBtn){
+    resetBtn.onclick = ()=>{
+      if(confirm('¿Borrar el progreso guardado de todos los módulos? Esta acción no se puede deshacer.')){
+        resetAllProgress();
+      }
+    };
+  }
+  main.querySelectorAll('.ovwcard').forEach(el=>{
+    el.onclick = ()=>{ state.currentId = el.dataset.id; state.view = 'learn'; render(); window.scrollTo(0,0); };
+  });
+  animateIn(main);
+}
+
+/* ============================================================
+   MÓDULO (learn / quiz)
+   ============================================================ */
+function renderModule(m){
+  const main = document.getElementById('main');
+  const hasCards = !!m.flashcards;
+  main.innerHTML = `
+    <div class="modhead">
+      <p class="eyebrow">${m.eyebrow}</p>
+      <h2>${m.title}</h2>
+      <p class="sub">${m.sub}</p>
+    </div>
+    <div class="tabs no-print">
+      <div class="tab ${state.view==='learn'?'active':''}" data-v="learn">Aprender</div>
+      <div class="tab ${state.view==='quiz'?'active':''}" data-v="quiz">Quiz (${m.quiz.length})</div>
+      <div style="margin-left:auto; align-self:center;"><button class="btn ghost" id="printBtn" style="font-size:10.5px; padding:6px 12px;">🖨️ Imprimir esta unidad</button></div>
+    </div>
+    <div id="modbody"></div>
+  `;
+  main.querySelectorAll('.tab').forEach(t=>{ t.onclick = ()=>{ state.view = t.dataset.v; render(); }; });
+  const printBtn = document.getElementById('printBtn');
+  if(printBtn) printBtn.onclick = ()=> window.print();
+  const body = document.getElementById('modbody');
+  if(state.view==='learn'){
+    body.innerHTML = m.content;
+    if(hasCards) renderFlashcards(m);
+  } else {
+    renderQuiz(m, body);
+  }
+  animateIn(main);
+}
+
+function renderFlashcards(m){
+  const grid = document.getElementById('flashgrid');
+  if(!grid) return;
+  grid.innerHTML = m.flashcards.map((f)=>`
+    <div class="flash" tabindex="0" role="button" aria-label="Tarjeta ${f.acr}, presiona Enter o Espacio para revelar">
+      <div class="flash-inner">
+        <div class="flash-face flash-front"><div class="acr">${f.acr}</div><div class="hint">toca para revelar</div></div>
+        <div class="flash-face flash-back"><div class="full">${f.full}</div><div class="desc">${f.desc}</div></div>
+      </div>
+    </div>
+  `).join('');
+  grid.querySelectorAll('.flash').forEach(el=>{
+    el.onclick = ()=> el.classList.toggle('flipped');
+    el.onkeydown = (e)=>{
+      if(e.key==='Enter' || e.key===' ' || e.key==='Spacebar'){
+        e.preventDefault();
+        el.classList.toggle('flipped');
+      }
+    };
+  });
+}
+
+/* ---------- Quiz engine ---------- */
+function renderQuiz(m, body){
+  const progress = state.quizProgress[m.id];
+  const total = m.quiz.length;
+  const answeredAll = progress.answered.every(a=>a!==null);
+
+  if(answeredAll){
+    const correct = progress.answered.filter(a=>a===true).length;
+    const missed = m.quiz.map((q,qi)=>({q,qi})).filter(x=>progress.answered[x.qi]===false);
+    body.innerHTML = `
+      <div class="qcard">
+        <div class="quizresult">
+          <div class="score">${correct}/${total}</div>
+          <div class="label">respuestas correctas en este módulo</div>
+          <button class="btn ghost" id="retryBtn">Reintentar quiz</button>
+        </div>
+        ${missed.length ? `
+        <div style="text-align:left; margin-top:10px;">
+          <h3 style="color:var(--red);">Preguntas a repasar (${missed.length})</h3>
+          ${missed.map(x=>`
+            <div class="note warn" style="margin:10px 0;">
+              <strong>${x.q.q}</strong><br>
+              Respuesta correcta: ${x.q.options[x.q.answer]}<br>
+              ${x.q.explain}
+            </div>
+          `).join('')}
+        </div>` : ''}
+      </div>
+    `;
+    document.getElementById('retryBtn').onclick = ()=>{
+      progress.answered = new Array(total).fill(null);
+      state.quizIndex[m.id] = 0;
+      saveProgress();
+      render();
+    };
+    return;
+  }
+
+  let idx = state.quizIndex[m.id];
+  if(progress.answered[idx]!==null){
+    idx = progress.answered.findIndex(a=>a===null);
+    state.quizIndex[m.id] = idx;
+  }
+  const q = m.quiz[idx];
+  body.innerHTML = `
+    <div class="qcounter">Pregunta ${idx+1} de ${total}</div>
+    <div class="qcard">
+      <p class="qtext">${q.q}</p>
+      <div id="optlist">
+        ${q.options.map((o,oi)=>`<div class="opt" data-oi="${oi}"><span class="bullet">${String.fromCharCode(65+oi)}</span><span>${o}</span></div>`).join('')}
+      </div>
+      <div class="explain" id="explainBox">${q.explain}</div>
+      <div class="qnav">
+        <span style="font-family:var(--mono); font-size:11px; color:var(--text-dim);">selecciona una opción</span>
+        <button class="btn" id="nextBtn" disabled>Siguiente</button>
+      </div>
+    </div>
+  `;
+  let picked = false;
+  document.querySelectorAll('#optlist .opt').forEach(el=>{
+    el.onclick = ()=>{
+      if(picked) return;
+      picked = true;
+      const oi = parseInt(el.dataset.oi);
+      const isCorrect = oi===q.answer;
+      progress.answered[idx] = isCorrect;
+      saveProgress();
+      document.querySelectorAll('#optlist .opt').forEach(o2=>{
+        const oi2 = parseInt(o2.dataset.oi);
+        if(oi2===q.answer) o2.classList.add('correct');
+        else if(oi2===oi) o2.classList.add('wrong');
+      });
+      document.getElementById('explainBox').classList.add('show');
+      const nb = document.getElementById('nextBtn');
+      nb.disabled = false;
+      nb.onclick = ()=>{
+        state.quizIndex[m.id] = idx+1 < total ? idx+1 : idx;
+        render();
+      };
+      renderSidebar();
+    };
+  });
+}
+
+/* ============================================================
+   RENDER PRINCIPAL
+   ============================================================ */
+function render(){
+  renderSidebar();
+  const m = MODULES.find(mm=>mm.id===state.currentId);
+  if(m.isOverview) renderOverview();
+  else renderModule(m);
+}
+
+render();
+</script>
+</body>
+</html>

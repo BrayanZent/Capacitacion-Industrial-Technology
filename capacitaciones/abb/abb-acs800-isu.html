@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABB ACS800 · ISU (IGBT Supply Unit) — Rectificador Regenerativo Activo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #10141c;
+    --panel: #171d2a;
+    --panel-raised: #1f2738;
+    --line: #2b3448;
+    --text: #e8ecf3;
+    --text-dim: #8b93a7;
+    --sky: #6f93d6;
+    --sky-dim: #223257;
+    --emerald: #7ec13f;
+    --emerald-dim: #3a5323;
+    --red: #e2593c;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+  :root.light-theme{
+    --bg: #f4f6fa;
+    --panel: #ffffff;
+    --panel-raised: #eef1f7;
+    --line: #d8dee8;
+    --text: #1b2230;
+    --text-dim: #5c6577;
+    --sky-dim: #e2eaf7;
+    --emerald-dim: #e6f5d9;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  ::selection{background:var(--sky-dim);color:var(--text);}
+
+  @keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+  @keyframes slideInLeft{ from{opacity:0; transform:translateX(-14px);} to{opacity:1; transform:translateX(0);} }
+  @keyframes logoIn{ from{opacity:0; transform:scale(.9);} to{opacity:1; transform:scale(1);} }
+  .reveal{opacity:0; transform:translateY(18px); transition:opacity .55s cubic-bezier(.2,.7,.3,1), transform .55s cubic-bezier(.2,.7,.3,1);}
+  .reveal.in{opacity:1; transform:translateY(0);}
+
+  .app{display:flex; min-height:100vh;}
+  .sidebar{
+    width:280px; flex-shrink:0; background:var(--panel);
+    border-right:1px solid var(--line);
+    padding:22px 16px; position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .brand{padding:4px 8px 20px 8px; border-bottom:1px solid var(--line); margin-bottom:16px;}
+  .brand-logo{width:100%; max-width:170px; display:block; margin:0 0 14px 0; background:#fff; border-radius:6px; padding:8px 10px; animation:logoIn .8s cubic-bezier(.2,.8,.3,1);}
+  .brand .tag{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--emerald); text-transform:uppercase;}
+  .brand h1{font-size:17px; margin:6px 0 2px 0; line-height:1.25;}
+  .brand p{font-size:12px; color:var(--text-dim); margin:0;}
+
+  .navlist{list-style:none; margin:0; padding:0;}
+  .navitem{display:flex; align-items:center; gap:10px; padding:10px 10px; border-radius:6px; cursor:pointer; margin-bottom:2px; border:1px solid transparent; transition:background .2s ease, transform .2s ease;}
+  .navitem:hover{background:var(--panel-raised); transform:translateX(2px);}
+  .navitem.active{background:var(--panel-raised); border-color:var(--line);}
+  .led{width:9px; height:9px; border-radius:50%; flex-shrink:0; background:#3a4048; box-shadow:inset 0 0 0 1px rgba(0,0,0,.4);}
+  .led.done{background:var(--emerald); box-shadow:0 0 6px rgba(126,193,63,.7);}
+  .led.partial{background:var(--sky); box-shadow:0 0 6px rgba(111,147,214,.6);}
+  .navitem .num{font-family:var(--mono); font-size:11px; color:var(--text-dim); width:18px;}
+  .navitem .label{font-size:13.5px;}
+  .navitem.active .label{color:var(--sky);}
+
+  .sidebar-foot{margin-top:18px; padding-top:14px; border-top:1px solid var(--line); font-family:var(--mono); font-size:11px; color:var(--text-dim);}
+  .themebtn{margin-top:10px; width:100%; font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.04em; background:transparent; color:var(--text-dim); border:1px solid var(--line); padding:8px 10px; border-radius:6px; cursor:pointer;}
+  .themebtn:hover{color:var(--text); border-color:var(--sky);}
+
+  .main{flex:1; padding:36px 44px; max-width:920px; animation:fadeIn .5s ease;}
+  @media (max-width: 860px){ .app{flex-direction:column;} .sidebar{width:100%; height:auto; position:relative; border-right:none; border-bottom:1px solid var(--line);} .main{padding:24px;} }
+
+  .modhead{margin-bottom:8px;}
+  .modhead .eyebrow{font-family:var(--mono); font-size:11.5px; color:var(--sky); letter-spacing:.1em; text-transform:uppercase; margin:0 0 6px 0;}
+  .modhead h2{font-size:26px; margin:0 0 6px 0; line-height:1.2;}
+  .modhead .sub{color:var(--text-dim); font-size:14px; max-width:62ch; margin:0;}
+
+  .tabs{display:flex; gap:6px; margin:20px 0 22px 0; border-bottom:1px solid var(--line);}
+  .tab{font-family:var(--mono); font-size:12.5px; letter-spacing:.03em; padding:9px 14px; cursor:pointer; color:var(--text-dim); border-bottom:2px solid transparent; text-transform:uppercase;}
+  .tab:hover{color:var(--text);}
+  .tab.active{color:var(--sky); border-bottom-color:var(--sky);}
+
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:20px 22px; margin-bottom:14px; transition:transform .25s ease, border-color .25s ease;}
+  .card:hover{transform:translateY(-2px); border-color:var(--sky);}
+  .card h3{margin:18px 0 8px 0; font-size:14.5px; color:var(--sky); display:flex; align-items:center; gap:8px;}
+  .card h3:first-child{margin-top:0;}
+  .card p{margin:0 0 10px 0; font-size:14px; line-height:1.65;}
+  .card ul, .card ol{margin:8px 0 12px 0; padding-left:18px;}
+  .card li{font-size:13.5px; line-height:1.7; margin-bottom:5px;}
+
+  .note{margin:12px 0; padding:11px 13px; background:rgba(111,147,214,.08); border-left:3px solid var(--sky); font-size:12.5px; color:var(--text-dim); border-radius:0 5px 5px 0;}
+  .note.warn{background:rgba(226,89,60,.08); border-left-color:var(--red);}
+
+  table.tech{width:100%; border-collapse:collapse; font-family:var(--mono); font-size:12px; margin:6px 0 14px 0;}
+  table.tech th, table.tech td{padding:7px 9px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top;}
+  table.tech th{color:var(--sky); font-weight:600; background:var(--panel-raised);}
+  table.tech td{color:var(--text-dim);}
+
+  .fig{margin:14px 0 6px 0; text-align:center;}
+  .fig img{width:100%; max-width:520px; display:block; margin:0 auto; border-radius:6px; border:1px solid var(--line); background:#f5f3ee;}
+  .fig figcaption{font-family:var(--mono); font-size:10.5px; color:var(--text-dim); margin-top:6px;}
+
+  .placeholder{border:1px dashed var(--line); border-radius:8px; padding:16px; text-align:center; font-size:12px; color:var(--text-dim); margin:12px 0;}
+
+  .cardsgrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:14px; margin-top:6px;}
+  .flash{perspective:1000px; height:130px; cursor:pointer;}
+  .flash-inner{position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d;}
+  .flash.flipped .flash-inner{transform:rotateY(180deg);}
+  .flash-face{position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--line); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:12px;}
+  .flash-front{background:var(--panel-raised);}
+  .flash-front .acr{font-family:var(--mono); font-size:19px; color:var(--sky); font-weight:600;}
+  .flash-front .hint{font-size:10px; color:var(--text-dim); margin-top:8px; text-transform:uppercase; letter-spacing:.05em;}
+  .flash-back{background:var(--sky-dim); transform:rotateY(180deg);}
+  .flash-back .full{font-size:12px; font-weight:600; margin-bottom:5px;}
+  .flash-back .desc{font-size:11px; color:var(--text-dim); line-height:1.4;}
+
+  .ovwgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; margin-top:10px;}
+  .ovwcard{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px 18px; cursor:pointer; transition:transform .2s ease, border-color .2s ease;}
+  .ovwcard:hover{border-color:var(--sky); transform:translateY(-3px);}
+  .ovwcard .top{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .ovwcard .t-title{font-size:13.5px; font-weight:600;}
+  .ovwcard .t-sub{font-size:12px; color:var(--text-dim); line-height:1.4;}
+  .ovwcard .t-status{font-family:var(--mono); font-size:10.5px; text-transform:uppercase; color:var(--text-dim);}
+
+  .barwrap{height:5px; background:var(--panel-raised); border-radius:3px; overflow:hidden; margin-top:16px;}
+  .barfill{height:100%; background:linear-gradient(90deg, var(--sky), var(--emerald)); transition:width .4s;}
+
+  .qcounter{font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-bottom:10px;}
+  .qcard{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:22px;}
+  .qtext{font-size:15.5px; margin:0 0 18px 0; line-height:1.5;}
+  .opt{display:flex; align-items:center; gap:10px; padding:11px 14px; border:1px solid var(--line); border-radius:6px; margin-bottom:9px; cursor:pointer; font-size:13.5px; background:var(--panel-raised); transition:transform .15s ease, border-color .15s ease;}
+  .opt:hover{border-color:var(--sky); transform:translateX(3px);}
+  .opt.correct{border-color:var(--emerald); background:rgba(126,193,63,.1);}
+  .opt.wrong{border-color:var(--red); background:rgba(226,89,60,.1);}
+  .opt .bullet{width:18px; height:18px; border-radius:50%; border:1px solid var(--text-dim); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:10px; color:var(--text-dim);}
+  .opt.correct .bullet{border-color:var(--emerald); color:var(--emerald);}
+  .opt.wrong .bullet{border-color:var(--red); color:var(--red);}
+
+  .explain{margin-top:14px; padding:12px 14px; border-radius:6px; font-size:13px; line-height:1.55; background:var(--panel-raised); border:1px solid var(--line); display:none;}
+  .explain.show{display:block;}
+
+  .qnav{display:flex; justify-content:space-between; align-items:center; margin-top:20px;}
+  .btn{font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.04em; background:var(--sky); color:#0d1626; border:none; padding:10px 18px; border-radius:5px; cursor:pointer; font-weight:600; transition:transform .15s ease, background .2s ease;}
+  .btn:hover{background:#8faee0; transform:translateY(-1px);}
+  .btn.ghost{background:transparent; color:var(--text-dim); border:1px solid var(--line);}
+  .btn.ghost:hover{color:var(--text); border-color:var(--sky);}
+  .btn:disabled{opacity:.35; cursor:not-allowed;}
+
+  .quizresult{text-align:center; padding:40px 20px;}
+  .quizresult .score{font-family:var(--mono); font-size:50px; color:var(--sky); margin-bottom:6px;}
+  .quizresult .label{color:var(--text-dim); font-size:12.5px; margin-bottom:22px;}
+
+  .resetrow{margin-top:26px; padding-top:16px; border-top:1px solid var(--line);}
+  ::-webkit-scrollbar{width:10px;}
+  ::-webkit-scrollbar-thumb{background:#3a4a5a; border-radius:6px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  .flash:focus-visible{outline:2px solid var(--sky); outline-offset:2px;}
+
+  @media print{
+    .sidebar, .no-print, .themebtn, .resetrow{display:none !important;}
+    body{background:#fff; color:#111;}
+    .main{max-width:100%; padding:0;}
+    .card{border:1px solid #999; break-inside:avoid; box-shadow:none;}
+    table.tech th, table.tech td{color:#111; border-bottom:1px solid #999;}
+    table.tech th{background:#eee;}
+    .fig img{max-width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <nav class="sidebar">
+    <div class="brand">
+      <img class="brand-logo" src="../../assets/logo-industrial-technology.png" alt="Logo de la empresa">
+      <div class="tag">Capacitación técnica</div>
+      <h1>ABB ACS800 · ISU</h1>
+      <p>Rectificador regenerativo activo (IGBT Supply Unit) — arquitectura, parametrización y diagnóstico</p>
+    </div>
+    <ul class="navlist" id="navlist"></ul>
+    <div class="sidebar-foot">
+      <a href="../../index.html" style="color:var(--sky); text-decoration:none;">&larr; Volver al portal</a><br><br>
+      Manual [ISU] IGBT Supply Control Program · progreso guardado en este navegador
+      <button class="themebtn" id="themeToggle">🌓 Cambiar tema</button>
+    </div>
+  </nav>
+
+  <main class="main" id="main"></main>
+</div>
+
+<script>
+/* ============================================================
+   HELPERS DE CONTENIDO
+   ============================================================ */
+const PLACEHOLDER = (txt) => `<div class="placeholder">🖼️ [Marcador de imagen: ${txt}]</div>`;
+const NOTE = (txt) => `<div class="note warn">⚠️ ${txt}</div>`;
+const INFO = (txt) => `<div class="note">💡 ${txt}</div>`;
+const H3 = (txt) => `<h3><span style="width:6px;height:6px;border-radius:50%;background:var(--sky);display:inline-block;"></span>${txt}</h3>`;
+const IMG = (src, caption, source) => `<figure class="fig">
+  <img src="img-isu/${src}" alt="${caption}" loading="lazy">
+  <figcaption>${caption}${source ? ` — <span style="font-style:italic">${source}</span>` : ''}</figcaption>
+</figure>`;
+
+/* ============================================================
+   MÓDULOS
+   ============================================================ */
+const MODULES = [
+{ id:'overview', title:'Panel general', short:'Inicio', isOverview:true },
+
+{
+  id:'que-es-isu', title:'Qué es el ISU: rol y diferencia frente al rectificador de diodos', short:'Qué es el ISU',
+  eyebrow:'Módulo 01 · Fundamentos', sub:'El "line-side converter" que sustituye al puente de diodos convencional y habilita regeneración a red.',
+  content:`
+    <div class="card">
+      ${IMG("componentes-potencia-lcl.png", "Componentes físicos de potencia del ISU: filtro LCL, módulos rectificadores e inversores, alimentación 400 VCA", "Fotografía de equipo ACS800-17 en producción")}
+
+      <p>El <strong>ISU (IGBT Supply Unit)</strong> es el "line-side converter" del ACS800: sustituye al puente de diodos convencional de la etapa de entrada. A diferencia de un rectificador pasivo, el ISU permite <strong>regeneración de energía a la red</strong> y <strong>control activo del bus DC</strong>.</p>
+
+      ${H3("Control activo del nivel de tensión DC")}
+      <p>Al no depender de la rectificación pasiva de diodos, el ISU puede elevar el nivel del bus DC por encima de lo que permitiría un rectificador de diodos de 6 pulsos. Cita textual del manual (parámetro 23.01 DC VOLT REF):</p>
+      <div class="note">"the DC link voltage can be raised higher than with a conventional 6-pulse diode rectifier in order to compensate a low voltage level in the network"</div>
+
+      ${H3("Comportamiento ante pérdida de modulación (modo remoto)")}
+      <p>Si se pierde la modulación en modo remoto, el ISU no queda inoperante: cae a un modo de respaldo pasivo. Cita textual:</p>
+      <div class="note">"only shifts to the 6-pulse diode bridge mode (no regenerative braking is allowed/possible)"</div>
+      ${NOTE("En modo diodo (6-pulse diode bridge mode) el ISU pierde la capacidad de regeneración/frenado regenerativo — solo rectifica de forma pasiva, igual que un puente de diodos convencional.")}
+
+      ${H3("Cálculo de potencia (ejemplo del parámetro 23.01)")}
+      <p>El manual ejemplifica el cálculo de potencia asociado a 23.01 con la fórmula exacta:</p>
+      <div class="note">P = sqrt(3) × 380 × line current</div>
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué es el ISU (IGBT Supply Unit) en relación a la etapa de entrada del ACS800?", options:["Un módulo opcional de frenado dinámico", "El 'line-side converter' que sustituye al puente de diodos convencional, permitiendo regeneración a red y control activo del bus DC", "Una tarjeta de comunicación de bus de campo", "Un filtro de armónicos pasivo sin electrónica de potencia"], answer:1, explain:"El ISU es el line-side converter que reemplaza al puente de diodos convencional, habilitando regeneración a red y control activo del bus DC." },
+    { q:"Según la cita textual del manual sobre 23.01 DC VOLT REF, ¿qué permite el ISU respecto a un rectificador de diodos de 6 pulsos convencional?", options:["Reducir siempre la tensión del bus DC", "Elevar el nivel de tensión del bus DC más allá de lo que permite un rectificador de diodos de 6 pulsos, para compensar una tensión de red baja", "Eliminar por completo el bus DC", "Funcionar sin ningún circuito intermedio"], answer:1, explain:"Cita textual: 'the DC link voltage can be raised higher than with a conventional 6-pulse diode rectifier in order to compensate a low voltage level in the network'." },
+    { q:"¿Qué ocurre si se pierde la modulación del ISU en modo remoto, según el manual?", options:["El equipo se destruye inmediatamente", "El ISU solo cae al modo de puente de diodos de 6 pulsos, sin frenado regenerativo posible", "El motor sigue funcionando sin cambios", "Se activa automáticamente un generador de respaldo"], answer:1, explain:"Cita textual: 'only shifts to the 6-pulse diode bridge mode (no regenerative braking is allowed/possible)'." },
+    { q:"En modo diodo de respaldo (6-pulse diode bridge mode), ¿qué capacidad pierde el ISU?", options:["La capacidad de rectificar", "La capacidad de regeneración / frenado regenerativo", "La capacidad de alimentar al motor por completo", "La capacidad de medir corriente"], answer:1, explain:"En el modo de puente de diodos de 6 pulsos no es posible el frenado regenerativo, ya que el ISU pasa a rectificación puramente pasiva." },
+    { q:"¿Cuál es la fórmula exacta que el manual usa como ejemplo de cálculo de potencia para 23.01?", options:["P = 380 × line current / sqrt(3)", "P = sqrt(3) × 380 × line current", "P = 3 × 380 × line current", "P = 380² × line current"], answer:1, explain:"El manual cita: 'P = sqrt(3) × 380 × line current' como ejemplo de cálculo de potencia asociado al parámetro 23.01." }
+  ]
+},
+
+{
+  id:'arquitectura-potencia', title:'Arquitectura de potencia: filtro LCL, módulos IGBT y bus DC', short:'Arquitectura de potencia',
+  eyebrow:'Módulo 02 · Hardware', sub:'Filtro LCL, módulos rectificadores e inversores, y la topología de puente completo trifásico bidireccional con IGBTs.',
+  content:`
+    <div class="card">
+      <p>Los bloques físicos de potencia del ISU son: el <strong>filtro LCL</strong> (bobina–capacitor–bobina), los <strong>módulos rectificadores</strong>, los <strong>módulos inversores</strong>, y la <strong>alimentación de 400 VCA</strong>.</p>
+
+      ${IMG("arquitectura-rectificador-inversor.png", "Esquema de la arquitectura rectificador-inversor: IGBTs Q1–Q12, diodos antiparalelo y capacitores de bus DC en topología de puente completo trifásico bidireccional", "Diagrama de circuito de referencia")}
+
+      ${H3("Topología de puente completo trifásico bidireccional")}
+      <p>El esquema de potencia se organiza con <strong>IGBTs Q1 a Q12</strong>, cada uno con su <strong>diodo antiparalelo</strong>, y <strong>capacitores de bus DC</strong> — una topología de puente completo trifásico <strong>bidireccional</strong> (puede rectificar hacia el bus DC o invertir desde el bus DC hacia la red, según el sentido del flujo de energía).</p>
+
+      ${H3("Filtro LCL")}
+      <p>El filtro LCL (bobina–capacitor–bobina) conecta al ISU con la red de alimentación de 400 VCA y es clave para la calidad de la forma de onda de corriente que el ISU toma o entrega a la red.</p>
+
+      ${NOTE("Advertencia textual del manual (23.01): \"Beware of the supply unit LCL filter overheating. The heat loss increases as the intermediate circuit level increases.\" — a mayor nivel del bus DC (circuito intermedio), mayor es la pérdida de calor en el filtro LCL de la unidad de alimentación, con riesgo de sobrecalentamiento.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuáles son los bloques físicos de potencia del ISU mencionados en el manual?", options:["Solo el filtro LCL", "Filtro LCL, módulos rectificadores, módulos inversores y alimentación de 400 VCA", "Únicamente el panel CDP312R", "Solo un transformador de aislación"], answer:1, explain:"Los bloques físicos son: filtro LCL (bobina-capacitor-bobina), módulos rectificadores, módulos inversores y alimentación 400 VCA." },
+    { q:"¿Qué componentes conforman el filtro LCL del ISU?", options:["Solo capacitores", "Bobina - capacitor - bobina", "Diodos antiparalelo únicamente", "Resistencias de precarga"], answer:1, explain:"El filtro LCL está compuesto por bobina-capacitor-bobina." },
+    { q:"¿Qué tipo de topología describe el esquema de potencia con IGBTs Q1-Q12?", options:["Puente medio monofásico", "Puente completo trifásico bidireccional, con diodos antiparalelo y capacitores de bus DC", "Rectificador de media onda", "Puente de diodos pasivo sin semiconductores controlados"], answer:1, explain:"La topología es un puente completo trifásico bidireccional con IGBTs Q1-Q12, diodos antiparalelo y capacitores de bus DC." },
+    { q:"Según la advertencia textual del manual sobre el filtro LCL, ¿qué ocurre con la pérdida de calor a medida que aumenta el nivel del circuito intermedio (bus DC)?", options:["La pérdida de calor disminuye", "La pérdida de calor aumenta ('The heat loss increases as the intermediate circuit level increases')", "No hay relación entre ambos", "El filtro LCL se desconecta automáticamente"], answer:1, explain:"Cita textual: 'Beware of the supply unit LCL filter overheating. The heat loss increases as the intermediate circuit level increases.'" },
+    { q:"¿Por qué se dice que la topología de puente completo del ISU es 'bidireccional'?", options:["Porque solo puede rectificar, nunca invertir", "Porque puede rectificar hacia el bus DC o invertir desde el bus DC hacia la red, según el sentido del flujo de energía", "Porque tiene dos filtros LCL en paralelo", "Porque usa dos paneles de control distintos"], answer:1, explain:"La bidireccionalidad permite que el flujo de energía vaya de red a bus DC (rectificación) o de bus DC a red (inversión/regeneración), a diferencia de un rectificador de diodos pasivo unidireccional." }
+  ]
+},
+
+{
+  id:'identificacion-red', title:'Identificación automática de red (Line-side Identification)', short:'Identificación de red',
+  eyebrow:'Módulo 03 · Autoajuste', sub:'El ISU se autoadapta a la red en su primer arranque, sin datos de red configurados manualmente por el usuario.',
+  content:`
+    <div class="card">
+      <p>En su primer arranque, el ISU ejecuta una <strong>identificación automática de la red (Line-side Identification)</strong>. El manual es explícito sobre la ausencia de configuración manual:</p>
+      <div class="note">"No network data needs to be set by the user"</div>
+      <p>La identificación dura aproximadamente <strong>4 segundos</strong> y durante ese lapso el ISU estima: la <strong>tensión</strong> de red, la <strong>frecuencia</strong> (50/60 Hz) y el <strong>orden de fases</strong>.</p>
+
+      ${H3("Parámetros involucrados")}
+      <table class="tech">
+        <tr><th>Parámetro</th><th>Nombre</th><th>Valores</th></tr>
+        <tr><td>99.07</td><td>LINE SIDE ID RUN</td><td>YES / NO</td></tr>
+        <tr><td>99.08</td><td>AUTO LINE ID RUN</td><td>YES / NO (default: YES)</td></tr>
+        <tr><td>99.10</td><td>SUPPLY ID NUMBER</td><td>0...32767</td></tr>
+      </table>
+      <p>La señal <strong>02.07 Nominal DC voltage reference</strong> refleja el resultado de la identificación de red en la referencia nominal del bus DC.</p>
+
+      ${H3("Falla asociada")}
+      <p>Si la identificación de red no puede completarse correctamente, se dispara la falla <strong>NET VOLT FLT (3100)</strong>.</p>
+
+      ${NOTE("No cargar el convertidor durante la identificación de red — la Line-side Identification debe ejecutarse sin carga conectada al ISU para que la estimación de tensión, frecuencia y orden de fases sea válida.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué configura el usuario manualmente para la identificación de red del ISU, según el manual?", options:["Debe configurar tensión, frecuencia y orden de fases manualmente", "Nada — 'No network data needs to be set by the user'", "Solo la frecuencia nominal", "Solo el orden de fases"], answer:1, explain:"El manual indica explícitamente 'No network data needs to be set by the user' — la identificación es automática." },
+    { q:"¿Cuánto dura aproximadamente la identificación automática de red del ISU?", options:["Aproximadamente 4 segundos", "Aproximadamente 40 segundos", "Aproximadamente 4 minutos", "Instantánea, 0 segundos"], answer:0, explain:"La identificación de red dura aproximadamente 4 segundos." },
+    { q:"¿Qué tres datos estima el ISU durante la identificación de red?", options:["Corriente nominal, par nominal y velocidad nominal del motor", "Tensión, frecuencia (50/60 Hz) y orden de fases", "Temperatura ambiente, humedad y altitud", "Resistencia de aislamiento del motor"], answer:1, explain:"Durante la identificación de red, el ISU estima la tensión, la frecuencia (50/60 Hz) y el orden de fases." },
+    { q:"¿Cuál es el valor por defecto del parámetro 99.08 AUTO LINE ID RUN?", options:["NO", "YES", "0", "32767"], answer:1, explain:"99.08 AUTO LINE ID RUN tiene YES como valor por defecto." },
+    { q:"¿Qué falla se dispara si la identificación de red no se completa correctamente?", options:["CHARGING FLT (3230)", "NET VOLT FLT (3100)", "SYNCHRO FLT (8180)", "MAIN CNT FLT (FF17)"], answer:1, explain:"La falla asociada a una identificación de red fallida es NET VOLT FLT (3100)." }
+  ]
+},
+
+{
+  id:'carga-bus-dc', title:'Carga del bus DC y secuencia de arranque', short:'Carga del bus DC',
+  eyebrow:'Módulo 04 · Secuencia de arranque', sub:'Contactor de carga, resistencias de precarga y contactor principal en la secuencia de energización del bus DC.',
+  content:`
+    <div class="card">
+      <p>La secuencia de carga del bus DC del ISU sigue estos pasos:</p>
+      <ol>
+        <li>El <strong>contactor de carga (RO1)</strong> cierra primero.</li>
+        <li>Los <strong>capacitores del bus DC se cargan a través de resistencias</strong> de precarga (limitando la corriente de inrush).</li>
+        <li>El <strong>contactor principal (RO3)</strong> cierra cuando la tensión del bus DC alcanza un nivel suficiente.</li>
+        <li>El <strong>contactor de carga (RO1) se abre</strong>, quedando el contactor principal (RO3) como camino permanente.</li>
+      </ol>
+
+      ${H3("Tiempos de secuencia")}
+      <table class="tech">
+        <tr><th>Parámetro / tiempo</th><th>Valor</th></tr>
+        <tr><td>Charging time</td><td>0.2...3.0 s</td></tr>
+        <tr><td>Start delay</td><td>0.2 s</td></tr>
+      </table>
+
+      ${H3("E/S involucradas")}
+      <p>La secuencia utiliza las salidas de relé <strong>RO1</strong> (contactor de carga) y <strong>RO3</strong> (contactor principal), y las entradas digitales <strong>DI3</strong> y <strong>DI1</strong>.</p>
+
+      ${H3("Fallas asociadas")}
+      <table class="tech">
+        <tr><th>Falla</th><th>Código</th><th>Descripción</th></tr>
+        <tr><td>CHARGING FLT</td><td>3230</td><td>Falla en la secuencia de carga del bus DC</td></tr>
+        <tr><td>MAIN CNT FLT</td><td>FF17</td><td>"Main contactor/breaker is not closed or digital input DI3 signal is missing."</td></tr>
+      </table>
+      ${NOTE("MAIN CNT FLT (FF17) apunta específicamente a que el contactor/interruptor principal no cerró, o a que falta la señal de la entrada digital DI3 — dos causas distintas a verificar por separado en campo.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuál es la secuencia correcta de la carga del bus DC del ISU?", options:["RO3 cierra primero, luego RO1", "RO1 (contactor de carga) cierra → capacitores cargan por resistencias → RO3 (contactor principal) cierra cuando el DC alcanza nivel suficiente → RO1 se abre", "Solo RO3 se usa, RO1 no interviene", "Los capacitores se cargan sin ninguna resistencia limitadora"], answer:1, explain:"La secuencia es: RO1 cierra, los capacitores cargan por resistencias, RO3 cierra al alcanzar tensión DC suficiente, y luego RO1 se abre." },
+    { q:"¿Cuál es el rango de tiempo de carga (Charging time) citado en el manual?", options:["0.2...3.0 s", "2...30 s", "0.02...0.3 s", "20...300 s"], answer:0, explain:"El manual cita '0.2...3.0 s = Charging time'." },
+    { q:"¿Cuál es el valor del Start delay citado en el manual?", options:["2.0 s", "0.2 s", "20 s", "0.02 s"], answer:1, explain:"El manual cita '0.2 s = Start delay'." },
+    { q:"¿A qué código y descripción corresponde la falla MAIN CNT FLT?", options:["3230 — falla de identificación de red", "FF17 — 'Main contactor/breaker is not closed or digital input DI3 signal is missing'", "3100 — falla de tensión de red", "8180 — falla de sincronización"], answer:1, explain:"MAIN CNT FLT es el código FF17, y su descripción textual es 'Main contactor/breaker is not closed or digital input DI3 signal is missing.'" },
+    { q:"¿Qué entradas/salidas digitales participan en la secuencia de carga del bus DC según el contenido del módulo?", options:["RO1, RO3, DI3, DI1", "AI1, AI2, RO5, RO6", "Solo DI7", "Solo RO2"], answer:0, explain:"La secuencia de carga involucra RO1 (contactor de carga), RO3 (contactor principal), DI3 y DI1." }
+  ]
+},
+
+{
+  id:'sincronizacion-red', title:'Sincronización a red y modo diodo de emergencia', short:'Sincronización a red',
+  eyebrow:'Módulo 05 · Sincronización', sub:'Cortocircuito trifásico controlado para identificar orden de fases, reintentos, y comportamiento ante pérdida de fase en operación.',
+  content:`
+    <div class="card">
+      <p>El ISU se sincroniza a la red mediante un <strong>cortocircuito trifásico controlado</strong>, con el propósito de identificar el orden de fases y el punto de partida de la sincronización. El procedimiento admite hasta <strong>9 reintentos</strong>.</p>
+
+      ${H3("Parámetro 99.06 FAST SYNC")}
+      <table class="tech">
+        <tr><th>Valor</th><th>Comportamiento</th></tr>
+        <tr><td>0 = Inactive</td><td>Con verificación de fases (valor por defecto)</td></tr>
+        <tr><td>1 = Active</td><td>Sin verificación de fases</td></tr>
+      </table>
+
+      ${H3("Fallas asociadas a la sincronización")}
+      <table class="tech">
+        <tr><th>Falla</th><th>Código</th><th>Detalle</th></tr>
+        <tr><td>SUPPLY PHASE</td><td>3130</td><td>Falla de fase de la alimentación</td></tr>
+        <tr><td>SYNCHRO FLT</td><td>8180</td><td>"9 synchronisation trials have failed"</td></tr>
+      </table>
+
+      ${H3("Pérdida de fase en operación (modo diodo de emergencia)")}
+      <p>Si se pierde una fase durante la operación normal, se genera la alarma <strong>NET LOST (32A3)</strong>, y el ISU reintenta la reconexión cada <strong>20 ms</strong>. Si como consecuencia la tensión del bus DC cae por debajo del umbral configurado, se dispara la falla <strong>DC UNDERVOLT</strong>.</p>
+      ${NOTE("SYNCHRO FLT (8180) se dispara específicamente después de agotar los 9 intentos de sincronización — es la falla terminal del proceso de sincronización, no la primera señal de un problema de fase (que sería SUPPLY PHASE 3130 o la alarma NET LOST 32A3).")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cómo se sincroniza el ISU a la red?", options:["Mediante un cortocircuito trifásico controlado, para identificar el orden de fases y el punto de partida", "Conectándose directamente sin ningún procedimiento", "Usando únicamente el panel CDP312R", "Mediante un transformador de sincronización externo obligatorio"], answer:0, explain:"El ISU se sincroniza mediante un cortocircuito trifásico controlado que identifica el orden de fases y el punto de partida de la sincronización." },
+    { q:"¿Cuántos reintentos de sincronización admite el procedimiento?", options:["Hasta 3 reintentos", "Hasta 9 reintentos", "Hasta 20 reintentos", "No admite reintentos"], answer:1, explain:"El procedimiento de sincronización admite hasta 9 reintentos." },
+    { q:"¿Cuál es el comportamiento del parámetro 99.06 FAST SYNC = 0 (Inactive, valor por defecto)?", options:["Sincronización sin verificación de fases", "Sincronización con verificación de fases", "Deshabilita completamente la sincronización", "Fuerza el modo diodo de forma permanente"], answer:1, explain:"99.06 FAST SYNC = 0 (Inactive) es el valor por defecto y realiza la sincronización CON verificación de fases; 1 (Active) la realiza sin verificación." },
+    { q:"¿Qué indica textualmente la falla SYNCHRO FLT (8180)?", options:["'9 synchronisation trials have failed'", "'No network data needs to be set by the user'", "'Main contactor/breaker is not closed'", "'DC link voltage can be raised higher'"], answer:0, explain:"SYNCHRO FLT (8180) corresponde textualmente a '9 synchronisation trials have failed'." },
+    { q:"Si se pierde una fase durante la operación normal, ¿qué ocurre según el manual?", options:["El equipo se detiene sin ninguna alarma", "Se genera la alarma NET LOST (32A3) y el ISU reintenta la reconexión cada 20 ms; si el DC cae bajo el umbral, dispara DC UNDERVOLT", "Se dispara inmediatamente SYNCHRO FLT sin alarma previa", "El ISU ignora la pérdida de fase completamente"], answer:1, explain:"Ante pérdida de fase en operación: alarma NET LOST (32A3), reintento de reconexión cada 20 ms, y si el bus DC cae bajo el umbral se dispara DC UNDERVOLT." }
+  ]
+},
+
+{
+  id:'control-dc-reactiva', title:'Control de tensión DC y potencia reactiva', short:'Control DC y reactiva',
+  eyebrow:'Módulo 06 · Parametrización de control', sub:'23.01 DC VOLT REF, 23.10 GEN POWER LIMIT y 24.01 Q POWER REF — los tres ejes de control activo del ISU.',
+  content:`
+    <div class="card">
+      ${H3("23.01 DC VOLT REF")}
+      <p>El rango de 23.01 DC VOLT REF depende de <strong>04.04 CONV NOM VOLTAGE</strong>, y se ubica aproximadamente entre <strong>65% y 110% de √2 × tensión nominal</strong>. Tabla exacta de rangos según tensión nominal de red:</p>
+      <table class="tech">
+        <tr><th>Tensión nominal (04.04)</th><th>Rango 23.01 DC VOLT REF</th></tr>
+        <tr><td>240 V</td><td>220–373 V</td></tr>
+        <tr><td>415 V</td><td>380–646 V</td></tr>
+        <tr><td>500 V</td><td>457–778 V</td></tr>
+        <tr><td>690 V</td><td>632–1073 V</td></tr>
+      </table>
+
+      ${H3("23.10 GEN POWER LIMIT")}
+      <p>Rango: <strong>0...300%</strong> de <strong>04.06 CONV NOM POWER</strong>. Por debajo del 10%, la sincronización "may fail" — el manual dispara la alarma <strong>GEN P LI&lt;10% (FFCD)</strong> como advertencia. Este parámetro <strong>no aplica</strong> en las variantes <strong>ACS800-31 / U31 / -37 / -37LC</strong>.</p>
+
+      ${H3("24.01 Q POWER REF")}
+      <p>Rango: <strong>-100...+100%</strong>. Un valor <strong>positivo</strong> corresponde a <strong>carga capacitiva</strong>.</p>
+
+      ${H3("Selección de referencia")}
+      <table class="tech">
+        <tr><th>Parámetro</th><th>Función</th></tr>
+        <tr><td>11.01</td><td>DC REF SELECT</td></tr>
+        <tr><td>11.02</td><td>Q REF SELECT</td></tr>
+      </table>
+      ${NOTE("23.10 GEN POWER LIMIT no aplica en las variantes ACS800-31/U31/-37/-37LC — verificar el modelo exacto de unidad antes de asumir que este parámetro está disponible.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿De qué parámetro depende el rango de 23.01 DC VOLT REF?", options:["De 04.04 CONV NOM VOLTAGE, aproximadamente entre 65% y 110% de √2 × tensión nominal", "De 24.01 Q POWER REF", "De 99.06 FAST SYNC", "No depende de ningún otro parámetro"], answer:0, explain:"23.01 DC VOLT REF depende de 04.04 CONV NOM VOLTAGE, con un rango aproximado de 65%-110% × √2 × tensión nominal." },
+    { q:"Según la tabla exacta del manual, ¿cuál es el rango de 23.01 DC VOLT REF para una tensión nominal de 415 V?", options:["220–373 V", "380–646 V", "457–778 V", "632–1073 V"], answer:1, explain:"Para 415 V nominal, el rango exacto de 23.01 DC VOLT REF es 380–646 V." },
+    { q:"¿Cuál es el rango del parámetro 23.10 GEN POWER LIMIT y respecto a qué otro parámetro se expresa?", options:["-100...+100% de 04.06 CONV NOM POWER", "0...300% de 04.06 CONV NOM POWER", "0...100% de 04.04 CONV NOM VOLTAGE", "0...300% de 24.01 Q POWER REF"], answer:1, explain:"23.10 GEN POWER LIMIT tiene un rango de 0...300% de 04.06 CONV NOM POWER." },
+    { q:"¿Qué ocurre si 23.10 GEN POWER LIMIT queda configurado por debajo del 10%?", options:["No ocurre nada, es un valor normal", "La sincronización 'may fail' y se genera la alarma GEN P LI<10% (FFCD)", "Se dispara automáticamente DC UNDERVOLT", "El equipo pasa a modo diodo de forma permanente"], answer:1, explain:"Bajo el 10%, la sincronización puede fallar ('may fail'), generando la alarma GEN P LI<10% (FFCD)." },
+    { q:"En el parámetro 24.01 Q POWER REF, ¿qué representa un valor positivo?", options:["Carga inductiva", "Carga capacitiva", "Ausencia total de potencia reactiva", "Una falla del equipo"], answer:1, explain:"24.01 Q POWER REF tiene rango -100...+100%, donde un valor positivo corresponde a carga capacitiva." }
+  ]
+},
+
+{
+  id:'protecciones-electricas', title:'Protecciones eléctricas del ISU (grupo 30 FAULT FUNCTIONS)', short:'Protecciones eléctricas',
+  eyebrow:'Módulo 07 · Protecciones', sub:'Fallo a tierra, sobretensión/subtensión de bus DC y umbrales exactos por defecto según tensión de red.',
+  content:`
+    <div class="card">
+      ${H3("30.02 EARTH FAULT / 30.03 EARTH FAULT LEVEL")}
+      <p>El manual aclara que el <strong>ACS800-11/U11 "is not equipped with earth fault supervision"</strong>. Además, cuando hay unidades en paralelo, el parámetro <strong>30.02 se fuerza</strong> a un valor determinado por esa configuración. Umbral de ejemplo citado por el manual: <strong>"18% unbalance in the sum current"</strong>.</p>
+
+      ${H3("30.11 DC OVERVOLT TRIP / 30.12 DC UNDERVOLT TRIP")}
+      <p>Límites por defecto exactos según tensión nominal de red:</p>
+      <table class="tech">
+        <tr><th>Tensión nominal</th><th>Sobretensión (30.11)</th><th>Subtensión (30.12)</th></tr>
+        <tr><td>240 V</td><td>427 V</td><td>170 V</td></tr>
+        <tr><td>415 V</td><td>740 V</td><td>293 V</td></tr>
+        <tr><td>500 V</td><td>891 V</td><td>354 V</td></tr>
+        <tr><td>690 V</td><td>1230 V</td><td>488 V</td></tr>
+      </table>
+
+      ${H3("Otras entradas de protección")}
+      <table class="tech">
+        <tr><th>Parámetro</th><th>Entrada digital asociada</th></tr>
+        <tr><td>30.13 / 30.14</td><td>DI7</td></tr>
+        <tr><td>30.04</td><td>DI4</td></tr>
+        <tr><td>30.05 / 30.10</td><td>DI5</td></tr>
+      </table>
+
+      ${H3("Reset automático")}
+      <p>Los parámetros <strong>31.04, 31.05 y 31.06</strong> controlan el reset automático de sus respectivas protecciones — su valor por defecto es <strong>NO</strong>.</p>
+      ${NOTE("El ACS800-11/U11 NO tiene supervisión de fallo a tierra propia — esto es una aclaración textual del manual, no una omisión de esta capacitación. En configuraciones con unidades en paralelo, 30.02 se fuerza según esa topología.")}
+    </div>
+  `,
+  quiz:[
+    { q:"Según el manual, ¿qué variante del ACS800 NO está equipada con supervisión de fallo a tierra?", options:["ACS800-17", "ACS800-11/U11 ('is not equipped with earth fault supervision')", "ACS800-31", "Todas las variantes tienen supervisión de fallo a tierra"], answer:1, explain:"El manual indica textualmente que el ACS800-11/U11 'is not equipped with earth fault supervision'." },
+    { q:"¿Qué umbral de ejemplo cita el manual para el fallo a tierra?", options:["50% unbalance in the sum current", "18% unbalance in the sum current", "5% unbalance in the sum current", "100% unbalance in the sum current"], answer:1, explain:"El manual cita como ejemplo '18% unbalance in the sum current'." },
+    { q:"¿Cuál es el límite por defecto de 30.11 DC OVERVOLT TRIP para una red de 415 V?", options:["293 V", "427 V", "740 V", "1230 V"], answer:2, explain:"Para 415 V nominal, el límite por defecto de sobretensión (30.11) es 740 V." },
+    { q:"¿Cuál es el límite por defecto de 30.12 DC UNDERVOLT TRIP para una red de 690 V?", options:["488 V", "354 V", "1230 V", "170 V"], answer:0, explain:"Para 690 V nominal, el límite por defecto de subtensión (30.12) es 488 V." },
+    { q:"¿Cuál es el valor por defecto de los parámetros de reset automático 31.04, 31.05 y 31.06?", options:["YES", "NO", "AUTO", "No tienen valor por defecto"], answer:1, explain:"El valor por defecto de 31.04, 31.05 y 31.06 (reset automático) es NO." }
+  ]
+},
+
+{
+  id:'verificacion-mediciones-igbt', title:'Verificación de campo: mediciones estáticas de módulos IGBT', short:'Mediciones estáticas IGBT',
+  eyebrow:'Módulo 08 · Procedimiento de campo', sub:'Checklist real de resistencias con multímetro, previo a energización, coherente con la falla SHORT CIRC.',
+  content:`
+    <div class="card">
+      ${IMG("mediciones-estaticas-igbt.png", "Tabla real de mediciones de resistencia en el módulo rectificador (punto U1.1), puntas +/- contra L1/L2/L3", "Registro de campo — verificación estática de módulo IGBT")}
+
+      <p>Antes de energizar un ISU (o tras sospecha de un semiconductor dañado), se realiza una <strong>verificación estática de los módulos IGBT</strong> con multímetro en función de resistencia/diodo, midiendo desde cada punto de test del módulo rectificador (ejemplo real: punto <strong>"U1.1"</strong>) contra las fases <strong>L1, L2, L3</strong>.</p>
+
+      ${H3("Procedimiento e interpretación de valores reales")}
+      <table class="tech">
+        <tr><th>Punta +</th><th>Punta -</th><th>Resultado obtenido</th><th>Interpretación</th></tr>
+        <tr><td>L1 / L2 / L3</td><td>+ (punto U1.1)</td><td>0,322</td><td>Directa — diodo en conducción</td></tr>
+        <tr><td>L1 / L2 / L3</td><td>- (punto U1.1)</td><td>OL</td><td>Inversa — circuito abierto (esperado)</td></tr>
+      </table>
+      <p>La lectura de <strong>0,322</strong> corresponde a la dirección directa del diodo (en conducción), y <strong>OL</strong> (Open Line / circuito abierto) es la lectura esperada en la dirección inversa. Esta combinación es la firma normal de un diodo/IGBT en buen estado; una lectura de continuidad (valor bajo) en ambas direcciones, o cortocircuito, indica un semiconductor dañado.</p>
+
+      ${NOTE("Este procedimiento de verificación estática es la base práctica de la falla SHORT CIRC (2340), cuyo texto de diagnóstico indica: \"Measure resistances of converter power semiconductors (IGBTs)... If faulty IGBTs are found, replace IGBTs and/or INT and/or NGDR boards or converter module.\"")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué se mide en la verificación estática de módulos IGBT antes de energizar el ISU?", options:["La temperatura ambiente del gabinete", "Resistencias con multímetro (función diodo/resistencia) entre puntos de test del módulo rectificador y las fases L1/L2/L3", "El nivel de vibración del ventilador", "Únicamente el aislamiento a tierra"], answer:1, explain:"La verificación estática mide resistencias con multímetro entre un punto de test del módulo (ejemplo real: 'U1.1') y las fases L1, L2, L3." },
+    { q:"En el registro real de mediciones (punto U1.1), ¿qué valor se obtuvo en la dirección directa (punta + contra L1/L2/L3)?", options:["OL en las tres fases", "0,322 en las tres fases", "0 (cortocircuito franco)", "Infinito"], answer:1, explain:"En dirección directa, el registro muestra 0,322 para L1, L2 y L3 contra la punta +." },
+    { q:"¿Qué significa la lectura 'OL' obtenida en la dirección inversa de la medición?", options:["Que el diodo está en cortocircuito", "Circuito abierto — la lectura esperada en la dirección inversa de un diodo en buen estado", "Que el multímetro está descalibrado", "Que hay continuidad total"], answer:1, explain:"OL (circuito abierto) es la lectura esperada en dirección inversa cuando el diodo/IGBT está en buen estado." },
+    { q:"¿Con qué falla específica se relaciona directamente este procedimiento de verificación estática?", options:["NET VOLT FLT (3100)", "SHORT CIRC (2340)", "CHARGING FLT (3230)", "SYNCHRO FLT (8180)"], answer:1, explain:"El procedimiento de medición de resistencias de los IGBTs es la base práctica del diagnóstico de la falla SHORT CIRC (2340)." },
+    { q:"Según el texto de diagnóstico de SHORT CIRC citado en el manual, ¿qué se debe hacer si se encuentran IGBTs defectuosos?", options:["Ignorar el resultado y volver a energizar", "Reemplazar los IGBTs y/o las placas INT y/o NGDR, o el módulo convertidor completo", "Solo reiniciar el firmware del RMIO", "Aumentar el umbral de la protección de sobrecorriente"], answer:1, explain:"Cita textual: 'If faulty IGBTs are found, replace IGBTs and/or INT and/or NGDR boards or converter module.'" }
+  ]
+},
+
+{
+  id:'diagnostico-fallas-isu', title:'Diagnóstico de fallas específicas del ISU', short:'Diagnóstico de fallas ISU',
+  eyebrow:'Módulo 09 · Diagnóstico', sub:'Tabla completa de códigos de falla del ISU y las palabras de estado del grupo 09.',
+  content:`
+    <div class="card">
+      ${H3("Fallas de cortocircuito y sobretensión/subtensión")}
+      <table class="tech">
+        <tr><th>Falla</th><th>Código</th><th>Detalle</th></tr>
+        <tr><td>SHORT CIRC</td><td>2340</td><td>"Measure resistances of converter power semiconductors (IGBTs)."</td></tr>
+        <tr><td>SC INV xx y</td><td>2340</td><td>xx = número de módulo, y = fase</td></tr>
+        <tr><td>DC OVERVOLT</td><td>3210</td><td>Sobretensión de bus DC</td></tr>
+        <tr><td>DC UNDERVOLT</td><td>3220</td><td>Subtensión de bus DC</td></tr>
+      </table>
+
+      ${H3("Fallas de tierra y corriente")}
+      <table class="tech">
+        <tr><th>Falla</th><th>Código</th><th>Detalle</th></tr>
+        <tr><td>EARTH FAULT</td><td>2330</td><td>"Sum of line currents measured with internal current transducers is too high" — revisar 30.03</td></tr>
+        <tr><td>OVERCURRENT</td><td>2310</td><td>"0.98 × converter maximum current (04.08)" y "~190% of converter nominal current (04.05)"</td></tr>
+        <tr><td>CUR UNBAL xx</td><td>2330</td><td>Desbalance de corriente</td></tr>
+      </table>
+
+      ${H3("Otras fallas específicas del ISU")}
+      <table class="tech">
+        <tr><th>Falla</th><th>Código</th></tr>
+        <tr><td>OVER SWFREQ</td><td>FF55</td></tr>
+        <tr><td>PPCC LINK xx</td><td>5210</td></tr>
+        <tr><td>SUPPLY PHASE</td><td>3130</td></tr>
+        <tr><td>SYNCHRO FLT</td><td>8180</td></tr>
+        <tr><td>IO FAULT</td><td>7000</td></tr>
+        <tr><td>NET VOLT FLT</td><td>3100</td></tr>
+        <tr><td>USER MACRO</td><td>FFA1</td></tr>
+      </table>
+
+      ${H3("Palabras de estado (grupo 09)")}
+      <table class="tech">
+        <tr><th>Parámetro</th><th>Nombre</th></tr>
+        <tr><td>09.11</td><td>SUPPLY FAULT WORD</td></tr>
+        <tr><td>09.12</td><td>SUPPLY ALARM WORD</td></tr>
+        <tr><td>09.13</td><td>CURRENT UNBALANCE</td></tr>
+        <tr><td>09.14</td><td>OVERCURRENT FAULT</td></tr>
+        <tr><td>09.15</td><td>SHORT CIRC FAULT</td></tr>
+      </table>
+      ${INFO("EARTH FAULT (2330) y CUR UNBAL xx comparten el mismo código numérico (2330) en las tablas citadas — al leer el historial de fallas del panel, contrastar el nombre textual además del número para no confundir ambas condiciones.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué indica textualmente el manual como acción de diagnóstico para SHORT CIRC (2340)?", options:["Reiniciar el panel CDP312R", "'Measure resistances of converter power semiconductors (IGBTs).'", "Aumentar 23.10 GEN POWER LIMIT", "Revisar únicamente el filtro LCL"], answer:1, explain:"SHORT CIRC (2340) indica textualmente 'Measure resistances of converter power semiconductors (IGBTs).'" },
+    { q:"¿Qué representa EARTH FAULT (2330) según su descripción textual, y qué parámetro conviene revisar?", options:["'Sum of line currents measured with internal current transducers is too high' — revisar 30.03", "Una falla de comunicación de fibra óptica — revisar RDCO", "Una falla exclusiva del panel — revisar 99.02", "Una sobretemperatura del filtro LCL — revisar 23.01"], answer:0, explain:"EARTH FAULT (2330): 'Sum of line currents measured with internal current transducers is too high', y se debe revisar 30.03 (EARTH FAULT LEVEL)." },
+    { q:"¿Cómo se define el umbral de OVERCURRENT (2310) según las dos citas textuales del manual?", options:["0.5 × corriente nominal del motor", "0.98 × converter maximum current (04.08), equivalente a ~190% of converter nominal current (04.05)", "2 × converter nominal current (04.05) exactos", "No tiene umbral definido"], answer:1, explain:"OVERCURRENT (2310) se define como '0.98 × converter maximum current (04.08)' y '~190% of converter nominal current (04.05)'." },
+    { q:"¿Qué código corresponde a PPCC LINK xx?", options:["5210", "7000", "FF55", "FFA1"], answer:0, explain:"PPCC LINK xx corresponde al código 5210." },
+    { q:"¿Qué parámetro del grupo 09 corresponde a SUPPLY FAULT WORD?", options:["09.12", "09.11", "09.14", "09.15"], answer:1, explain:"09.11 corresponde a SUPPLY FAULT WORD (09.12 es SUPPLY ALARM WORD, 09.14 OVERCURRENT FAULT, 09.15 SHORT CIRC FAULT)." }
+  ]
+},
+
+{
+  id:'arquitectura-rdcu-rmio', title:'Arquitectura de control RDCU/RMIO y ausencia de datos de motor en grupo 99', short:'Arquitectura RDCU/RMIO',
+  eyebrow:'Módulo 10 · Control y comunicación', sub:'El grupo 99 del ISU no tiene parámetros de motor; cada unidad tiene su propia RDCU comunicada por fibra óptica.',
+  content:`
+    <div class="card">
+      ${IMG("vision-general-rdcu-rmio.png", "Visión general del accionamiento: unidad de control del convertidor (RDCU) con tarjeta RMIO, panel CDP312R, bus de fibra óptica CH0/CH1 (RDCO) entre unidad de alimentación y unidad inversora", "Diagrama de arquitectura de control")}
+
+      ${H3("Grupo 99 del ISU: '99 START UP DATA'")}
+      <p>A diferencia del programa estándar del ACS800 (que incluye parámetros de motor en su grupo 99), el grupo 99 del ISU se llama <strong>"99 START UP DATA"</strong> y contiene únicamente:</p>
+      <ul>
+        <li>99.01 LANGUAGE</li>
+        <li>99.02 DEVICE NAME</li>
+        <li>99.06 FAST SYNC</li>
+        <li>99.07 LINE SIDE ID RUN</li>
+        <li>99.08 AUTO LINE ID RUN</li>
+        <li>99.09 APPLIC RESTORE</li>
+        <li>99.10 SUPPLY ID NUMBER</li>
+      </ul>
+      ${NOTE("El grupo 99 del ISU NO contiene parámetros de motor — es una diferencia estructural clave frente al programa estándar del ACS800 (visto en la capacitación ACS800 general), cuyo grupo 99 sí incluye datos de motor. El ISU no controla un motor, controla la interfaz con la red.")}
+
+      ${H3("Cada unidad tiene su propia RDCU")}
+      <p>Tanto la unidad de alimentación (ISU) como la unidad inversora tienen su propia <strong>RDCU</strong> (unidad de control del convertidor), cada una con su tarjeta <strong>RMIO</strong>. La comunicación entre ambas RDCU se realiza por un <strong>bus de fibra óptica</strong>, con canales <strong>CH0/CH1 (RDCO)</strong>.</p>
+
+      ${H3("112.04 SUPPLY CTRL MODE = LINE CONV")}
+      <p>El parámetro <strong>112.04 SUPPLY CTRL MODE</strong>, configurado en <strong>LINE CONV</strong>, "enables line-side converter control" — es decir, habilita el control del convertidor del lado de red (ISU) desde la unidad correspondiente.</p>
+
+      ${NOTE("Por defecto, el panel CDP312R controla la unidad inversora, no el ISU. Para operar o parametrizar el ISU desde el panel es necesario conmutar explícitamente hacia esa unidad — verificar el procedimiento exacto de conmutación (típicamente a través del modo DRIVE del panel) antes de asumir que los cambios de parámetro se están aplicando a la unidad correcta.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cómo se llama el grupo 99 en el manual del ISU, y qué diferencia estructural clave tiene frente al programa estándar del ACS800?", options:["'99 MOTOR DATA' — incluye datos de motor igual que el programa estándar", "'99 START UP DATA' — NO incluye parámetros de motor, a diferencia del programa estándar", "'99 NETWORK DATA' — solo tiene un parámetro", "El grupo 99 no existe en el manual del ISU"], answer:1, explain:"El grupo 99 del ISU se llama '99 START UP DATA' y no contiene parámetros de motor, a diferencia del grupo 99 del programa estándar del ACS800." },
+    { q:"¿Cuáles son los parámetros exactos que contiene el grupo 99 START UP DATA del ISU?", options:["99.01 LANGUAGE, 99.02 DEVICE NAME, 99.06 FAST SYNC, 99.07 LINE SIDE ID RUN, 99.08 AUTO LINE ID RUN, 99.09 APPLIC RESTORE, 99.10 SUPPLY ID NUMBER", "99.04 MODO CTRL MOTOR y 99.10 MARCHA IDENT MOT", "Solo 99.02 y 99.10", "99.01 a 99.20 completos, incluyendo datos de motor"], answer:0, explain:"El grupo 99 START UP DATA del ISU contiene exactamente: 99.01 LANGUAGE, 99.02 DEVICE NAME, 99.06 FAST SYNC, 99.07 LINE SIDE ID RUN, 99.08 AUTO LINE ID RUN, 99.09 APPLIC RESTORE y 99.10 SUPPLY ID NUMBER — sin parámetros de motor." },
+    { q:"¿Cómo se comunican entre sí la RDCU de la unidad de alimentación (ISU) y la RDCU de la unidad inversora?", options:["Por un bus de fibra óptica, con canales CH0/CH1 (RDCO)", "Por un cable de cobre RS-485 exclusivamente", "No se comunican entre sí", "Únicamente a través del panel CDP312R"], answer:0, explain:"La comunicación entre las RDCU se realiza por un bus de fibra óptica, con canales CH0/CH1 (RDCO)." },
+    { q:"¿Qué habilita el parámetro 112.04 SUPPLY CTRL MODE cuando se configura en LINE CONV?", options:["El control del convertidor del lado de red (ISU) — 'enables line-side converter control'", "El modo de frenado dinámico del motor", "La identificación de motor DTC", "El reset automático de todas las protecciones"], answer:0, explain:"112.04 SUPPLY CTRL MODE = LINE CONV 'enables line-side converter control', habilitando el control del ISU." },
+    { q:"Por defecto, ¿qué unidad controla el panel CDP312R en una arquitectura ISU + inversor?", options:["El panel controla el ISU por defecto", "El panel controla la unidad inversora por defecto; hay que conmutar explícitamente para operar el ISU", "El panel controla ambas unidades simultáneamente sin necesidad de conmutar", "El panel no puede controlar ninguna de las dos unidades"], answer:1, explain:"Por defecto el CDP312R controla la unidad inversora; para parametrizar u operar el ISU es necesario conmutar explícitamente hacia esa unidad." }
+  ]
+}
+];
+
+/* ============================================================
+   ESTADO + PERSISTENCIA (localStorage)
+   ============================================================ */
+const STORAGE_KEY = 'abb-acs800-isu_training_progress_v1';
+const THEME_KEY = 'capacitacion-theme';
+
+const state = {
+  currentId: 'overview',
+  view: 'learn',
+  quizProgress: {},
+  quizIndex: {},
+};
+MODULES.forEach(m=>{
+  if(m.quiz){ state.quizProgress[m.id] = { answered: new Array(m.quiz.length).fill(null) }; state.quizIndex[m.id] = 0; }
+});
+
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const saved = JSON.parse(raw);
+    MODULES.forEach(m=>{
+      if(!m.quiz) return;
+      const savedAnswers = saved && saved[m.id];
+      if(Array.isArray(savedAnswers) && savedAnswers.length === m.quiz.length){
+        state.quizProgress[m.id].answered = savedAnswers;
+      }
+    });
+  }catch(e){ console.warn('No se pudo cargar el progreso guardado:', e); }
+}
+function saveProgress(){
+  try{
+    const data = {};
+    MODULES.forEach(m=>{ if(m.quiz) data[m.id] = state.quizProgress[m.id].answered; });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }catch(e){ console.warn('No se pudo guardar el progreso:', e); }
+  syncPortalProgress();
+}
+function syncPortalProgress(){
+  try{
+    const teachable = MODULES.filter(m=>!m.isOverview);
+    const total = teachable.reduce((s,m)=>s+m.quiz.length,0);
+    const done = teachable.reduce((s,m)=>s+state.quizProgress[m.id].answered.filter(a=>a!==null).length,0);
+    localStorage.setItem('vfd_progress_abb-acs800-isu', JSON.stringify({ done, total }));
+  }catch(e){ console.warn('No se pudo sincronizar el progreso con el portal:', e); }
+}
+function resetAllProgress(){
+  MODULES.forEach(m=>{
+    if(!m.quiz) return;
+    state.quizProgress[m.id].answered = new Array(m.quiz.length).fill(null);
+    state.quizIndex[m.id] = 0;
+  });
+  saveProgress();
+  render();
+}
+loadProgress();
+syncPortalProgress();
+
+/* ============================================================
+   TEMA
+   ============================================================ */
+function applyTheme(){
+  const saved = localStorage.getItem(THEME_KEY);
+  if(saved === 'light'){ document.documentElement.classList.add('light-theme'); }
+  else { document.documentElement.classList.remove('light-theme'); }
+}
+applyTheme();
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  const isLight = document.documentElement.classList.toggle('light-theme');
+  localStorage.setItem(THEME_KEY, isLight ? 'light' : 'dark');
+});
+
+/* ============================================================
+   ANIMACIÓN DE ENTRADA
+   ============================================================ */
+function animateIn(container){
+  const items = container.querySelectorAll('.modhead, .card, .fig, .ovwcard, .qcard, .barwrap, .flash');
+  items.forEach((el,i)=>{ el.classList.add('reveal'); el.style.transitionDelay = Math.min(i*70,560)+'ms'; });
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ items.forEach(el=>el.classList.add('in')); }));
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+function ledStateFor(m){
+  if(m.isOverview) return '';
+  const p = state.quizProgress[m.id];
+  if(!p) return '';
+  const answeredCount = p.answered.filter(a=>a!==null).length;
+  if(answeredCount===0) return '';
+  if(answeredCount < m.quiz.length) return 'partial';
+  return 'done';
+}
+let sidebarAnimated = false;
+function renderSidebar(){
+  const ul = document.getElementById('navlist');
+  ul.innerHTML = '';
+  MODULES.forEach((m,i)=>{
+    const li = document.createElement('li');
+    li.className = 'navitem' + (state.currentId===m.id ? ' active' : '');
+    if(!sidebarAnimated){ li.style.animation = `slideInLeft .45s cubic-bezier(.2,.7,.3,1) ${i*35}ms both`; }
+    const ledClass = ledStateFor(m);
+    li.innerHTML = `
+      ${m.isOverview ? '<span class="led"></span>' : `<span class="led ${ledClass}"></span>`}
+      <span class="num">${m.isOverview ? '★' : String(i).padStart(2,'0')}</span>
+      <span class="label">${m.short}</span>
+    `;
+    li.onclick = ()=>{ state.currentId = m.id; state.view = 'learn'; render(); window.scrollTo(0,0); };
+    ul.appendChild(li);
+  });
+  sidebarAnimated = true;
+}
+
+/* ============================================================
+   OVERVIEW
+   ============================================================ */
+function renderOverview(){
+  const teachable = MODULES.filter(m=>!m.isOverview);
+  const totalQ = teachable.reduce((s,m)=>s+m.quiz.length,0);
+  const answeredQ = teachable.reduce((s,m)=>s+state.quizProgress[m.id].answered.filter(a=>a!==null).length,0);
+  const pct = totalQ ? Math.round(answeredQ/totalQ*100) : 0;
+
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="modhead">
+      <p class="eyebrow">Capacitación · ABB ACS800 — ISU</p>
+      <h2>Biblioteca de módulos</h2>
+      <p class="sub">Navega libremente entre los ${teachable.length} módulos. Cada uno tiene su contenido técnico y su quiz — el progreso se guarda automáticamente en este navegador.</p>
+    </div>
+    <div class="barwrap"><div class="barfill" style="width:${pct}%"></div></div>
+    <p style="font-family:var(--mono); font-size:11.5px; color:var(--text-dim); margin:8px 0 24px 0;">${answeredQ} / ${totalQ} preguntas respondidas · ${pct}%</p>
+    ${pct===100 ? `
+    <div class="card" style="border-color:var(--emerald); background:var(--emerald-dim);">
+      <h3 style="color:var(--emerald); margin-top:0;">🏆 Capacitación completa</h3>
+      <p style="margin-bottom:0;">Completaste el quiz de los ${teachable.length} módulos de la capacitación ABB ACS800 — ISU (IGBT Supply Unit). Puedes reintentar cualquier módulo cuando quieras para reforzar los conceptos con menos aciertos.</p>
+    </div>` : ''}
+    <div class="ovwgrid">
+      ${teachable.map((m,i)=>{
+        const p = state.quizProgress[m.id];
+        const answered = p.answered.filter(a=>a!==null).length;
+        const correct = p.answered.reduce((s,a)=> s + (a===true?1:0), 0);
+        let status = 'sin iniciar';
+        if(answered>0 && answered<m.quiz.length) status = `en curso · ${answered}/${m.quiz.length}`;
+        if(answered===m.quiz.length) status = `completo · ${correct}/${m.quiz.length} correctas`;
+        const startBadge = m.id==='que-es-isu' ? `<span style="font-family:var(--mono); font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--emerald); border:1px solid var(--emerald); border-radius:4px; padding:2px 6px; margin-left:8px;">Empieza aquí</span>` : '';
+        return `<div class="ovwcard" data-id="${m.id}">
+          <div class="top"><span class="t-title">${String(i).padStart(2,'0')} · ${m.title}${startBadge}</span><span class="led ${ledStateFor(m)}"></span></div>
+          <div class="t-sub">${m.sub}</div>
+          <div class="t-status" style="margin-top:10px;">${status}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="resetrow">
+      <button class="btn ghost" id="resetAllBtn">Borrar todo el progreso guardado</button>
+    </div>
+  `;
+  const resetBtn = document.getElementById('resetAllBtn');
+  if(resetBtn){
+    resetBtn.onclick = ()=>{
+      if(confirm('¿Borrar el progreso guardado de todos los módulos? Esta acción no se puede deshacer.')){
+        resetAllProgress();
+      }
+    };
+  }
+  main.querySelectorAll('.ovwcard').forEach(el=>{
+    el.onclick = ()=>{ state.currentId = el.dataset.id; state.view = 'learn'; render(); window.scrollTo(0,0); };
+  });
+  animateIn(main);
+}
+
+/* ============================================================
+   MÓDULO (learn / quiz)
+   ============================================================ */
+function renderModule(m){
+  const main = document.getElementById('main');
+  const hasCards = !!m.flashcards;
+  main.innerHTML = `
+    <div class="modhead">
+      <p class="eyebrow">${m.eyebrow}</p>
+      <h2>${m.title}</h2>
+      <p class="sub">${m.sub}</p>
+    </div>
+    <div class="tabs no-print">
+      <div class="tab ${state.view==='learn'?'active':''}" data-v="learn">Aprender</div>
+      <div class="tab ${state.view==='quiz'?'active':''}" data-v="quiz">Quiz (${m.quiz.length})</div>
+      <div style="margin-left:auto; align-self:center;"><button class="btn ghost" id="printBtn" style="font-size:10.5px; padding:6px 12px;">🖨️ Imprimir esta unidad</button></div>
+    </div>
+    <div id="modbody"></div>
+  `;
+  main.querySelectorAll('.tab').forEach(t=>{ t.onclick = ()=>{ state.view = t.dataset.v; render(); }; });
+  const printBtn = document.getElementById('printBtn');
+  if(printBtn) printBtn.onclick = ()=> window.print();
+  const body = document.getElementById('modbody');
+  if(state.view==='learn'){
+    body.innerHTML = m.content;
+    if(hasCards) renderFlashcards(m);
+  } else {
+    renderQuiz(m, body);
+  }
+  animateIn(main);
+}
+
+function renderFlashcards(m){
+  const grid = document.getElementById('flashgrid');
+  if(!grid) return;
+  grid.innerHTML = m.flashcards.map((f)=>`
+    <div class="flash" tabindex="0" role="button" aria-label="Tarjeta ${f.acr}, presiona Enter o Espacio para revelar">
+      <div class="flash-inner">
+        <div class="flash-face flash-front"><div class="acr">${f.acr}</div><div class="hint">toca para revelar</div></div>
+        <div class="flash-face flash-back"><div class="full">${f.full}</div><div class="desc">${f.desc}</div></div>
+      </div>
+    </div>
+  `).join('');
+  grid.querySelectorAll('.flash').forEach(el=>{
+    el.onclick = ()=> el.classList.toggle('flipped');
+    el.onkeydown = (e)=>{
+      if(e.key==='Enter' || e.key===' ' || e.key==='Spacebar'){
+        e.preventDefault();
+        el.classList.toggle('flipped');
+      }
+    };
+  });
+}
+
+/* ---------- Quiz engine ---------- */
+function renderQuiz(m, body){
+  const progress = state.quizProgress[m.id];
+  const total = m.quiz.length;
+  const answeredAll = progress.answered.every(a=>a!==null);
+
+  if(answeredAll){
+    const correct = progress.answered.filter(a=>a===true).length;
+    const missed = m.quiz.map((q,qi)=>({q,qi})).filter(x=>progress.answered[x.qi]===false);
+    body.innerHTML = `
+      <div class="qcard">
+        <div class="quizresult">
+          <div class="score">${correct}/${total}</div>
+          <div class="label">respuestas correctas en este módulo</div>
+          <button class="btn ghost" id="retryBtn">Reintentar quiz</button>
+        </div>
+        ${missed.length ? `
+        <div style="text-align:left; margin-top:10px;">
+          <h3 style="color:var(--red);">Preguntas a repasar (${missed.length})</h3>
+          ${missed.map(x=>`
+            <div class="note warn" style="margin:10px 0;">
+              <strong>${x.q.q}</strong><br>
+              Respuesta correcta: ${x.q.options[x.q.answer]}<br>
+              ${x.q.explain}
+            </div>
+          `).join('')}
+        </div>` : ''}
+      </div>
+    `;
+    document.getElementById('retryBtn').onclick = ()=>{
+      progress.answered = new Array(total).fill(null);
+      state.quizIndex[m.id] = 0;
+      saveProgress();
+      render();
+    };
+    return;
+  }
+
+  let idx = state.quizIndex[m.id];
+  if(progress.answered[idx]!==null){
+    idx = progress.answered.findIndex(a=>a===null);
+    state.quizIndex[m.id] = idx;
+  }
+  const q = m.quiz[idx];
+  body.innerHTML = `
+    <div class="qcounter">Pregunta ${idx+1} de ${total}</div>
+    <div class="qcard">
+      <p class="qtext">${q.q}</p>
+      <div id="optlist">
+        ${q.options.map((o,oi)=>`<div class="opt" data-oi="${oi}"><span class="bullet">${String.fromCharCode(65+oi)}</span><span>${o}</span></div>`).join('')}
+      </div>
+      <div class="explain" id="explainBox">${q.explain}</div>
+      <div class="qnav">
+        <span style="font-family:var(--mono); font-size:11px; color:var(--text-dim);">selecciona una opción</span>
+        <button class="btn" id="nextBtn" disabled>Siguiente</button>
+      </div>
+    </div>
+  `;
+  let picked = false;
+  document.querySelectorAll('#optlist .opt').forEach(el=>{
+    el.onclick = ()=>{
+      if(picked) return;
+      picked = true;
+      const oi = parseInt(el.dataset.oi);
+      const isCorrect = oi===q.answer;
+      progress.answered[idx] = isCorrect;
+      saveProgress();
+      document.querySelectorAll('#optlist .opt').forEach(o2=>{
+        const oi2 = parseInt(o2.dataset.oi);
+        if(oi2===q.answer) o2.classList.add('correct');
+        else if(oi2===oi) o2.classList.add('wrong');
+      });
+      document.getElementById('explainBox').classList.add('show');
+      const nb = document.getElementById('nextBtn');
+      nb.disabled = false;
+      nb.onclick = ()=>{
+        state.quizIndex[m.id] = idx+1 < total ? idx+1 : idx;
+        render();
+      };
+      renderSidebar();
+    };
+  });
+}
+
+/* ============================================================
+   RENDER PRINCIPAL
+   ============================================================ */
+function render(){
+  renderSidebar();
+  const m = MODULES.find(mm=>mm.id===state.currentId);
+  if(m.isOverview) renderOverview();
+  else renderModule(m);
+}
+
+render();
+</script>
+</body>
+</html>

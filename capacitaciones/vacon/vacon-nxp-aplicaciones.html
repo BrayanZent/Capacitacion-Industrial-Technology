@@ -1,0 +1,817 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VACON NXP · Parametrización y Aplicaciones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0f1620;
+    --panel: #16202c;
+    --panel-raised: #1e2a38;
+    --line: #2b3a4a;
+    --text: #e6edf5;
+    --text-dim: #8fa0b3;
+    --sky: #38bdf8;
+    --sky-dim: #163244;
+    --emerald: #34d399;
+    --emerald-dim: #14332a;
+    --red: #f87171;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+  :root.light-theme{
+    --bg: #f3f6fa;
+    --panel: #ffffff;
+    --panel-raised: #eef2f7;
+    --line: #d7e0ea;
+    --text: #1b2530;
+    --text-dim: #5c6b7d;
+    --sky-dim: #e0f2fe;
+    --emerald-dim: #d4f5e4;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  ::selection{background:var(--sky-dim);color:var(--text);}
+
+  @keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+  @keyframes slideInLeft{ from{opacity:0; transform:translateX(-14px);} to{opacity:1; transform:translateX(0);} }
+  @keyframes logoIn{ from{opacity:0; transform:scale(.9);} to{opacity:1; transform:scale(1);} }
+  .reveal{opacity:0; transform:translateY(18px); transition:opacity .55s cubic-bezier(.2,.7,.3,1), transform .55s cubic-bezier(.2,.7,.3,1);}
+  .reveal.in{opacity:1; transform:translateY(0);}
+
+  .app{display:flex; min-height:100vh;}
+  .sidebar{
+    width:280px; flex-shrink:0; background:var(--panel);
+    border-right:1px solid var(--line);
+    padding:22px 16px; position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .brand{padding:4px 8px 20px 8px; border-bottom:1px solid var(--line); margin-bottom:16px;}
+  .brand-logo{width:100%; max-width:170px; display:block; margin:0 0 14px 0; background:#fff; border-radius:6px; padding:8px 10px; animation:logoIn .8s cubic-bezier(.2,.8,.3,1);}
+  .brand .tag{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--emerald); text-transform:uppercase;}
+  .brand h1{font-size:17px; margin:6px 0 2px 0; line-height:1.25;}
+  .brand p{font-size:12px; color:var(--text-dim); margin:0;}
+
+  .navlist{list-style:none; margin:0; padding:0;}
+  .navitem{display:flex; align-items:center; gap:10px; padding:10px 10px; border-radius:6px; cursor:pointer; margin-bottom:2px; border:1px solid transparent; transition:background .2s ease, transform .2s ease;}
+  .navitem:hover{background:var(--panel-raised); transform:translateX(2px);}
+  .navitem.active{background:var(--panel-raised); border-color:var(--line);}
+  .led{width:9px; height:9px; border-radius:50%; flex-shrink:0; background:#3a4048; box-shadow:inset 0 0 0 1px rgba(0,0,0,.4);}
+  .led.done{background:var(--emerald); box-shadow:0 0 6px rgba(52,211,153,.7);}
+  .led.partial{background:var(--sky); box-shadow:0 0 6px rgba(56,189,248,.6);}
+  .navitem .num{font-family:var(--mono); font-size:11px; color:var(--text-dim); width:18px;}
+  .navitem .label{font-size:13.5px;}
+  .navitem.active .label{color:var(--sky);}
+
+  .sidebar-foot{margin-top:18px; padding-top:14px; border-top:1px solid var(--line); font-family:var(--mono); font-size:11px; color:var(--text-dim);}
+  .themebtn{margin-top:10px; width:100%; font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.04em; background:transparent; color:var(--text-dim); border:1px solid var(--line); padding:8px 10px; border-radius:6px; cursor:pointer;}
+  .themebtn:hover{color:var(--text); border-color:var(--sky);}
+
+  .main{flex:1; padding:36px 44px; max-width:920px; animation:fadeIn .5s ease;}
+  @media (max-width: 860px){ .app{flex-direction:column;} .sidebar{width:100%; height:auto; position:relative; border-right:none; border-bottom:1px solid var(--line);} .main{padding:24px;} }
+
+  .modhead{margin-bottom:8px;}
+  .modhead .eyebrow{font-family:var(--mono); font-size:11.5px; color:var(--sky); letter-spacing:.1em; text-transform:uppercase; margin:0 0 6px 0;}
+  .modhead h2{font-size:26px; margin:0 0 6px 0; line-height:1.2;}
+  .modhead .sub{color:var(--text-dim); font-size:14px; max-width:62ch; margin:0;}
+
+  .tabs{display:flex; gap:6px; margin:20px 0 22px 0; border-bottom:1px solid var(--line);}
+  .tab{font-family:var(--mono); font-size:12.5px; letter-spacing:.03em; padding:9px 14px; cursor:pointer; color:var(--text-dim); border-bottom:2px solid transparent; text-transform:uppercase;}
+  .tab:hover{color:var(--text);}
+  .tab.active{color:var(--sky); border-bottom-color:var(--sky);}
+
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:20px 22px; margin-bottom:14px; transition:transform .25s ease, border-color .25s ease;}
+  .card:hover{transform:translateY(-2px); border-color:var(--sky);}
+  .card h3{margin:18px 0 8px 0; font-size:14.5px; color:var(--sky); display:flex; align-items:center; gap:8px;}
+  .card h3:first-child{margin-top:0;}
+  .card p{margin:0 0 10px 0; font-size:14px; line-height:1.65;}
+  .card ul, .card ol{margin:8px 0 12px 0; padding-left:18px;}
+  .card li{font-size:13.5px; line-height:1.7; margin-bottom:5px;}
+
+  .note{margin:12px 0; padding:11px 13px; background:rgba(56,189,248,.07); border-left:3px solid var(--sky); font-size:12.5px; color:var(--text-dim); border-radius:0 5px 5px 0;}
+  .note.warn{background:rgba(248,113,113,.08); border-left-color:var(--red);}
+
+  table.tech{width:100%; border-collapse:collapse; font-family:var(--mono); font-size:12px; margin:6px 0 14px 0;}
+  table.tech th, table.tech td{padding:7px 9px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top;}
+  table.tech th{color:var(--sky); font-weight:600; background:var(--panel-raised);}
+  table.tech td{color:var(--text-dim);}
+
+  .fig{margin:14px 0 6px 0; text-align:center;}
+  .fig img{width:100%; max-width:460px; display:block; margin:0 auto; border-radius:6px; border:1px solid var(--line); background:#f5f3ee;}
+  .fig figcaption{font-family:var(--mono); font-size:10.5px; color:var(--text-dim); margin-top:6px;}
+
+  .placeholder{border:1px dashed var(--line); border-radius:8px; padding:16px; text-align:center; font-size:12px; color:var(--text-dim); margin:12px 0;}
+
+  .cardsgrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:14px; margin-top:6px;}
+  .flash{perspective:1000px; height:130px; cursor:pointer;}
+  .flash-inner{position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d;}
+  .flash.flipped .flash-inner{transform:rotateY(180deg);}
+  .flash-face{position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--line); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:12px;}
+  .flash-front{background:var(--panel-raised);}
+  .flash-front .acr{font-family:var(--mono); font-size:19px; color:var(--sky); font-weight:600;}
+  .flash-front .hint{font-size:10px; color:var(--text-dim); margin-top:8px; text-transform:uppercase; letter-spacing:.05em;}
+  .flash-back{background:var(--sky-dim); transform:rotateY(180deg);}
+  .flash-back .full{font-size:12px; font-weight:600; margin-bottom:5px;}
+  .flash-back .desc{font-size:11px; color:var(--text-dim); line-height:1.4;}
+
+  .ovwgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; margin-top:10px;}
+  .ovwcard{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px 18px; cursor:pointer; transition:transform .2s ease, border-color .2s ease;}
+  .ovwcard:hover{border-color:var(--sky); transform:translateY(-3px);}
+  .ovwcard .top{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .ovwcard .t-title{font-size:13.5px; font-weight:600;}
+  .ovwcard .t-sub{font-size:12px; color:var(--text-dim); line-height:1.4;}
+  .ovwcard .t-status{font-family:var(--mono); font-size:10.5px; text-transform:uppercase; color:var(--text-dim);}
+
+  .barwrap{height:5px; background:var(--panel-raised); border-radius:3px; overflow:hidden; margin-top:16px;}
+  .barfill{height:100%; background:linear-gradient(90deg, var(--sky), var(--emerald)); transition:width .4s;}
+
+  .qcounter{font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-bottom:10px;}
+  .qcard{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:22px;}
+  .qtext{font-size:15.5px; margin:0 0 18px 0; line-height:1.5;}
+  .opt{display:flex; align-items:center; gap:10px; padding:11px 14px; border:1px solid var(--line); border-radius:6px; margin-bottom:9px; cursor:pointer; font-size:13.5px; background:var(--panel-raised); transition:transform .15s ease, border-color .15s ease;}
+  .opt:hover{border-color:var(--sky); transform:translateX(3px);}
+  .opt.correct{border-color:var(--emerald); background:rgba(52,211,153,.1);}
+  .opt.wrong{border-color:var(--red); background:rgba(248,113,113,.1);}
+  .opt .bullet{width:18px; height:18px; border-radius:50%; border:1px solid var(--text-dim); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:10px; color:var(--text-dim);}
+  .opt.correct .bullet{border-color:var(--emerald); color:var(--emerald);}
+  .opt.wrong .bullet{border-color:var(--red); color:var(--red);}
+
+  .explain{margin-top:14px; padding:12px 14px; border-radius:6px; font-size:13px; line-height:1.55; background:var(--panel-raised); border:1px solid var(--line); display:none;}
+  .explain.show{display:block;}
+
+  .qnav{display:flex; justify-content:space-between; align-items:center; margin-top:20px;}
+  .btn{font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.04em; background:var(--sky); color:#04222f; border:none; padding:10px 18px; border-radius:5px; cursor:pointer; font-weight:600; transition:transform .15s ease, background .2s ease;}
+  .btn:hover{background:#67cffb; transform:translateY(-1px);}
+  .btn.ghost{background:transparent; color:var(--text-dim); border:1px solid var(--line);}
+  .btn.ghost:hover{color:var(--text); border-color:var(--sky);}
+  .btn:disabled{opacity:.35; cursor:not-allowed;}
+
+  .quizresult{text-align:center; padding:40px 20px;}
+  .quizresult .score{font-family:var(--mono); font-size:50px; color:var(--sky); margin-bottom:6px;}
+  .quizresult .label{color:var(--text-dim); font-size:12.5px; margin-bottom:22px;}
+
+  .resetrow{margin-top:26px; padding-top:16px; border-top:1px solid var(--line);}
+  ::-webkit-scrollbar{width:10px;}
+  ::-webkit-scrollbar-thumb{background:#3a4a5a; border-radius:6px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  .flash:focus-visible{outline:2px solid var(--sky); outline-offset:2px;}
+
+  @media print{
+    .sidebar, .no-print, .themebtn, .resetrow{display:none !important;}
+    body{background:#fff; color:#111;}
+    .main{max-width:100%; padding:0;}
+    .card{border:1px solid #999; break-inside:avoid; box-shadow:none;}
+    table.tech th, table.tech td{color:#111; border-bottom:1px solid #999;}
+    table.tech th{background:#eee;}
+    .fig img{max-width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <nav class="sidebar">
+    <div class="brand">
+      <img class="brand-logo" src="../../assets/logo-industrial-technology.png" alt="Logo de la empresa">
+      <div class="tag">Capacitación técnica</div>
+      <h1>VACON NXP · Aplicaciones</h1>
+      <p>Parametrización, macros de aplicación y puesta en marcha — módulos de estudio y evaluación</p>
+    </div>
+    <ul class="navlist" id="navlist"></ul>
+    <div class="sidebar-foot">
+      Manual All-in-One · progreso guardado en este navegador
+      <button class="themebtn" id="themeToggle">🌓 Cambiar tema</button>
+      <a href="index.html" class="themebtn" style="display:block; text-align:center; text-decoration:none; margin-top:8px;">← Modelos VACON</a>
+    </div>
+  </nav>
+
+  <main class="main" id="main"></main>
+</div>
+
+<script>
+/* ============================================================
+   HELPERS DE CONTENIDO
+   ============================================================ */
+const PLACEHOLDER = (txt) => `<div class="placeholder">🖼️ [Marcador de imagen: ${txt}]</div>`;
+const NOTE = (txt) => `<div class="note warn">⚠️ ${txt}</div>`;
+const INFO = (txt) => `<div class="note">💡 ${txt}</div>`;
+const H3 = (txt) => `<h3><span style="width:6px;height:6px;border-radius:50%;background:var(--sky);display:inline-block;"></span>${txt}</h3>`;
+const IMG = (src, caption, source) => `<figure class="fig">
+  <img src="img-aplicaciones/${src}" alt="${caption}" loading="lazy">
+  <figcaption>${caption}${source ? ` — <span style="font-style:italic">${source}</span>` : ''}</figcaption>
+</figure>`;
+
+/* ============================================================
+   MÓDULOS
+   ============================================================ */
+const MODULES = [
+{ id:'overview', title:'Panel general', short:'Inicio', isOverview:true },
+
+{
+  id:'macros', title:'Las macros de aplicación All-in-One', short:'Macros de aplicación',
+  eyebrow:'Módulo 01 · Selección de macro', sub:'Criterios de selección de la macro de aplicación según el proceso a controlar.',
+  content:`
+    <div class="card">
+      <p>El paquete <strong>All-in-One</strong> del VACON NXP incluye varias "macros" o aplicaciones precargadas de fábrica. Cada una define la lógica de control, las señales de E/S disponibles y el conjunto de parámetros visibles en el panel. Elegir la macro correcta desde el inicio evita reprogramar E/S innecesariamente durante la puesta en marcha.</p>
+
+      ${NOTE("El Manual de Aplicación All-in-One (DPD01211E-ES) revisado documenta <strong>7 macros de aplicación</strong>, no 8: Básica, Estándar, Control local/remoto, Multi-velocidades, Control PID, Control multi-propósito y Control de bombas y ventiladores. Se corrige aquí el número de macros para no introducir una octava aplicación que la fuente no respalda.")}
+
+      ${H3("Las 7 macros y su código de software")}
+      <table class="tech">
+        <tr><th>Macro</th><th>Código SW</th><th>Uso típico según el manual</th></tr>
+        <tr><td>1. Básica</td><td>ASFIFF01</td><td>Ajuste de fábrica por defecto; control simple marcha/paro con referencia de I/O o panel, DIN3 programable.</td></tr>
+        <tr><td>2. Estándar</td><td>ASFIFF02</td><td>Bombas, ventiladores y transportadoras cuando la Básica resulta demasiado limitada pero no se requieren funciones especiales.</td></tr>
+        <tr><td>3. Control local/remoto</td><td>ASFIFF03</td><td>Procesos con dos lugares de control físicos (ej. tablero local + sala de control), cada uno con su propia fuente de referencia; se conmuta con DIN6.</td></tr>
+        <tr><td>4. Multi-velocidades</td><td>ASFIFF04</td><td>Procesos con velocidades fijas predefinidas (hasta 15) seleccionadas por combinación de entradas digitales — típico en transportadores con paradas de proceso.</td></tr>
+        <tr><td>5. Control PID</td><td>ASFIFF05</td><td>Control de nivel, presión o caudal con realimentación — bombas y ventiladores con lazo de proceso integrado, sin componentes externos.</td></tr>
+        <tr><td>6. Control multi-propósito</td><td>ASFIFF06 (NXS) / APFIFF06 (NXP)</td><td>Procesos que requieren amplia flexibilidad de E/S (joystick, múltiples tarjetas de expansión) <strong>sin</strong> necesitar control PID.</td></tr>
+        <tr><td>7. Bombas y ventiladores</td><td>ASFIFF07</td><td>Una unidad de velocidad variable + hasta 4 unidades auxiliares con arranque/paro por PID y rotación automática (sistema MultiBomba).</td></tr>
+      </table>
+
+      ${H3("Cómo elegir según el tipo de proceso")}
+      <ul>
+        <li><strong>Bombas/ventiladores con control de nivel, presión o caudal:</strong> Aplicación 5 (PID) si es una sola unidad, o Aplicación 7 si hay unidades auxiliares que arrancar/parar en secuencia.</li>
+        <li><strong>Transportadores con velocidades de proceso fijas:</strong> Aplicación 4 (Multi-velocidades), hasta 15 velocidades fijas mediante combinaciones de DIN3-DIN6.</li>
+        <li><strong>Proceso genérico sin PID pero con mucha flexibilidad de E/S (joystick, maestro-seguidor, límites de potencia separados motor/generación):</strong> Aplicación 6 (Multi-propósito) — es la única con funciones exclusivas de NXP como maestro-seguidor y límites de par distintos por lado de generación.</li>
+        <li><strong>Dos paneles/lugares de control físicos distintos:</strong> Aplicación 3 (Local/remoto).</li>
+        <li><strong>Control simple, sin necesidades especiales:</strong> Aplicación 1 (Básica) o 2 (Estándar) según si se necesita escalado de referencia, freno CC o frecuencias prohibidas (Estándar sí las tiene, Básica no).</li>
+      </ul>
+
+      ${INFO("La macro se selecciona desde el panel de control en el menú M6, página S6.2 (Selección de aplicación), según el mismo procedimiento en las 7 macros. Cambiar de macro reinicia el juego de parámetros de la aplicación anterior — conviene respaldar los parámetros antes de cambiar (ver Módulo 06).")}
+    </div>
+  `,
+  quiz:[
+    { q:"Según el Manual de Aplicación All-in-One revisado, ¿cuántas macros de aplicación documenta realmente el VACON NXP?", options:["8","5","7","10"], answer:2, explain:"El manual documenta 7 macros: Básica, Estándar, Local/remoto, Multi-velocidades, Control PID, Multi-propósito y Bombas y ventiladores." },
+    { q:"¿Qué macro es la más adecuada para controlar el nivel de un estanque mediante una sola bomba, sin componentes externos de control?", options:["Aplicación 1 (Básica)", "Aplicación 5 (Control PID)", "Aplicación 4 (Multi-velocidades)", "Aplicación 3 (Local/remoto)"], answer:1, explain:"La Aplicación de control PID (5) está diseñada para control de nivel/presión/caudal con lazo integrado, sin necesitar componentes adicionales." },
+    { q:"¿Cuál es la diferencia clave entre la Aplicación 6 (Multi-propósito) y la Aplicación 5 (PID)?", options:["No hay diferencia", "La Aplicación 6 no incluye controlador PID; ofrece flexibilidad de E/S para procesos que no lo necesitan", "La Aplicación 6 solo funciona en NXS, nunca en NXP", "La Aplicación 5 no permite usar entradas digitales"], answer:1, explain:"El manual indica explícitamente que la Aplicación 6 se usa cuando se necesita flexibilidad de E/S y NO se necesita control PID; si se necesita PID, usar la Aplicación 5 o la 7." },
+    { q:"¿Qué macro incluye de fábrica la función de rotación automática entre una unidad principal y hasta 4 auxiliares (sistema MultiBomba)?", options:["Aplicación 2 (Estándar)", "Aplicación 7 (Bombas y ventiladores)", "Aplicación 6 (Multi-propósito)", "Aplicación 1 (Básica)"], answer:1, explain:"La Aplicación 7 controla una unidad de velocidad variable y hasta 4 auxiliares, con rotación automática de orden de arranque (sistema MultiBomba)." },
+    { q:"¿Dónde y cómo se selecciona la macro de aplicación activa en el panel de control del VACON NXP?", options:["Menú M1, página S1.1", "Menú M6, página S6.2", "Menú M3, página S3.4", "No se puede cambiar desde el panel"], answer:1, explain:"El manual indica repetidamente 'Seleccione la aplicación... en el menú M6, en la página S6.2' para cada una de las 7 macros." }
+  ]
+},
+
+{
+  id:'grupos-basicos', title:'Grupos de parámetros básicos (G2.1-G2.2)', short:'Parámetros básicos',
+  eyebrow:'Módulo 02 · Parametrización', sub:'Rampas, límites de intensidad, referencias de velocidad y datos nominales del motor.',
+  content:`
+    <div class="card">
+      <p>El menú <strong>M2 → G2.1 (Parámetros básicos)</strong> es el primer grupo que se ajusta en cualquier puesta en marcha, independientemente de la macro elegida — define los límites de frecuencia, los tiempos de rampa y los datos de placa del motor. El grupo <strong>G2.2</strong> define qué función cumple cada entrada digital/analógica (varía según la macro activa, ver Módulo 03).</p>
+
+      ${H3("G2.1 — Parámetros básicos (ejemplo: Aplicación Básica, Tabla 2 del manual)")}
+      <table class="tech">
+        <tr><th>Índice</th><th>Parámetro</th><th>Mín.</th><th>Máx.</th><th>Unidad</th><th>Por defecto</th><th>ID</th></tr>
+        <tr><td>P2.1</td><td>Frecuencia mín.</td><td>0.00</td><td>P2.2</td><td>Hz</td><td>0.00</td><td>101/104</td></tr>
+        <tr><td>P2.2</td><td>Frecuencia máx.</td><td>P2.1</td><td>320.00</td><td>Hz</td><td>50.00</td><td>102</td></tr>
+        <tr><td>P2.3</td><td>Tiempo de aceleración 1</td><td>0.1</td><td>3000.0</td><td>s</td><td>3.0</td><td>103</td></tr>
+        <tr><td>P2.4</td><td>Tiempo de deceleración 1</td><td>0.1</td><td>3000.0</td><td>s</td><td>3.0</td><td>104</td></tr>
+        <tr><td>P2.5</td><td>Límite de intensidad</td><td>0.1×IH</td><td>2×IH</td><td>A</td><td>IL</td><td>107</td></tr>
+        <tr><td>P2.6</td><td>Tensión nominal del motor</td><td>180</td><td>690</td><td>V</td><td>según carcasa (NX2:230 / NX5:400 / NX6:690)</td><td>110</td></tr>
+        <tr><td>P2.7</td><td>Frecuencia nominal del motor</td><td>8.00</td><td>320.00</td><td>Hz</td><td>50.00</td><td>111</td></tr>
+        <tr><td>P2.8</td><td>Velocidad nominal del motor</td><td>24</td><td>20 000</td><td>rpm</td><td>según placa</td><td>112</td></tr>
+        <tr><td>P2.9</td><td>Intensidad nominal del motor</td><td>0.1×IH</td><td>2×IH</td><td>A</td><td>según placa</td><td>113</td></tr>
+        <tr><td>P2.10</td><td>Cos φ del motor</td><td>0.30</td><td>1.00</td><td>—</td><td>según placa</td><td>120</td></tr>
+        <tr><td>P2.11</td><td>Tipo de marcha</td><td>0</td><td>2</td><td>—</td><td>0 = Rampa</td><td>505</td></tr>
+        <tr><td>P2.12</td><td>Tipo de paro</td><td>0</td><td>3</td><td>—</td><td>0 = Rampa</td><td>506</td></tr>
+        <tr><td>P2.13</td><td>Optimización U/f</td><td>0</td><td>1</td><td>—</td><td>0</td><td>109</td></tr>
+        <tr><td>P2.14</td><td>Referencia de I/O (0=AI1, 1=AI2, 2=Panel, 3=Fieldbus)</td><td>0</td><td>3</td><td>—</td><td>0</td><td>117</td></tr>
+      </table>
+      ${NOTE("IH = intensidad nominal de salida del variador según su código de tipo; IL = intensidad nominal reducida (light duty). Estos valores son específicos de la Aplicación Básica (Tabla 2); otras macros añaden parámetros a G2.1 (ej. G2.9 fieldbus en Multi-propósito, G2.9 bombas/ventiladores en Aplicación 7) pero el núcleo de rampas y datos de motor P2.1-P2.10 se repite en todas.")}
+
+      ${H3("G2.2 — Señales de entrada")}
+      <p>El grupo G2.2 asigna la <strong>función</strong> de cada entrada digital (DIN) y analógica (AI) disponible. El contenido exacto de este grupo cambia según la macro: en la Aplicación Básica y Estándar solo DIN3 es libremente programable; en Multi-propósito y Bombas/ventiladores, todas las entradas y salidas se pueden reasignar libremente. Ver Módulo 03 para el detalle de E/S por macro.</p>
+
+      ${INFO("Principio general de lectura de tablas de parámetros VACON (no cita textual, ver Prefacio del manual): cada fila indica ubicación en el menú (índice), nombre, mínimo, máximo, unidad, valor de fábrica, ajuste de usuario y número ID — el ID es el identificador único usado también por NCDrive y por el protocolo fieldbus para referirse al mismo parámetro sin ambigüedad de idioma.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿En qué grupo del menú M2 se ajustan los tiempos de rampa (aceleración/deceleración) y los límites de frecuencia?", options:["G2.6", "G2.1", "G2.9", "G2.3"], answer:1, explain:"G2.1 (Parámetros básicos) incluye P2.1/P2.2 (frecuencia mín/máx) y P2.3/P2.4 (tiempos de rampa 1)." },
+    { q:"¿Cuál es el rango y valor por defecto del tiempo de aceleración 1 (P2.3) en la Aplicación Básica?", options:["0.1 a 3000.0 s, por defecto 3.0 s", "1 a 100 s, por defecto 10 s", "0 a 60 s, por defecto 5 s", "No tiene valor por defecto"], answer:0, explain:"Según la Tabla 2 del manual, P2.3 va de 0.1 a 3000.0 segundos con valor de fábrica 3.0 s." },
+    { q:"¿Qué determina el parámetro P2.14 (Referencia de I/O, ID117)?", options:["El sentido de giro del motor", "La fuente de la referencia de frecuencia: AI1, AI2, Panel o Fieldbus", "El tiempo de frenado CC", "La tensión nominal del motor"], answer:1, explain:"P2.14 selecciona entre 4 fuentes posibles para la referencia: 0=AI1, 1=AI2, 2=Panel, 3=Fieldbus." },
+    { q:"¿Qué grupo de parámetros asigna la función de cada entrada digital y analógica, y por qué su contenido varía entre macros?", options:["G2.1, es igual en todas las macros", "G2.2, porque cada macro permite reprogramar un número distinto de entradas/salidas libremente", "G2.7, porque es un grupo de protecciones", "No existe ese grupo"], answer:1, explain:"G2.2 (Señales de entrada) varía según la macro: desde solo DIN3 programable (Básica/Estándar) hasta todas las E/S libres (Multi-propósito, Bombas y ventiladores)." },
+    { q:"¿Qué representa el número ID asociado a cada parámetro (ej. ID104 para frecuencia mínima)?", options:["El precio del parámetro", "Un identificador único usado también por NCDrive y el fieldbus, independiente del idioma del panel", "El número de página del manual", "Un código de error"], answer:1, explain:"El ID es el identificador de referencia único del parámetro, usado por herramientas como NCDrive y por el fieldbus, sin depender del idioma configurado en el panel." }
+  ]
+},
+
+{
+  id:'io-programable', title:'Entradas y salidas programables', short:'E/S programables',
+  eyebrow:'Módulo 03 · E/S', sub:'Configuración de AI/AO/DI/DO y relés según la macro de aplicación activa.',
+  content:`
+    <div class="card">
+      <p>La tarjeta de control estándar OPTA1 ofrece un juego fijo de bornes; lo que cambia según la macro es <strong>qué función tiene asignada cada borne por defecto</strong> y <strong>cuántos de ellos se pueden reprogramar libremente</strong> (principio "Terminal to Function", TTF, capítulo 9.9 del manual).</p>
+
+      ${H3("Configuración de E/S por defecto — tarjeta OPTA1 (Aplicación Estándar)")}
+      <table class="tech">
+        <tr><th>Terminal</th><th>Señal</th><th>Función por defecto</th></tr>
+        <tr><td>1</td><td>+10 Vref</td><td>Salida de tensión de referencia para potenciómetro</td></tr>
+        <tr><td>2 / 3</td><td>AI1+ / AI1-</td><td>Entrada analógica 1, 0-10 V CC — referencia de frecuencia (P2.14 programable)</td></tr>
+        <tr><td>4 / 5</td><td>AI2+ / AI2-</td><td>Entrada analógica 2, 0-20 mA — referencia de frecuencia</td></tr>
+        <tr><td>6 / 7</td><td>+24 V / GND</td><td>Alimentación auxiliar de control, máx. 0.1 A</td></tr>
+        <tr><td>8</td><td>DIN1</td><td>Marcha directa (lógica programable)</td></tr>
+        <tr><td>9</td><td>DIN2</td><td>Marcha inversa (lógica programable)</td></tr>
+        <tr><td>10</td><td>DIN3</td><td>Entrada de fallo externo (programable)</td></tr>
+        <tr><td>11</td><td>CMA</td><td>Común para DIN1-DIN3</td></tr>
+        <tr><td>14</td><td>DIN4</td><td>Seleccionar velocidad fija 1</td></tr>
+        <tr><td>15</td><td>DIN5</td><td>Seleccionar velocidad fija 2</td></tr>
+        <tr><td>16</td><td>DIN6</td><td>Reset de fallo</td></tr>
+        <tr><td>17</td><td>CMB</td><td>Común para DIN4-DIN6</td></tr>
+        <tr><td>19</td><td>AO1+/AO1-</td><td>Salida analógica 1, 0-20 mA — frecuencia de salida (programable)</td></tr>
+        <tr><td>20</td><td>DO1</td><td>Salida digital — LISTO (programable)</td></tr>
+        <tr><td>21-23 / 24-26</td><td>RO1 / RO2</td><td>Relé 1 = MARCHA · Relé 2 = FALLO (ambos programables)</td></tr>
+      </table>
+      ${IMG("io-default-optA1-standard.png", "Configuración de E/S por defecto de la Aplicación Estándar sobre tarjeta OPTA1", "Vacon-NX-All-in-One-Application-Manual-DPD01211E-ES, Imag. 4")}
+
+      ${H3("Ejemplo de tabla de verdad — DIN4/DIN5 (velocidades fijas 1 y 2)")}
+      <table class="tech">
+        <tr><th>DIN4</th><th>DIN5</th><th>Resultado</th></tr>
+        <tr><td>Abierto</td><td>Abierto</td><td>Referencia de I/O (P2.14)</td></tr>
+        <tr><td>Cerrado</td><td>Abierto</td><td>Velocidad constante 1</td></tr>
+        <tr><td>Abierto</td><td>Cerrado</td><td>Velocidad constante 2</td></tr>
+        <tr><td>Cerrado</td><td>Cerrado</td><td>Entrada analógica 2 (o frecuencia máx., según macro)</td></tr>
+      </table>
+
+      ${H3("Qué E/S son libremente programables según la macro")}
+      <table class="tech">
+        <tr><th>Macro</th><th>E/S libremente programable</th></tr>
+        <tr><td>1. Básica</td><td>Solo DIN3</td></tr>
+        <tr><td>2. Estándar</td><td>DIN3 + todas las salidas</td></tr>
+        <tr><td>3. Local/remoto</td><td>Todas las salidas</td></tr>
+        <tr><td>5. Control PID</td><td>DIN2, DIN3, DIN5 + todas las salidas</td></tr>
+        <tr><td>6. Multi-propósito</td><td>Todas las entradas y salidas digitales; admite todas las tarjetas de E/S</td></tr>
+        <tr><td>7. Bombas y ventiladores</td><td>Todas las entradas y salidas</td></tr>
+      </table>
+
+      ${NOTE("El manual no detalla la tabla equivalente para la Aplicación 4 (Multi-velocidades) en el mismo formato de lista que las demás; su lógica de E/S está definida por su propio diagrama de señales de control (DIN3-DIN6 seleccionan hasta 15 velocidades fijas, ver Módulo 05). No se completa ese dato en la tabla anterior para no inferir un valor no confirmado en la fuente.")}
+
+      ${INFO("Principio TTF (Terminal to Function, capítulo 9.9 del manual): en las macros que lo permiten, cualquier función de control (marcha, referencia, reset de fallo, etc.) se puede asignar a cualquier borne físico desde el panel o desde NCDrive, sin necesidad de recablear el bornero — solo cambiar el parámetro que apunta a ese borne.")}
+    </div>
+  `,
+  quiz:[
+    { q:"En la configuración de E/S por defecto de la Aplicación Estándar, ¿qué función cumple el relé RO1?", options:["FALLO", "MARCHA", "LISTO", "Reset de fallo"], answer:1, explain:"Según el diagrama de E/S por defecto, RO1 = MARCHA y RO2 = FALLO (ambos programables)." },
+    { q:"Con DIN4 cerrado y DIN5 abierto, ¿qué referencia de velocidad queda activa?", options:["Referencia de I/O (P2.14)", "Velocidad constante 1", "Velocidad constante 2", "Entrada analógica 2"], answer:1, explain:"Según la tabla de verdad del manual: DIN4 cerrado + DIN5 abierto = Velocidad constante 1." },
+    { q:"¿Qué entradas digitales son libremente programables en la Aplicación 1 (Básica)?", options:["Todas", "Solo DIN3", "DIN1 y DIN2", "Ninguna"], answer:1, explain:"En la Aplicación Básica solo DIN3 es programable; DIN1/DIN2 tienen función fija de marcha directa/inversa." },
+    { q:"¿Qué macro admite reasignar libremente todas las entradas y salidas y admite todas las tarjetas de E/S disponibles?", options:["Aplicación 1 (Básica)", "Aplicación 2 (Estándar)", "Aplicación 6 (Multi-propósito)", "Ninguna"], answer:2, explain:"El manual indica explícitamente que en la Aplicación 6 'las entradas digitales y todas las salidas se pueden programar libremente y la aplicación admite todas las tarjetas de I/O'." },
+    { q:"¿Qué es el principio TTF (Terminal to Function) mencionado en el manual?", options:["Un protocolo de comunicación fieldbus", "La posibilidad de asignar cualquier función de control a cualquier borne físico desde el panel, sin recablear", "Un tipo de frenado por inyección CC", "Una función exclusiva de la tarjeta OPTA7"], answer:1, explain:"TTF es el principio de programación (capítulo 9.9 del manual) que permite reasignar funciones a bornes físicos por parámetro, sin modificar el cableado." }
+  ]
+},
+
+{
+  id:'control-motor-lazo', title:'Control de motor y lazo cerrado (G2.6)', short:'Motor y lazo cerrado',
+  eyebrow:'Módulo 04 · Control de motor', sub:'Modos de control, curva U/f, sintonía del lazo cerrado y realimentación.',
+  content:`
+    <div class="card">
+      <p>El grupo <strong>G2.6 (Parámetros de control de motor)</strong> existe en todas las macros de aplicación y define cómo el variador convierte la referencia de frecuencia en tensión/corriente de salida — desde control escalar simple hasta control vectorial de velocidad o par en lazo cerrado con realimentación de encoder.</p>
+
+      ${H3("P2.6.1 — Modo de control del motor (ID600)")}
+      <table class="tech">
+        <tr><th>Valor</th><th>Modo</th></tr>
+        <tr><td>0</td><td>Control de frecuencia</td></tr>
+        <tr><td>1</td><td>Control de velocidad</td></tr>
+        <tr><td>2</td><td>Control de par de lazo abierto (solo NXP)</td></tr>
+        <tr><td>3</td><td>Control de velocidad de lazo cerrado (solo NXP)</td></tr>
+        <tr><td>4</td><td>Control de par de lazo cerrado (solo NXP)</td></tr>
+      </table>
+      ${NOTE("Los modos 2 a 4 (lazo abierto/cerrado de par, lazo cerrado de velocidad) están marcados en el manual como exclusivos de <strong>NXP</strong> — no disponibles en NXS. El lazo cerrado requiere realimentación de velocidad real del motor (encoder) para los modos 3 y 4.")}
+
+      ${H3("Curva U/f y parámetros asociados")}
+      <table class="tech">
+        <tr><th>ID</th><th>Parámetro</th><th>Notas</th></tr>
+        <tr><td>602/603</td><td>Curva U/f: frecuencia y tensión de punto medio</td><td>Permite curva U/f programable (P2.6.6=2) en vez de lineal o cuadrática</td></tr>
+        <tr><td>604</td><td>Tensión de salida a frecuencia cero</td><td>Ajusta el par de arranque a baja velocidad</td></tr>
+        <tr><td>605</td><td>Frecuencia de conmutación (kHz)</td><td>Compromiso entre ruido audible y pérdidas de conmutación</td></tr>
+        <tr><td>601</td><td>Controlador de sobretensión</td><td>0=Deshabilitado / 1-2=Activo</td></tr>
+      </table>
+
+      ${H3("Grupo de lazo cerrado P2.6.14 (sintonía de velocidad)")}
+      <table class="tech">
+        <tr><th>Índice</th><th>Parámetro</th><th>Rango</th><th>Por defecto</th><th>ID</th></tr>
+        <tr><td>P2.6.14.1</td><td>Intensidad magnetizante</td><td>0.00 - 2×IH</td><td>0.00 A</td><td>612</td></tr>
+        <tr><td>P2.6.14.2</td><td>Ganancia P del control de velocidad</td><td>1 - 1000</td><td>30</td><td>613</td></tr>
+        <tr><td>P2.6.14.3</td><td>Tiempo I del control de velocidad</td><td>0.0 - 3200.0 ms</td><td>30.0</td><td>614</td></tr>
+        <tr><td>P2.6.14.5</td><td>Compensación de aceleración</td><td>0.00 - 300.00 s</td><td>0.00</td><td>626</td></tr>
+        <tr><td>P2.6.14.6</td><td>Ajuste de deslizamiento</td><td>0 - 500 %</td><td>100</td><td>619</td></tr>
+        <tr><td>P2.6.14.9 / .10</td><td>Tiempo de velocidad 0 en arranque / paro</td><td>0 - 32000 ms</td><td>100</td><td>615 / 616</td></tr>
+      </table>
+      ${INFO("El grupo P2.6.14 es la sintonía PI del lazo de velocidad: la Ganancia P (P2.6.14.2) y el Tiempo I (P2.6.14.3) se ajustan de forma similar a un lazo PID clásico — ganancia alta responde más rápido pero puede generar oscilación; tiempo integral bajo elimina error de estado estacionario más rápido pero también puede desestabilizar el lazo si es demasiado agresivo.")}
+
+      ${H3("Aclaración sobre la 'Aplicación 6' y el control en lazo cerrado")}
+      ${NOTE("Es un error común asumir que la Aplicación 6 (Multi-propósito) es 'la aplicación de lazo cerrado/PID' del VACON NXP. Según el manual, es al revés: la Aplicación 6 se recomienda explícitamente <strong>cuando no se necesita control PID</strong>. El control de motor en lazo cerrado (P2.6.1 = 3 o 4, grupo P2.6.14) es una capacidad general de G2.6 disponible en varias macros NXP, no una función exclusiva de la Aplicación 6. Lo que sí es específico de la Aplicación 6 es su propio grupo de <em>Parámetros de control de velocidad</em> documentado aparte en el capítulo 9.10 del manual ('solo aplicación 6', p.402) — un ajuste fino adicional para esa macro en particular, distinto del controlador PID de proceso de las Aplicaciones 5 y 7.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué modos de control de motor (P2.6.1) están disponibles solo en NXP, no en NXS?", options:["Solo el modo 0 (control de frecuencia)", "Los modos 2, 3 y 4: par de lazo abierto, velocidad de lazo cerrado y par de lazo cerrado", "Ningún modo es exclusivo de NXP", "Solo el modo 1 (control de velocidad)"], answer:1, explain:"El manual marca los modos 2 (par lazo abierto), 3 (velocidad lazo cerrado) y 4 (par lazo cerrado) como exclusivos de NXP." },
+    { q:"¿Qué parámetros del grupo P2.6.14 corresponden a la sintonía PI del lazo de velocidad?", options:["P2.6.14.2 (Ganancia P) y P2.6.14.3 (Tiempo I)", "P2.6.9 (Frecuencia de conmutación)", "P2.6.6 (Curva U/f)", "P2.6.12 (Caída de carga)"], answer:0, explain:"P2.6.14.2 es la ganancia proporcional y P2.6.14.3 el tiempo integral del control de velocidad en lazo cerrado." },
+    { q:"Según el manual, ¿la Aplicación 6 (Multi-propósito) incluye controlador PID?", options:["Sí, es su función principal", "No — se recomienda usarla precisamente cuando NO se necesita control PID", "Solo en NXS", "Solo si se activa un parámetro oculto"], answer:1, explain:"El manual indica que la Aplicación 6 se usa quan se necesita flexibilidad de E/S y no se necesita PID; si se necesita PID, usar Aplicación 5 o 7." },
+    { q:"¿Qué controla el parámetro P2.6.14.1 (Intensidad magnetizante, ID612)?", options:["El tiempo de frenado CC", "La intensidad de magnetización usada por el control vectorial/lazo cerrado", "La frecuencia de conmutación", "El límite de par de generación"], answer:1, explain:"P2.6.14.1 define la intensidad magnetizante empleada por el control de motor en lazo cerrado." },
+    { q:"¿Qué documenta específicamente el capítulo 9.10 del manual ('solo aplicación 6', p.402)?", options:["El controlador PID de proceso", "Un grupo adicional de parámetros de control de velocidad exclusivo de la Aplicación 6, distinto del PID de proceso de las Aplicaciones 5/7", "Los códigos de fallo", "El procedimiento de copia de parámetros"], answer:1, explain:"El capítulo 9.10 documenta parámetros de control de velocidad exclusivos de la Aplicación 6, un ajuste fino propio de esa macro, no un controlador PID de proceso." }
+  ]
+},
+
+{
+  id:'funciones-especiales', title:'Funciones especiales', short:'Funciones especiales',
+  eyebrow:'Módulo 05 · Funciones especiales', sub:'Multivelocidades, control PID de proceso y frenado por inyección de CC.',
+  content:`
+    <div class="card">
+      ${H3("Multivelocidades (Aplicación 4)")}
+      <p>La Aplicación de control de multi-velocidades permite programar <strong>hasta 15 velocidades fijas</strong> (parámetros P2.1.15 "Velocidad fija 1" hasta P2.1.29 "Velocidad fija 15"), seleccionables mediante combinaciones binarias de las entradas digitales <strong>DIN3 a DIN6</strong>, más una velocidad de jogging independiente (referencia P2.1.14).</p>
+      ${IMG("logica-multivelocidades.png", "Lógica de señales de control de la Aplicación de multi-velocidades: DIN3-DIN6 seleccionan hasta 15 velocidades fijas", "Vacon-NX-All-in-One-Application-Manual-DPD01211E-ES, Imag. 12")}
+      ${NOTE("El manual muestra la lógica de selección (DIN3-DIN6 combinados) pero no transcribe aquí la tabla binaria completa de las 15 combinaciones — se referencia la imagen original del manual (Imag. 12) para el detalle exacto de cada combinación.")}
+
+      ${H3("Control PID de proceso (Aplicaciones 5 y 7)")}
+      <p>En la Aplicación de control PID, existen <strong>dos lugares de control de I/O</strong>: el lugar A es el controlador PID (para control de nivel, presión o caudal) y el lugar B es la referencia de frecuencia directa (control sin PID). Se conmuta entre ambos con la entrada digital <strong>DIN6</strong>.</p>
+      <ul>
+        <li>La referencia del controlador PID puede tomarse de las entradas analógicas, el fieldbus, el potenciómetro motorizado o el panel.</li>
+        <li>El valor real (realimentación) puede tomarse de entradas analógicas, fieldbus, valores reales del motor, o funciones matemáticas entre ellos.</li>
+        <li>Incluye <strong>función dormir</strong> ("sleep"): detiene el motor cuando la demanda cae por debajo de un umbral prolongado, ahorrando energía en bombas/ventiladores con caudal variable.</li>
+        <li>La Aplicación 7 (Bombas y ventiladores) usa el mismo controlador PID para regular la unidad de velocidad variable, y además da señales de marcha/paro a hasta 4 unidades auxiliares con <strong>rotación automática</strong> (sistema MultiBomba) mediante contactores externos.</li>
+      </ul>
+
+      ${H3("Frenado por inyección de CC")}
+      <p>El frenado CC inyecta corriente continua en el bobinado del motor para frenarlo eléctricamente sin resistencia de frenado externa, en el menor tiempo posible.</p>
+      <table class="tech">
+        <tr><th>ID</th><th>Parámetro</th><th>Función</th></tr>
+        <tr><td>507</td><td>Intensidad de freno CC</td><td>Corriente CC suministrada al motor durante el frenado; también se usa junto a ID516 para reducir el tiempo hasta alcanzar par máximo en el arranque.</td></tr>
+        <tr><td>508</td><td>Tiempo de freno CC al parar</td><td>0 = freno CC deshabilitado. Si es &gt;0, activa el freno CC al parar; su efecto depende del tipo de paro (ID506).</td></tr>
+        <tr><td>515</td><td>Frecuencia de freno CC al parar</td><td>Frecuencia a la que inicia el freno CC durante una parada en rampa (tipo de paro = Rampa).</td></tr>
+        <tr><td>516</td><td>Tiempo de freno CC al arrancar</td><td>Tiempo (100 ms a 3 s típico) durante el cual se premagnetiza el motor con CC antes de acelerar, mejorando el par de arranque. Se deshabilita automáticamente si el tipo de marcha es "Arranque al vuelo".</td></tr>
+      </table>
+      ${NOTE("Con tipo de paro = Libre (ID506=0), el tiempo de frenado se escala proporcionalmente a la frecuencia de salida al iniciar el freno: al 100% de la frecuencia nominal se aplica el tiempo completo de ID508; al 10% de la frecuencia nominal, solo el 10% de ese tiempo. Con tipo de paro = Rampa (ID506=1), el freno CC arranca recién al llegar a la frecuencia definida por ID515, y de ahí se aplica el tiempo completo de ID508.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuántas velocidades fijas se pueden programar en la Aplicación 4 (Multi-velocidades) y con qué entradas se seleccionan?", options:["4 velocidades, con DIN1-DIN2", "Hasta 15 velocidades fijas, seleccionadas por combinaciones de DIN3 a DIN6", "8 velocidades, solo por fieldbus", "No tiene velocidades fijas, solo referencia analógica"], answer:1, explain:"El manual documenta parámetros P2.1.15 a P2.1.29 (Velocidad fija 1 a 15), seleccionables por combinaciones binarias de DIN3-DIN6." },
+    { q:"En la Aplicación de control PID, ¿qué entrada digital selecciona entre el lugar de control A (PID) y B (referencia directa)?", options:["DIN1", "DIN3", "DIN6", "No se puede conmutar"], answer:2, explain:"El manual indica que DIN6 selecciona entre el lugar de control A (controlador PID) y B (referencia de frecuencia directa)." },
+    { q:"¿Qué función de ahorro de energía incluye el controlador PID del VACON NXP para bombas/ventiladores con demanda variable?", options:["Función dormir (sleep)", "Frenado regenerativo", "Multivelocidades", "Control maestro-seguidor"], answer:0, explain:"La función dormir detiene el motor cuando la demanda cae por debajo de un umbral prolongado, típico en sistemas de bombeo con caudal variable." },
+    { q:"Con tipo de paro = Libre (ID506=0) y frecuencia de salida al 10% de la nominal al iniciar el freno CC, ¿qué fracción del tiempo definido en ID508 se aplica?", options:["El 100%", "El 50%", "El 10%", "No se aplica freno CC"], answer:2, explain:"El manual indica que el tiempo de frenado se escala proporcionalmente: al 10% de la frecuencia nominal, se aplica solo el 10% del valor de ID508." },
+    { q:"¿Para qué se usa el parámetro ID516 (Tiempo de freno CC al arrancar) y en qué caso se deshabilita automáticamente?", options:["Para frenar al parar; nunca se deshabilita", "Para premagnetizar el motor antes de acelerar, mejorando el par de arranque; se deshabilita si el tipo de marcha es Arranque al vuelo", "Para seleccionar la macro de aplicación", "Para calibrar la curva U/f"], answer:1, explain:"ID516 premagnetiza el motor con CC antes del arranque para mejorar el par inicial, y el manual indica que se deshabilita automáticamente cuando se usa Arranque al vuelo como tipo de marcha." }
+  ]
+},
+
+{
+  id:'transferencia-parametros', title:'Transferencia, copia y respaldo de parámetros', short:'Copia de parámetros',
+  eyebrow:'Módulo 06 · Puesta en marcha', sub:'Transferencia de juegos de parámetros entre variadores mediante el panel de control y NCDrive.',
+  content:`
+    <div class="card">
+      <p>El submenú <strong>TransferParám (M6 → S6.3)</strong> del panel de control permite guardar, cargar y transferir juegos completos de parámetros — esencial para replicar la configuración de un variador ya puesto en marcha hacia otro equipo idéntico, o para respaldar antes de cambiar de macro de aplicación.</p>
+
+      ${H3("AjustePárametros (S6.3.1) — juegos de parámetros internos")}
+      <p>Permite guardar hasta <strong>2 juegos de parámetros personalizados</strong> en la memoria interna del variador, además de restaurar los valores de fábrica:</p>
+      <table class="tech">
+        <tr><th>Opción</th><th>Acción</th></tr>
+        <tr><td>Carga Defecto</td><td>Restaura los valores de fábrica de todos los parámetros de la aplicación</td></tr>
+        <tr><td>GuardarAjst1 / GuardarAjst2</td><td>Guarda los valores reales actuales de todos los parámetros como Juego 1 / Juego 2</td></tr>
+        <tr><td>CargarAjst1 / CargarAjst2</td><td>Descarga los valores del Juego 1 / Juego 2 como valores reales activos</td></tr>
+      </table>
+      ${NOTE("El variador debe estar detenido antes de poder copiar o descargar parámetros, tanto en la memoria interna como hacia/desde el panel.")}
+
+      ${H3("Al Panel (S6.3.2) y Desde el Panel (S6.3.3) — transferencia entre variadores")}
+      <p>Esta es la función clave para <strong>clonar la configuración de un variador a otro</strong>: el panel de control físico actúa como memoria portátil.</p>
+      <ol>
+        <li><strong>Al Panel (S6.3.2):</strong> copia todos los grupos de parámetros del variador de origen hacia la memoria del panel de control (opción "Todos Parám").</li>
+        <li>Se desconecta el panel del variador de origen y se conecta al variador de destino (con el variador detenido).</li>
+        <li><strong>Desde el Panel (S6.3.3):</strong> descarga los parámetros guardados en el panel hacia el variador de destino, con 3 opciones: <em>Todos los parámetros</em>, <em>Todos excepto valores nominales de motor</em> (útil si el motor de destino es distinto), o <em>solo Parámetros de la aplicación</em>.</li>
+      </ol>
+      ${NOTE("Si se transfieren parámetros entre dos aplicaciones (macros) distintas, primero deben cargarse en el panel desde la aplicación de origen — al cambiar de macro en el variador, los parámetros de la página S6.3.1 (juegos internos) se eliminan.")}
+
+      ${H3("Copia de seguridad automática (P6.3.4) y comparación (S6.4)")}
+      <ul>
+        <li><strong>Copia de seguridad automática (S6.3.4):</strong> si está activada, el panel actualiza automáticamente su copia de los parámetros de la aplicación cada vez que se modifica un parámetro — funciona como respaldo continuo sin intervención manual.</li>
+        <li><strong>Comparación de parámetros (S6.4):</strong> permite comparar los valores reales del variador contra los guardados en los juegos personalizados o en el panel, útil para verificar que una puesta en marcha replicó correctamente la configuración de referencia.</li>
+      </ul>
+
+      ${H3("NCDrive — herramienta de programación por PC")}
+      ${INFO("El manual menciona repetidamente el software <strong>NCDrive</strong> como herramienta complementaria al panel: permite leer/escribir parámetros, monitorizar varios variadores simultáneamente desde PC, definir la función de cada terminal (principio TTF) y ajustar/sintonizar el controlador de velocidad o de par mediante la función de 'Respuesta de paso'. Los manuales revisados no detallan aquí el procedimiento completo de instalación y uso de NCDrive — se referencia como la vía recomendada cuando la transferencia por panel resulta insuficiente (ej. backups documentales en PC, comparación histórica de configuraciones).")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuántos juegos de parámetros personalizados se pueden guardar en la memoria interna del variador mediante AjustePárametros (S6.3.1)?", options:["1", "2", "4", "Ilimitados"], answer:1, explain:"El manual indica que se pueden guardar 1-2 juegos de parámetros personalizados (GuardarAjst1 y GuardarAjst2), además de restaurar los valores de fábrica." },
+    { q:"¿Qué condición debe cumplirse antes de poder copiar o descargar parámetros según el manual?", options:["El variador debe estar en marcha", "El variador debe estar detenido", "Debe estar conectado a fieldbus", "No hay condición"], answer:1, explain:"El manual establece explícitamente: 'Debe detener el convertidor antes de poder copiar o descargar parámetros'." },
+    { q:"Para clonar la configuración completa de un variador A hacia un variador B usando el panel físico, ¿cuál es la secuencia correcta?", options:["Solo usar Desde el Panel en el variador B", "Al Panel en A (copia A→panel), luego mover el panel a B y usar Desde el Panel (panel→B)", "No es posible sin NCDrive", "Usar Comparación de Parámetros"], answer:1, explain:"Primero se usa 'Al Panel' (S6.3.2) en el variador de origen para copiar sus parámetros al panel, luego se traslada el panel físico al variador de destino y se usa 'Desde el Panel' (S6.3.3) para descargarlos." },
+    { q:"Al usar 'Desde el Panel' (S6.3.3) para transferir a un variador con un motor de potencia distinta al original, ¿qué opción evita sobreescribir los valores nominales del motor?", options:["Todos los parámetros", "Todos los parámetros excepto los valores nominales del motor (Todo, noMotor)", "Solo parámetros de la aplicación", "No existe esa opción"], answer:1, explain:"El manual ofrece la opción 'Todo, noMotor' específicamente para transferir todo excepto los parámetros de placa del motor, útil cuando el motor de destino difiere del original." },
+    { q:"¿Qué ocurre con los juegos de parámetros guardados en S6.3.1 si se cambia la macro de aplicación activa del variador?", options:["Se mantienen sin cambios", "Se eliminan — por eso deben cargarse primero al panel si se quieren transferir entre aplicaciones distintas", "Se convierten automáticamente a la nueva macro", "Se bloquean permanentemente"], answer:1, explain:"El manual advierte que al cambiar de aplicación los parámetros de la página S6.3.1 se eliminan, por lo que deben respaldarse en el panel (S6.3.2) antes de cambiar de macro si se quieren conservar." }
+  ]
+}
+];
+
+/* ============================================================
+   ESTADO + PERSISTENCIA (localStorage)
+   ============================================================ */
+const STORAGE_KEY = 'vacon-nxp-aplicaciones_training_progress_v1';
+const THEME_KEY = 'capacitacion-theme';
+
+const state = {
+  currentId: 'overview',
+  view: 'learn',
+  quizProgress: {},
+  quizIndex: {},
+};
+MODULES.forEach(m=>{
+  if(m.quiz){ state.quizProgress[m.id] = { answered: new Array(m.quiz.length).fill(null) }; state.quizIndex[m.id] = 0; }
+});
+
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const saved = JSON.parse(raw);
+    MODULES.forEach(m=>{
+      if(!m.quiz) return;
+      const savedAnswers = saved && saved[m.id];
+      if(Array.isArray(savedAnswers) && savedAnswers.length === m.quiz.length){
+        state.quizProgress[m.id].answered = savedAnswers;
+      }
+    });
+  }catch(e){ console.warn('No se pudo cargar el progreso guardado:', e); }
+}
+function saveProgress(){
+  try{
+    const data = {};
+    MODULES.forEach(m=>{ if(m.quiz) data[m.id] = state.quizProgress[m.id].answered; });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }catch(e){ console.warn('No se pudo guardar el progreso:', e); }
+  syncPortalProgress();
+}
+function syncPortalProgress(){
+  try{
+    const teachable = MODULES.filter(m=>!m.isOverview);
+    const total = teachable.reduce((s,m)=>s+m.quiz.length,0);
+    const done = teachable.reduce((s,m)=>s+state.quizProgress[m.id].answered.filter(a=>a!==null).length,0);
+    localStorage.setItem('vfd_progress_vacon-nxp-aplicaciones', JSON.stringify({ done, total }));
+  }catch(e){ console.warn('No se pudo sincronizar el progreso con el portal:', e); }
+}
+function resetAllProgress(){
+  MODULES.forEach(m=>{
+    if(!m.quiz) return;
+    state.quizProgress[m.id].answered = new Array(m.quiz.length).fill(null);
+    state.quizIndex[m.id] = 0;
+  });
+  saveProgress();
+  render();
+}
+loadProgress();
+syncPortalProgress();
+
+/* ============================================================
+   TEMA
+   ============================================================ */
+function applyTheme(){
+  const saved = localStorage.getItem(THEME_KEY);
+  if(saved === 'light'){ document.documentElement.classList.add('light-theme'); }
+  else { document.documentElement.classList.remove('light-theme'); }
+}
+applyTheme();
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  const isLight = document.documentElement.classList.toggle('light-theme');
+  localStorage.setItem(THEME_KEY, isLight ? 'light' : 'dark');
+});
+
+/* ============================================================
+   ANIMACIÓN DE ENTRADA
+   ============================================================ */
+function animateIn(container){
+  const items = container.querySelectorAll('.modhead, .card, .fig, .ovwcard, .qcard, .barwrap, .flash');
+  items.forEach((el,i)=>{ el.classList.add('reveal'); el.style.transitionDelay = Math.min(i*70,560)+'ms'; });
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ items.forEach(el=>el.classList.add('in')); }));
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+function ledStateFor(m){
+  if(m.isOverview) return '';
+  const p = state.quizProgress[m.id];
+  if(!p) return '';
+  const answeredCount = p.answered.filter(a=>a!==null).length;
+  if(answeredCount===0) return '';
+  if(answeredCount < m.quiz.length) return 'partial';
+  return 'done';
+}
+let sidebarAnimated = false;
+function renderSidebar(){
+  const ul = document.getElementById('navlist');
+  ul.innerHTML = '';
+  MODULES.forEach((m,i)=>{
+    const li = document.createElement('li');
+    li.className = 'navitem' + (state.currentId===m.id ? ' active' : '');
+    if(!sidebarAnimated){ li.style.animation = `slideInLeft .45s cubic-bezier(.2,.7,.3,1) ${i*35}ms both`; }
+    const ledClass = ledStateFor(m);
+    li.innerHTML = `
+      ${m.isOverview ? '<span class="led"></span>' : `<span class="led ${ledClass}"></span>`}
+      <span class="num">${m.isOverview ? '★' : String(i).padStart(2,'0')}</span>
+      <span class="label">${m.short}</span>
+    `;
+    li.onclick = ()=>{ state.currentId = m.id; state.view = 'learn'; render(); window.scrollTo(0,0); };
+    ul.appendChild(li);
+  });
+  sidebarAnimated = true;
+}
+
+/* ============================================================
+   OVERVIEW
+   ============================================================ */
+function renderOverview(){
+  const teachable = MODULES.filter(m=>!m.isOverview);
+  const totalQ = teachable.reduce((s,m)=>s+m.quiz.length,0);
+  const answeredQ = teachable.reduce((s,m)=>s+state.quizProgress[m.id].answered.filter(a=>a!==null).length,0);
+  const pct = totalQ ? Math.round(answeredQ/totalQ*100) : 0;
+
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="modhead">
+      <p class="eyebrow">Capacitación · VACON NXP Aplicaciones</p>
+      <h2>Biblioteca de módulos</h2>
+      <p class="sub">Navega libremente entre los ${teachable.length} módulos. Cada uno tiene su contenido técnico y su quiz — el progreso se guarda automáticamente en este navegador.</p>
+    </div>
+    <div class="barwrap"><div class="barfill" style="width:${pct}%"></div></div>
+    <p style="font-family:var(--mono); font-size:11.5px; color:var(--text-dim); margin:8px 0 24px 0;">${answeredQ} / ${totalQ} preguntas respondidas · ${pct}%</p>
+    ${pct===100 ? `
+    <div class="card" style="border-color:var(--emerald); background:var(--emerald-dim);">
+      <h3 style="color:var(--emerald); margin-top:0;">🏆 Capacitación completa</h3>
+      <p style="margin-bottom:0;">Completaste el quiz de los ${teachable.length} módulos de la capacitación VACON NXP — Parametrización y Aplicaciones. Puedes reintentar cualquier módulo cuando quieras para reforzar los conceptos con menos aciertos.</p>
+    </div>` : ''}
+    <div class="ovwgrid">
+      ${teachable.map((m,i)=>{
+        const p = state.quizProgress[m.id];
+        const answered = p.answered.filter(a=>a!==null).length;
+        const correct = p.answered.reduce((s,a)=> s + (a===true?1:0), 0);
+        let status = 'sin iniciar';
+        if(answered>0 && answered<m.quiz.length) status = `en curso · ${answered}/${m.quiz.length}`;
+        if(answered===m.quiz.length) status = `completo · ${correct}/${m.quiz.length} correctas`;
+        const startBadge = m.id==='macros' ? `<span style="font-family:var(--mono); font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--emerald); border:1px solid var(--emerald); border-radius:4px; padding:2px 6px; margin-left:8px;">Empieza aquí</span>` : '';
+        return `<div class="ovwcard" data-id="${m.id}">
+          <div class="top"><span class="t-title">${String(i).padStart(2,'0')} · ${m.title}${startBadge}</span><span class="led ${ledStateFor(m)}"></span></div>
+          <div class="t-sub">${m.sub}</div>
+          <div class="t-status" style="margin-top:10px;">${status}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="resetrow">
+      <button class="btn ghost" id="resetAllBtn">Borrar todo el progreso guardado</button>
+    </div>
+  `;
+  const resetBtn = document.getElementById('resetAllBtn');
+  if(resetBtn){
+    resetBtn.onclick = ()=>{
+      if(confirm('¿Borrar el progreso guardado de todos los módulos? Esta acción no se puede deshacer.')){
+        resetAllProgress();
+      }
+    };
+  }
+  main.querySelectorAll('.ovwcard').forEach(el=>{
+    el.onclick = ()=>{ state.currentId = el.dataset.id; state.view = 'learn'; render(); window.scrollTo(0,0); };
+  });
+  animateIn(main);
+}
+
+/* ============================================================
+   MÓDULO (learn / quiz)
+   ============================================================ */
+function renderModule(m){
+  const main = document.getElementById('main');
+  const hasCards = !!m.flashcards;
+  main.innerHTML = `
+    <div class="modhead">
+      <p class="eyebrow">${m.eyebrow}</p>
+      <h2>${m.title}</h2>
+      <p class="sub">${m.sub}</p>
+    </div>
+    <div class="tabs no-print">
+      <div class="tab ${state.view==='learn'?'active':''}" data-v="learn">Aprender</div>
+      <div class="tab ${state.view==='quiz'?'active':''}" data-v="quiz">Quiz (${m.quiz.length})</div>
+      <div style="margin-left:auto; align-self:center;"><button class="btn ghost" id="printBtn" style="font-size:10.5px; padding:6px 12px;">🖨️ Imprimir esta unidad</button></div>
+    </div>
+    <div id="modbody"></div>
+  `;
+  main.querySelectorAll('.tab').forEach(t=>{ t.onclick = ()=>{ state.view = t.dataset.v; render(); }; });
+  const printBtn = document.getElementById('printBtn');
+  if(printBtn) printBtn.onclick = ()=> window.print();
+  const body = document.getElementById('modbody');
+  if(state.view==='learn'){
+    body.innerHTML = m.content;
+    if(hasCards) renderFlashcards(m);
+  } else {
+    renderQuiz(m, body);
+  }
+  animateIn(main);
+}
+
+function renderFlashcards(m){
+  const grid = document.getElementById('flashgrid');
+  if(!grid) return;
+  grid.innerHTML = m.flashcards.map((f)=>`
+    <div class="flash" tabindex="0" role="button" aria-label="Tarjeta ${f.acr}, presiona Enter o Espacio para revelar">
+      <div class="flash-inner">
+        <div class="flash-face flash-front"><div class="acr">${f.acr}</div><div class="hint">toca para revelar</div></div>
+        <div class="flash-face flash-back"><div class="full">${f.full}</div><div class="desc">${f.desc}</div></div>
+      </div>
+    </div>
+  `).join('');
+  grid.querySelectorAll('.flash').forEach(el=>{
+    el.onclick = ()=> el.classList.toggle('flipped');
+    el.onkeydown = (e)=>{
+      if(e.key==='Enter' || e.key===' ' || e.key==='Spacebar'){
+        e.preventDefault();
+        el.classList.toggle('flipped');
+      }
+    };
+  });
+}
+
+/* ---------- Quiz engine ---------- */
+function renderQuiz(m, body){
+  const progress = state.quizProgress[m.id];
+  const total = m.quiz.length;
+  const answeredAll = progress.answered.every(a=>a!==null);
+
+  if(answeredAll){
+    const correct = progress.answered.filter(a=>a===true).length;
+    const missed = m.quiz.map((q,qi)=>({q,qi})).filter(x=>progress.answered[x.qi]===false);
+    body.innerHTML = `
+      <div class="qcard">
+        <div class="quizresult">
+          <div class="score">${correct}/${total}</div>
+          <div class="label">respuestas correctas en este módulo</div>
+          <button class="btn ghost" id="retryBtn">Reintentar quiz</button>
+        </div>
+        ${missed.length ? `
+        <div style="text-align:left; margin-top:10px;">
+          <h3 style="color:var(--red);">Preguntas a repasar (${missed.length})</h3>
+          ${missed.map(x=>`
+            <div class="note warn" style="margin:10px 0;">
+              <strong>${x.q.q}</strong><br>
+              Respuesta correcta: ${x.q.options[x.q.answer]}<br>
+              ${x.q.explain}
+            </div>
+          `).join('')}
+        </div>` : ''}
+      </div>
+    `;
+    document.getElementById('retryBtn').onclick = ()=>{
+      progress.answered = new Array(total).fill(null);
+      state.quizIndex[m.id] = 0;
+      saveProgress();
+      render();
+    };
+    return;
+  }
+
+  let idx = state.quizIndex[m.id];
+  if(progress.answered[idx]!==null){
+    idx = progress.answered.findIndex(a=>a===null);
+    state.quizIndex[m.id] = idx;
+  }
+  const q = m.quiz[idx];
+  body.innerHTML = `
+    <div class="qcounter">Pregunta ${idx+1} de ${total}</div>
+    <div class="qcard">
+      <p class="qtext">${q.q}</p>
+      <div id="optlist">
+        ${q.options.map((o,oi)=>`<div class="opt" data-oi="${oi}"><span class="bullet">${String.fromCharCode(65+oi)}</span><span>${o}</span></div>`).join('')}
+      </div>
+      <div class="explain" id="explainBox">${q.explain}</div>
+      <div class="qnav">
+        <span style="font-family:var(--mono); font-size:11px; color:var(--text-dim);">selecciona una opción</span>
+        <button class="btn" id="nextBtn" disabled>Siguiente</button>
+      </div>
+    </div>
+  `;
+  let picked = false;
+  document.querySelectorAll('#optlist .opt').forEach(el=>{
+    el.onclick = ()=>{
+      if(picked) return;
+      picked = true;
+      const oi = parseInt(el.dataset.oi);
+      const isCorrect = oi===q.answer;
+      progress.answered[idx] = isCorrect;
+      saveProgress();
+      document.querySelectorAll('#optlist .opt').forEach(o2=>{
+        const oi2 = parseInt(o2.dataset.oi);
+        if(oi2===q.answer) o2.classList.add('correct');
+        else if(oi2===oi) o2.classList.add('wrong');
+      });
+      document.getElementById('explainBox').classList.add('show');
+      const nb = document.getElementById('nextBtn');
+      nb.disabled = false;
+      nb.onclick = ()=>{
+        state.quizIndex[m.id] = idx+1 < total ? idx+1 : idx;
+        render();
+      };
+      renderSidebar();
+    };
+  });
+}
+
+/* ============================================================
+   RENDER PRINCIPAL
+   ============================================================ */
+function render(){
+  renderSidebar();
+  const m = MODULES.find(mm=>mm.id===state.currentId);
+  if(m.isOverview) renderOverview();
+  else renderModule(m);
+}
+
+render();
+</script>
+</body></html>

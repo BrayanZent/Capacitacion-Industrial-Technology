@@ -1,0 +1,1022 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABB ACS800-17 · Programa de Control Estándar: Configuración y Diagnóstico Avanzado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #10141c;
+    --panel: #171d2a;
+    --panel-raised: #1f2738;
+    --line: #2b3448;
+    --text: #e8ecf3;
+    --text-dim: #8b93a7;
+    --sky: #6f93d6;
+    --sky-dim: #223257;
+    --emerald: #7ec13f;
+    --emerald-dim: #3a5323;
+    --red: #e2593c;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+  :root.light-theme{
+    --bg: #f4f6fa;
+    --panel: #ffffff;
+    --panel-raised: #eef1f7;
+    --line: #d8dee8;
+    --text: #1b2230;
+    --text-dim: #5c6577;
+    --sky-dim: #e2eaf7;
+    --emerald-dim: #e6f5d9;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  ::selection{background:var(--sky-dim);color:var(--text);}
+
+  @keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+  @keyframes slideInLeft{ from{opacity:0; transform:translateX(-14px);} to{opacity:1; transform:translateX(0);} }
+  @keyframes logoIn{ from{opacity:0; transform:scale(.9);} to{opacity:1; transform:scale(1);} }
+  .reveal{opacity:0; transform:translateY(18px); transition:opacity .55s cubic-bezier(.2,.7,.3,1), transform .55s cubic-bezier(.2,.7,.3,1);}
+  .reveal.in{opacity:1; transform:translateY(0);}
+
+  .app{display:flex; min-height:100vh;}
+  .sidebar{
+    width:280px; flex-shrink:0; background:var(--panel);
+    border-right:1px solid var(--line);
+    padding:22px 16px; position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .brand{padding:4px 8px 20px 8px; border-bottom:1px solid var(--line); margin-bottom:16px;}
+  .brand-logo{width:100%; max-width:170px; display:block; margin:0 0 14px 0; background:#fff; border-radius:6px; padding:8px 10px; animation:logoIn .8s cubic-bezier(.2,.8,.3,1);}
+  .brand .tag{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--emerald); text-transform:uppercase;}
+  .brand h1{font-size:17px; margin:6px 0 2px 0; line-height:1.25;}
+  .brand p{font-size:12px; color:var(--text-dim); margin:0;}
+
+  .navlist{list-style:none; margin:0; padding:0;}
+  .navitem{display:flex; align-items:center; gap:10px; padding:10px 10px; border-radius:6px; cursor:pointer; margin-bottom:2px; border:1px solid transparent; transition:background .2s ease, transform .2s ease;}
+  .navitem:hover{background:var(--panel-raised); transform:translateX(2px);}
+  .navitem.active{background:var(--panel-raised); border-color:var(--line);}
+  .led{width:9px; height:9px; border-radius:50%; flex-shrink:0; background:#3a4048; box-shadow:inset 0 0 0 1px rgba(0,0,0,.4);}
+  .led.done{background:var(--emerald); box-shadow:0 0 6px rgba(126,193,63,.7);}
+  .led.partial{background:var(--sky); box-shadow:0 0 6px rgba(111,147,214,.6);}
+  .navitem .num{font-family:var(--mono); font-size:11px; color:var(--text-dim); width:18px;}
+  .navitem .label{font-size:13.5px;}
+  .navitem.active .label{color:var(--sky);}
+
+  .sidebar-foot{margin-top:18px; padding-top:14px; border-top:1px solid var(--line); font-family:var(--mono); font-size:11px; color:var(--text-dim);}
+  .themebtn{margin-top:10px; width:100%; font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.04em; background:transparent; color:var(--text-dim); border:1px solid var(--line); padding:8px 10px; border-radius:6px; cursor:pointer;}
+  .themebtn:hover{color:var(--text); border-color:var(--sky);}
+
+  .main{flex:1; padding:36px 44px; max-width:920px; animation:fadeIn .5s ease;}
+  @media (max-width: 860px){ .app{flex-direction:column;} .sidebar{width:100%; height:auto; position:relative; border-right:none; border-bottom:1px solid var(--line);} .main{padding:24px;} }
+
+  .modhead{margin-bottom:8px;}
+  .modhead .eyebrow{font-family:var(--mono); font-size:11.5px; color:var(--sky); letter-spacing:.1em; text-transform:uppercase; margin:0 0 6px 0;}
+  .modhead h2{font-size:26px; margin:0 0 6px 0; line-height:1.2;}
+  .modhead .sub{color:var(--text-dim); font-size:14px; max-width:62ch; margin:0;}
+
+  .tabs{display:flex; gap:6px; margin:20px 0 22px 0; border-bottom:1px solid var(--line);}
+  .tab{font-family:var(--mono); font-size:12.5px; letter-spacing:.03em; padding:9px 14px; cursor:pointer; color:var(--text-dim); border-bottom:2px solid transparent; text-transform:uppercase;}
+  .tab:hover{color:var(--text);}
+  .tab.active{color:var(--sky); border-bottom-color:var(--sky);}
+
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:20px 22px; margin-bottom:14px; transition:transform .25s ease, border-color .25s ease;}
+  .card:hover{transform:translateY(-2px); border-color:var(--sky);}
+  .card h3{margin:18px 0 8px 0; font-size:14.5px; color:var(--sky); display:flex; align-items:center; gap:8px;}
+  .card h3:first-child{margin-top:0;}
+  .card p{margin:0 0 10px 0; font-size:14px; line-height:1.65;}
+  .card ul, .card ol{margin:8px 0 12px 0; padding-left:18px;}
+  .card li{font-size:13.5px; line-height:1.7; margin-bottom:5px;}
+
+  .note{margin:12px 0; padding:11px 13px; background:rgba(111,147,214,.08); border-left:3px solid var(--sky); font-size:12.5px; color:var(--text-dim); border-radius:0 5px 5px 0;}
+  .note.warn{background:rgba(226,89,60,.08); border-left-color:var(--red);}
+
+  table.tech{width:100%; border-collapse:collapse; font-family:var(--mono); font-size:12px; margin:6px 0 14px 0;}
+  table.tech th, table.tech td{padding:7px 9px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top;}
+  table.tech th{color:var(--sky); font-weight:600; background:var(--panel-raised);}
+  table.tech td{color:var(--text-dim);}
+
+  .fig{margin:14px 0 6px 0; text-align:center;}
+  .fig img{width:100%; max-width:460px; display:block; margin:0 auto; border-radius:6px; border:1px solid var(--line); background:#f5f3ee;}
+  .fig figcaption{font-family:var(--mono); font-size:10.5px; color:var(--text-dim); margin-top:6px;}
+
+  .placeholder{border:1px dashed var(--line); border-radius:8px; padding:16px; text-align:center; font-size:12px; color:var(--text-dim); margin:12px 0;}
+
+  .cardsgrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:14px; margin-top:6px;}
+  .flash{perspective:1000px; height:130px; cursor:pointer;}
+  .flash-inner{position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d;}
+  .flash.flipped .flash-inner{transform:rotateY(180deg);}
+  .flash-face{position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--line); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:12px;}
+  .flash-front{background:var(--panel-raised);}
+  .flash-front .acr{font-family:var(--mono); font-size:19px; color:var(--sky); font-weight:600;}
+  .flash-front .hint{font-size:10px; color:var(--text-dim); margin-top:8px; text-transform:uppercase; letter-spacing:.05em;}
+  .flash-back{background:var(--sky-dim); transform:rotateY(180deg);}
+  .flash-back .full{font-size:12px; font-weight:600; margin-bottom:5px;}
+  .flash-back .desc{font-size:11px; color:var(--text-dim); line-height:1.4;}
+
+  .ovwgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; margin-top:10px;}
+  .ovwcard{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px 18px; cursor:pointer; transition:transform .2s ease, border-color .2s ease;}
+  .ovwcard:hover{border-color:var(--sky); transform:translateY(-3px);}
+  .ovwcard .top{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .ovwcard .t-title{font-size:13.5px; font-weight:600;}
+  .ovwcard .t-sub{font-size:12px; color:var(--text-dim); line-height:1.4;}
+  .ovwcard .t-status{font-family:var(--mono); font-size:10.5px; text-transform:uppercase; color:var(--text-dim);}
+
+  .barwrap{height:5px; background:var(--panel-raised); border-radius:3px; overflow:hidden; margin-top:16px;}
+  .barfill{height:100%; background:linear-gradient(90deg, var(--sky), var(--emerald)); transition:width .4s;}
+
+  .qcounter{font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-bottom:10px;}
+  .qcard{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:22px;}
+  .qtext{font-size:15.5px; margin:0 0 18px 0; line-height:1.5;}
+  .opt{display:flex; align-items:center; gap:10px; padding:11px 14px; border:1px solid var(--line); border-radius:6px; margin-bottom:9px; cursor:pointer; font-size:13.5px; background:var(--panel-raised); transition:transform .15s ease, border-color .15s ease;}
+  .opt:hover{border-color:var(--sky); transform:translateX(3px);}
+  .opt.correct{border-color:var(--emerald); background:rgba(126,193,63,.1);}
+  .opt.wrong{border-color:var(--red); background:rgba(226,89,60,.1);}
+  .opt .bullet{width:18px; height:18px; border-radius:50%; border:1px solid var(--text-dim); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:10px; color:var(--text-dim);}
+  .opt.correct .bullet{border-color:var(--emerald); color:var(--emerald);}
+  .opt.wrong .bullet{border-color:var(--red); color:var(--red);}
+
+  .explain{margin-top:14px; padding:12px 14px; border-radius:6px; font-size:13px; line-height:1.55; background:var(--panel-raised); border:1px solid var(--line); display:none;}
+  .explain.show{display:block;}
+
+  .qnav{display:flex; justify-content:space-between; align-items:center; margin-top:20px;}
+  .btn{font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.04em; background:var(--sky); color:#0d1626; border:none; padding:10px 18px; border-radius:5px; cursor:pointer; font-weight:600; transition:transform .15s ease, background .2s ease;}
+  .btn:hover{background:#8faee0; transform:translateY(-1px);}
+  .btn.ghost{background:transparent; color:var(--text-dim); border:1px solid var(--line);}
+  .btn.ghost:hover{color:var(--text); border-color:var(--sky);}
+  .btn:disabled{opacity:.35; cursor:not-allowed;}
+
+  .quizresult{text-align:center; padding:40px 20px;}
+  .quizresult .score{font-family:var(--mono); font-size:50px; color:var(--sky); margin-bottom:6px;}
+  .quizresult .label{color:var(--text-dim); font-size:12.5px; margin-bottom:22px;}
+
+  .resetrow{margin-top:26px; padding-top:16px; border-top:1px solid var(--line);}
+  ::-webkit-scrollbar{width:10px;}
+  ::-webkit-scrollbar-thumb{background:#3a4a5a; border-radius:6px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  .flash:focus-visible{outline:2px solid var(--sky); outline-offset:2px;}
+
+  @media print{
+    .sidebar, .no-print, .themebtn, .resetrow{display:none !important;}
+    body{background:#fff; color:#111;}
+    .main{max-width:100%; padding:0;}
+    .card{border:1px solid #999; break-inside:avoid; box-shadow:none;}
+    table.tech th, table.tech td{color:#111; border-bottom:1px solid #999;}
+    table.tech th{background:#eee;}
+    .fig img{max-width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <nav class="sidebar">
+    <div class="brand">
+      <img class="brand-logo" src="../../assets/logo-industrial-technology.png" alt="Logo de la empresa">
+      <div class="tag">Capacitación técnica</div>
+      <h1>ABB ACS800-17</h1>
+      <p>Programa de Control Estándar — configuración y diagnóstico avanzado</p>
+    </div>
+    <ul class="navlist" id="navlist"></ul>
+    <div class="sidebar-foot">
+      <a href="../../index.html" style="color:var(--sky); text-decoration:none;">&larr; Volver al portal</a><br><br>
+      Manual ES_ACS800_standard_ctr_prg_FW_L.pdf · progreso guardado en este navegador
+      <button class="themebtn" id="themeToggle">🌓 Cambiar tema</button>
+    </div>
+  </nav>
+
+  <main class="main" id="main"></main>
+</div>
+
+<script>
+/* ============================================================
+   HELPERS DE CONTENIDO
+   ============================================================ */
+const PLACEHOLDER = (txt) => `<div class="placeholder">🖼️ [Marcador de imagen: ${txt}]</div>`;
+const NOTE = (txt) => `<div class="note warn">⚠️ ${txt}</div>`;
+const INFO = (txt) => `<div class="note">💡 ${txt}</div>`;
+const H3 = (txt) => `<h3><span style="width:6px;height:6px;border-radius:50%;background:var(--sky);display:inline-block;"></span>${txt}</h3>`;
+const IMG = (src, caption, source) => `<figure class="fig">
+  <img src="img-acs800-fw/${src}" alt="${caption}" loading="lazy">
+  <figcaption>${caption}${source ? ` — <span style="font-style:italic">${source}</span>` : ''}</figcaption>
+</figure>`;
+
+/* ============================================================
+   MÓDULOS
+   ============================================================ */
+const MODULES = [
+{ id:'overview', title:'Panel general', short:'Inicio', isOverview:true },
+
+{
+  id:'panel-cdp312r-navegacion', title:'Panel de control CDP312R y navegación', short:'Panel CDP312R',
+  eyebrow:'Módulo 01 · Operación', sub:'Los modos ACT / PAR / FUNC / DRIVE, la tecla LOC/REM, y las alarmas propias del panel (sin código FFxx).',
+  content:`
+    <div class="card">
+      <p>La interfaz de operación local del ACS800-17 es el panel <strong>CDP312R</strong>. Sus cuatro modos de navegación son:</p>
+      <table class="tech">
+        <tr><th>Modo</th><th>Función</th></tr>
+        <tr><td>ACT</td><td>Actual signals — señales actuales en tiempo real</td></tr>
+        <tr><td>PAR</td><td>Parameters — lectura y edición de grupos de parámetros</td></tr>
+        <tr><td>FUNC</td><td>Functions — funciones y utilidades del panel</td></tr>
+        <tr><td>DRIVE</td><td>Selección del convertidor a controlar</td></tr>
+      </table>
+      ${IMG('panel-cdp312r-sinopsis.png', 'Panel CDP312R — sinopsis general y tabla de teclas', 'ES_ACS800_standard_ctr_prg_FW_L.pdf')}
+
+      ${H3("Tecla LOC/REM")}
+      <p>La tecla <strong>LOC/REM</strong> del panel selecciona el lugar de control del equipo: <strong>LOC</strong> (control local, desde el propio panel) o <strong>REM</strong> (control remoto, desde entradas externas o bus de comunicación).</p>
+
+      ${H3("Alarmas propias del panel (sin numeración FFxx)")}
+      <p>A diferencia de las alarmas y fallos numerados del firmware (ver Módulo 10), el panel CDP312R tiene un conjunto de alarmas propias de su interfaz, que no llevan código de falla:</p>
+      <ul>
+        <li><strong>DOWNLOADING FAILED</strong></li>
+        <li><strong>CONVERT EN MARCHA</strong></li>
+        <li><strong>FALLO CARGA</strong></li>
+        <li><strong>ESCRITURA DENEGADA</strong></li>
+        <li><strong>AJUSTE DE PARAMETROS NO ES POSIBLE</strong></li>
+      </ul>
+      ${NOTE("Estas alarmas de panel no llevan un código numérico ni FFxx como las alarmas del firmware — son mensajes de interfaz del propio CDP312R (por ejemplo, al intentar descargar o cargar un set de parámetros en condiciones no válidas).")}
+
+      ${IMG('navegacion-tarjetas-inu-isu.png', 'Panel navegando entre las tarjetas de firmware INU/ISU del convertidor', 'ES_ACS800_standard_ctr_prg_FW_L.pdf')}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuáles son los cuatro modos de navegación del panel CDP312R?", options:["ACT, PAR, FUNC, DRIVE", "RUN, STOP, FAULT, RESET", "LOC, REM, AUTO, MANUAL", "MENU, PARAM, FAULT, INFO"], answer:0, explain:"Los cuatro modos del CDP312R son ACT (actual signals), PAR (parameters), FUNC (functions) y DRIVE (selección de convertidor)." },
+    { q:"¿Qué selecciona la tecla LOC/REM del panel?", options:["El idioma del panel", "El lugar de control: Local o Remoto", "La macro de aplicación", "El grupo de parámetros activo"], answer:1, explain:"LOC/REM alterna el lugar de control entre Local (desde el panel) y Remoto (desde E/S externas o bus de comunicación)." },
+    { q:"¿Cuál de las siguientes es una alarma propia del panel CDP312R, sin código numérico FFxx?", options:["MOTOR BLOQ (7121)", "DOWNLOADING FAILED", "SOBRECARG PP (5482)", "TEMP MOTOR (4310)"], answer:1, explain:"DOWNLOADING FAILED es una alarma de la interfaz del propio panel, sin numeración de código como las alarmas y fallos del firmware." },
+    { q:"¿Qué modo del panel se usa para leer y editar los grupos de parámetros?", options:["ACT", "PAR", "FUNC", "DRIVE"], answer:1, explain:"El modo PAR (parameters) es donde se leen y editan los grupos de parámetros." },
+    { q:"¿Cuál de estas alarmas de panel indica un problema al escribir un ajuste?", options:["CONVERT EN MARCHA", "ESCRITURA DENEGADA", "FALLO CARGA", "AJUSTE DE PARAMETROS NO ES POSIBLE"], answer:1, explain:"ESCRITURA DENEGADA es una de las alarmas propias del panel CDP312R, sin código FFxx, que indica que la escritura de un valor fue rechazada." }
+  ]
+},
+
+{
+  id:'grupo99-datos-partida', title:'Grupo 99 — DATOS DE PARTIDA', short:'Grupo 99 · Datos de partida',
+  eyebrow:'Módulo 02 · Comisionamiento', sub:'Idioma, macro de aplicación, modo de control de motor, datos de placa y la Marcha de Identificación.',
+  content:`
+    <div class="card">
+      ${IMG('checklist-puesta-marcha.png', 'Checklist de puesta en marcha y pantalla de ID de motor del panel', 'ES_ACS800_standard_ctr_prg_FW_L.pdf')}
+
+      ${H3("99.01 IDIOMA")}
+      <p>Selecciona el idioma del panel entre 16 opciones: <strong>ENGLISH, ENGLISH AM, DEUTSCH, ITALIANO, ESPANOL, PORTUGUES, NEDERLANDS, FRANCAIS, DANSK, SUOMI, SVENSKA, CESKY, POLSKI/LOC1, PO-RUS/LOC2</strong>.</p>
+
+      ${H3("99.02 MACRO APLICACION")}
+      <p>Selecciona la macro de aplicación de partida: <strong>FABRICA, MANUAL/AUTO, CTRL PID, CTRL PAR, CTRL SEC, CAR USUARIO1, CAR USUARIO2</strong> (ver detalle completo de macros en el Módulo 11).</p>
+
+      ${H3("99.04 MODO CTRL MOTOR")}
+      <p>Selecciona el modo de control del motor: <strong>DTC</strong> o <strong>ESCALAR</strong>. El modo escalar es recomendado si la intensidad nominal del motor es menor a 1/6 de la intensidad nominal de salida del convertidor, o en aplicaciones multimotor.</p>
+      <p>En modo <strong>ESCALAR</strong> quedan desactivadas las siguientes funciones:</p>
+      <ul>
+        <li>Marcha de ID (grupo 99)</li>
+        <li>Límites de velocidad/par (grupo 20)</li>
+        <li>Retención/Magnetización CC (grupo 21)</li>
+        <li>Regulador de velocidad (grupo 23)</li>
+        <li>Control de par (grupo 24)</li>
+        <li>Optimización/frenado de flujo (grupo 26)</li>
+        <li>Función de baja carga y protección de pérdida de fase/bloqueo de motor (grupo 30)</li>
+      </ul>
+
+      ${H3("Datos de placa del motor")}
+      <table class="tech">
+        <tr><th>Parámetro</th><th>Nombre</th><th>Rango</th></tr>
+        <tr><td>99.06</td><td>TENSION NOM MOTOR</td><td>1/2 ... 2×Uₙ</td></tr>
+        <tr><td>99.07</td><td>INTENS NOM MOTOR</td><td>0 ... 2×I2hd</td></tr>
+        <tr><td>99.08</td><td>FREC NOM MOT</td><td>8 ... 300 Hz</td></tr>
+        <tr><td>99.09</td><td>VELOC NOM MOTOR</td><td>1 ... 18000 rpm</td></tr>
+        <tr><td>99.10</td><td>POTENCIA NOM MOTOR</td><td>0 ... 9000 kW</td></tr>
+      </table>
+
+      ${H3("99.11 MARCHA IDENT MOT")}
+      <p>Selecciona la modalidad de la Marcha de Identificación del motor: <strong>NO / ESTANDAR / REDUCIDA</strong>.</p>
+      <ul>
+        <li><strong>ESTANDAR</strong> — dura aproximadamente 1 minuto y ofrece la mejor precisión del modelo del motor.</li>
+        <li><strong>REDUCIDA</strong> — se usa cuando las pérdidas mecánicas superan el 20%, o cuando el motor no puede desacoplarse de la carga, o tiene freno integrado.</li>
+      </ul>
+      ${NOTE("Advertencia de seguridad: durante la Marcha de ID (modalidad ESTANDAR o REDUCIDA), el motor GIRA hasta un 50-80% de la velocidad nominal. Verificar que el eje y la carga acoplada estén en condiciones seguras antes de ejecutarla.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuántas opciones de idioma admite el parámetro 99.01 IDIOMA?", options:["8", "12", "16", "20"], answer:2, explain:"99.01 IDIOMA admite 16 opciones, entre ellas ENGLISH, ESPANOL, DEUTSCH, ITALIANO, PORTUGUES, FRANCAIS, entre otras." },
+    { q:"¿Cuándo se recomienda usar el modo ESCALAR en 99.04 MODO CTRL MOTOR?", options:["Siempre, es el modo por defecto obligatorio", "Si la intensidad nominal del motor es menor a 1/6 de la intensidad nominal de salida del convertidor, o en aplicaciones multimotor", "Solo si el motor tiene freno integrado", "Solo durante la Marcha de ID"], answer:1, explain:"El modo escalar se recomienda cuando la Iₙ del motor es menor a 1/6 de la Iₙ de salida del convertidor, o en configuraciones multimotor." },
+    { q:"¿Cuál de las siguientes funciones queda DESACTIVADA cuando 99.04 MODO CTRL MOTOR = ESCALAR?", options:["La Marcha de ID (grupo 99)", "La selección de idioma (99.01)", "El grupo 14 SALIDAS DE RELE", "El modo DRIVE del panel"], answer:0, explain:"En modo ESCALAR se desactivan, entre otras, la Marcha de ID (99), los límites de vel/par (20), retención/magnetización CC (21), regulador de velocidad (23), control de par (24), optimización/frenado de flujo (26) y la protección de baja carga/pérdida de fase (30)." },
+    { q:"¿Cuáles son las tres selecciones del parámetro 99.11 MARCHA IDENT MOT?", options:["DTC / ESCALAR / AUTO", "NO / ESTANDAR / REDUCIDA", "FABRICA / MANUAL / AUTO", "ACT / PAR / FUNC"], answer:1, explain:"99.11 MARCHA IDENT MOT se selecciona entre NO, ESTANDAR o REDUCIDA." },
+    { q:"Según el manual, ¿qué ocurre con el motor durante la Marcha de ID en modalidad ESTANDAR o REDUCIDA?", options:["Permanece completamente detenido", "Gira hasta un 50-80% de la velocidad nominal", "Gira a velocidad nominal completa (100%)", "Se desconecta de la red eléctrica"], answer:1, explain:"El manual advierte que durante la Marcha de ID (ESTANDAR o REDUCIDA) el motor gira hasta un 50-80% de su velocidad nominal — una advertencia de seguridad a considerar antes de ejecutarla." }
+  ]
+},
+
+{
+  id:'grupo10-marcha-paro-dir', title:'Grupo 10 — MARCHA/PARO/DIR', short:'Grupo 10 · Marcha/Paro/Dir',
+  eyebrow:'Módulo 03 · Parametrización', sub:'Selección de fuente de marcha/paro/dirección para EXT1 y EXT2, y la particularidad de 10.09 SLS ACTIVE.',
+  content:`
+    <div class="card">
+      <p>El grupo 10 define el origen de las órdenes de marcha, paro y dirección para los dos lugares de control externo, EXT1 y EXT2.</p>
+
+      ${H3("10.01 EXT1 MAR/PARO/DIR y 10.02 EXT2 MAR/PARO/DIR")}
+      <p>Ambos parámetros comparten el mismo conjunto de selecciones posibles:</p>
+      <table class="tech">
+        <tr><th>Selección</th></tr>
+        <tr><td>SIN SEL</td></tr>
+        <tr><td>ED1</td></tr>
+        <tr><td>ED1,2</td></tr>
+        <tr><td>ED1P,2P</td></tr>
+        <tr><td>ED1P,2P,3</td></tr>
+        <tr><td>ED1P,2P,3P</td></tr>
+        <tr><td>ED6</td></tr>
+        <tr><td>ED6,5</td></tr>
+        <tr><td>PANEL</td></tr>
+        <tr><td>COMM.CW</td></tr>
+        <tr><td>ED7</td></tr>
+        <tr><td>ED7,8</td></tr>
+        <tr><td>ED7P,8P</td></tr>
+        <tr><td>ED7P,8P,9</td></tr>
+        <tr><td>ED7P,8P,9P</td></tr>
+        <tr><td>PARAM 10.04/10.05</td></tr>
+        <tr><td>ED1 F,ED2 R</td></tr>
+      </table>
+
+      ${H3("10.03 DIRECCION")}
+      <p>Define el sentido de giro permitido: <strong>SIN SEL, AVANCE, RETROCESO, PETICION</strong>.</p>
+
+      ${H3("10.09 SLS ACTIVE")}
+      <p><strong>10.09 SLS ACTIVE</strong> solo está disponible en la versión <strong>AS7R</strong> del firmware.</p>
+      ${NOTE("10.09 SLS ACTIVE no aparece en todas las versiones de firmware — su disponibilidad está restringida a la versión AS7R. Verificar la versión de firmware instalada antes de buscar este parámetro en un equipo con otra versión.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué parámetros del grupo 10 seleccionan la fuente de marcha/paro/dirección para los lugares de control externo?", options:["10.01 EXT1 MAR/PARO/DIR y 10.02 EXT2 MAR/PARO/DIR", "20.01 y 20.02", "99.01 y 99.02", "42.01 y 42.02"], answer:0, explain:"10.01 EXT1 MAR/PARO/DIR y 10.02 EXT2 MAR/PARO/DIR seleccionan el origen de las órdenes para EXT1 y EXT2 respectivamente." },
+    { q:"¿Cuáles son las selecciones exactas del parámetro 10.03 DIRECCION?", options:["DTC / ESCALAR", "SIN SEL, AVANCE, RETROCESO, PETICION", "ACT, PAR, FUNC, DRIVE", "FABRICA, MANUAL/AUTO, CTRL PID"], answer:1, explain:"10.03 DIRECCION se selecciona entre SIN SEL, AVANCE, RETROCESO o PETICION." },
+    { q:"¿En qué versión de firmware está disponible el parámetro 10.09 SLS ACTIVE?", options:["En todas las versiones por igual", "Solo en la versión AS7R", "Solo en modo ESCALAR", "Solo si 99.02 = FABRICA"], answer:1, explain:"10.09 SLS ACTIVE solo está disponible en la versión AS7R del firmware." },
+    { q:"¿Cuál de las siguientes es una selección válida para 10.01 EXT1 MAR/PARO/DIR?", options:["ED1P,2P,3", "REF1 SELECT", "TEMP SENSOR", "CTRL FRENO"], answer:0, explain:"ED1P,2P,3 es una de las selecciones válidas de 10.01 EXT1 MAR/PARO/DIR, entre SIN SEL, ED1, ED1,2, ED1P,2P, ED1P,2P,3, ED1P,2P,3P, ED6, ED6,5, PANEL, COMM.CW, ED7 y otras." },
+    { q:"¿Qué selección de 10.01/10.02 permite que la fuente de marcha/paro se defina mediante otros parámetros dedicados?", options:["PANEL", "PARAM 10.04/10.05", "COMM.CW", "SIN SEL"], answer:1, explain:"La selección PARAM 10.04/10.05 remite la definición de marcha/paro a los parámetros dedicados 10.04 y 10.05." }
+  ]
+},
+
+{
+  id:'grupo11-selec-referencia', title:'Grupo 11 — SELEC REFERENCIA', short:'Grupo 11 · Selec referencia',
+  eyebrow:'Módulo 04 · Parametrización', sub:'Referencia desde panel, selección de fuente para EXT1/EXT2, y la advertencia de referencia mínima en modo joystick.',
+  content:`
+    <div class="card">
+      ${H3("11.01 SELEC REF PANEL")}
+      <p>Selecciona qué referencia controla el panel: <strong>REF1 (rpm)</strong> o <strong>REF2 (%)</strong> — REF2, según la macro de aplicación activa, puede representar una referencia de par en lugar de un porcentaje genérico.</p>
+
+      ${H3("11.03 SELEC EXT1/EXT2 y 11.06 EXT REF1 SELECT")}
+      <p>Ambos parámetros comparten las mismas selecciones de fuente de referencia analógica/combinada:</p>
+      <table class="tech">
+        <tr><th>Selección</th><th>Descripción</th></tr>
+        <tr><td>EA1</td><td>Entrada analógica 1</td></tr>
+        <tr><td>EA2</td><td>Entrada analógica 2</td></tr>
+        <tr><td>EA3</td><td>Entrada analógica 3</td></tr>
+        <tr><td>EA1/PALANCA</td><td>EA1 en modo joystick (palanca)</td></tr>
+        <tr><td>EA1+EA3</td><td>Suma de EA1 y EA3</td></tr>
+        <tr><td>EA1-EA3</td><td>Resta de EA1 y EA3</td></tr>
+        <tr><td>EA1*EA3</td><td>Producto de EA1 y EA3</td></tr>
+        <tr><td>MIN/MAX(EA1,EA3)</td><td>Mínimo o máximo entre EA1 y EA3</td></tr>
+      </table>
+
+      ${NOTE("Advertencia sobre el modo joystick (EA1/PALANCA): la referencia mínima debe ser mayor a 0,5V — es decir, el parámetro 13.01 MINIMO EA1 debe ajustarse en ≥2V — y el parámetro 30.01 EA<FUNCION MINIMA debe estar en FALLO, para evitar que una señal de joystick en reposo o con fallo de cableado sea interpretada como una referencia válida.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué selecciona el parámetro 11.01 SELEC REF PANEL?", options:["El idioma del panel", "Entre REF1 (rpm) y REF2 (%, o par según la macro)", "El modo de control del motor", "La macro de aplicación"], answer:1, explain:"11.01 SELEC REF PANEL elige entre REF1 (en rpm) y REF2 (en %, que según la macro activa puede representar una referencia de par)." },
+    { q:"¿Cuál de las siguientes es una selección válida de 11.03 SELEC EXT1/EXT2?", options:["MIN/MAX(EA1,EA3)", "DTC/ESCALAR", "ESTANDAR/REDUCIDA", "SIN SEL/AVANCE"], answer:0, explain:"MIN/MAX(EA1,EA3) es una de las selecciones de fuente de referencia combinada disponibles en 11.03/11.06." },
+    { q:"En modo joystick (EA1/PALANCA), ¿qué valor mínimo de referencia exige el manual?", options:["Mayor a 0,5V, ajustando 13.01 MINIMO EA1 en ≥2V", "Exactamente 0V", "No hay ninguna restricción de mínimo", "10V fijos, sin posibilidad de ajuste"], answer:0, explain:"El manual advierte que en modo joystick la referencia mínima debe ser mayor a 0,5V, lo que en la práctica implica ajustar 13.01 MINIMO EA1 a un valor de al menos 2V." },
+    { q:"Además del ajuste de 13.01, ¿qué otro parámetro debe configurarse al usar el modo joystick según la advertencia del manual?", options:["30.01 EA<FUNCION MINIMA debe estar en FALLO", "99.04 MODO CTRL MOTOR debe estar en ESCALAR", "42.01 CONTRL FRENO debe estar en ON", "20.03 INTENSIDAD MAXIMA debe estar al máximo"], answer:0, explain:"El manual indica que 30.01 EA<FUNCION MINIMA debe estar en FALLO para evitar interpretar como válida una señal de joystick fuera de rango." },
+    { q:"¿Qué representa la selección EA1+EA3 en el grupo 11?", options:["El producto de EA1 y EA3", "La suma de las entradas analógicas EA1 y EA3", "El mínimo entre EA1 y EA3", "Solo EA1, ignorando EA3"], answer:1, explain:"EA1+EA3 es la suma de las señales de las entradas analógicas EA1 y EA3 como fuente de referencia combinada." }
+  ]
+},
+
+{
+  id:'grupos13-14-15-eas', title:'Grupos 13/14/15 — Entradas/salidas programables', short:'Grupos 13-14-15 · E/S',
+  eyebrow:'Módulo 05 · E/S programables', sub:'Escalado de entradas analógicas (grupo 13), salidas de relé (grupo 14) y salidas analógicas (grupo 15).',
+  content:`
+    <div class="card">
+      ${H3("Grupo 13 — Entradas analógicas")}
+      <table class="tech">
+        <tr><th>Parámetro</th><th>Nombre</th><th>Rango/Selecciones</th></tr>
+        <tr><td>13.01</td><td>MINIMO EA1</td><td>0V, 2V, VAL AJUSTADO, AJUSTAR</td></tr>
+        <tr><td>13.02</td><td>MAXIMO EA1</td><td>0V, 2V, VAL AJUSTADO, AJUSTAR</td></tr>
+        <tr><td>13.03</td><td>ESCALA EA1</td><td>0...1000%</td></tr>
+        <tr><td>13.04</td><td>FILTRO EA1</td><td>0,00...10,00s</td></tr>
+      </table>
+
+      ${H3("Ejemplo de escalado combinado (citado del manual)")}
+      <p>El manual desarrolla un ejemplo de referencia combinada de dos entradas analógicas:</p>
+      <ul>
+        <li><strong>EA1</strong>, con 11.05 = 1500 rpm como escala de referencia máxima, recibe una señal de 4V que corresponde a 40% → aporta <strong>600 rpm</strong> de esa escala.</li>
+        <li><strong>EA3</strong>, con una señal de 12mA que corresponde a 60% de su rango, escalada al 10% mediante el parámetro de escala correspondiente → aporta <strong>90 rpm</strong>.</li>
+        <li>Resultado combinado: <strong>REF1 = 690 rpm</strong> (600 rpm + 90 rpm).</li>
+      </ul>
+      ${INFO("Este ejemplo del manual ilustra por qué, al usar selecciones combinadas del grupo 11 como EA1+EA3, es imprescindible revisar en conjunto los parámetros de escala de ambos canales (grupo 13) para poder anticipar el valor final de referencia resultante.")}
+
+      ${H3("Grupo 14 — Salidas de relé")}
+      <p><strong>14.01 SALIDA RELE SR1</strong> configura la función asociada a la salida de relé SR1.</p>
+
+      ${H3("Grupo 15 — Salidas analógicas")}
+      <p>El grupo 15 SALIDAS ANALOG. configura las señales de salida analógica del convertidor (por ejemplo, velocidad o intensidad, según la macro de aplicación activa).</p>
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuáles son las selecciones posibles de 13.01 MINIMO EA1?", options:["0V, 2V, VAL AJUSTADO, AJUSTAR", "SIN SEL, EA1, EA2, EA3", "DTC, ESCALAR", "FABRICA, MANUAL/AUTO"], answer:0, explain:"13.01 MINIMO EA1 (y 13.02 MAXIMO EA1) se seleccionan entre 0V, 2V, VAL AJUSTADO o AJUSTAR." },
+    { q:"¿Cuál es el rango del parámetro 13.03 ESCALA EA1?", options:["0...100%", "0...1000%", "0,00...10,00s", "-300...300%"], answer:1, explain:"13.03 ESCALA EA1 tiene un rango de 0 a 1000%." },
+    { q:"En el ejemplo de escalado combinado del manual, ¿cuánto aporta EA1 con 11.05=1500rpm y una señal de 4V (40%)?", options:["90 rpm", "600 rpm", "690 rpm", "1500 rpm"], answer:1, explain:"EA1 aporta 600 rpm, resultado de aplicar el 40% de la señal (4V) sobre la escala de referencia de 1500 rpm definida en 11.05." },
+    { q:"En ese mismo ejemplo, ¿cuál es el resultado final de REF1 combinando EA1 y EA3?", options:["600 rpm", "90 rpm", "690 rpm", "1000 rpm"], answer:2, explain:"El resultado combinado del ejemplo del manual es REF1 = 690 rpm, sumando los 600 rpm de EA1 y los 90 rpm de EA3." },
+    { q:"¿Qué parámetro configura la función de la salida de relé SR1?", options:["14.01 SALIDA RELE SR1", "13.04 FILTRO EA1", "15.01", "42.02 RECONOC FRENO"], answer:0, explain:"14.01 SALIDA RELE SR1, dentro del grupo 14 SALIDAS DE RELE, configura la función asignada a la salida de relé SR1." }
+  ]
+},
+
+{
+  id:'grupo20-limites', title:'Grupo 20 — LIMITES', short:'Grupo 20 · Límites',
+  eyebrow:'Módulo 06 · Protecciones', sub:'Velocidad, intensidad y par máximos; control de sobretensión/subtensión; límites de frecuencia y par mínimo/máximo.',
+  content:`
+    <div class="card">
+      <table class="tech">
+        <tr><th>Parámetro</th><th>Nombre</th><th>Rango/Selecciones</th></tr>
+        <tr><td>20.01</td><td>VELOCIDAD MINIMA</td><td>Rango ligado a 99.08 FREC NOM MOT</td></tr>
+        <tr><td>20.02</td><td>VELOCIDAD MAXIMA</td><td>Rango ligado a 99.08 FREC NOM MOT</td></tr>
+        <tr><td>20.03</td><td>INTENSIDAD MAXIMA</td><td>—</td></tr>
+        <tr><td>20.04</td><td>LIM1 PAR MAXIMO</td><td>0,0...600,0%</td></tr>
+        <tr><td>20.05</td><td>CTRL SOBRETENSION</td><td>OFF/ON</td></tr>
+        <tr><td>20.06</td><td>CTRL SUBTENSION</td><td>OFF/ON</td></tr>
+        <tr><td>20.11</td><td>FRECUENCIA MIN</td><td>Solo editable si 99.04=ESCALAR</td></tr>
+        <tr><td>20.12</td><td>FRECUENCIA MAX</td><td>Solo editable si 99.04=ESCALAR</td></tr>
+        <tr><td>20.13</td><td>SEL PAR MIN</td><td>—</td></tr>
+        <tr><td>20.14</td><td>SEL PAR MAX</td><td>—</td></tr>
+        <tr><td>20.22</td><td>SLS SPEED LIMIT</td><td>Solo versión AS7R</td></tr>
+      </table>
+
+      ${NOTE("20.05 CTRL SOBRETENSION debe ajustarse en OFF cuando el equipo cuenta con chopper de frenado y resistencia de frenado instalados — de lo contrario el control de sobretensión del propio convertidor puede interferir con la disipación de energía a través del chopper/resistencia.")}
+
+      ${INFO("20.11 FRECUENCIA MIN y 20.12 FRECUENCIA MAX solo son editables cuando 99.04 MODO CTRL MOTOR está en ESCALAR — en modo DTC estos límites se manejan mediante los parámetros de velocidad (20.01/20.02), no de frecuencia.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuál es el rango del parámetro 20.04 LIM1 PAR MAXIMO?", options:["0,0...600,0%", "0...1000%", "-300...300%", "0,00...10,00s"], answer:0, explain:"20.04 LIM1 PAR MAXIMO tiene un rango de 0,0 a 600,0%." },
+    { q:"¿Cuándo debe ajustarse 20.05 CTRL SOBRETENSION en OFF?", options:["Nunca, siempre debe estar en ON", "Cuando el equipo tiene chopper y resistencia de frenado instalados", "Solo en modo DTC", "Solo si 99.02=FABRICA"], answer:1, explain:"Con chopper de frenado y resistencia instalados, 20.05 CTRL SOBRETENSION debe estar en OFF para no interferir con la disipación de energía por el chopper." },
+    { q:"¿En qué condición son editables los parámetros 20.11 FRECUENCIA MIN y 20.12 FRECUENCIA MAX?", options:["Siempre, sin condición", "Solo si 99.04 MODO CTRL MOTOR está en ESCALAR", "Solo si 99.04 MODO CTRL MOTOR está en DTC", "Solo durante la Marcha de ID"], answer:1, explain:"20.11 y 20.12 solo son editables cuando el modo de control de motor (99.04) está en ESCALAR." },
+    { q:"¿Qué parámetro del grupo 20 solo está disponible en la versión de firmware AS7R?", options:["20.03 INTENSIDAD MAXIMA", "20.22 SLS SPEED LIMIT", "20.04 LIM1 PAR MAXIMO", "20.06 CTRL SUBTENSION"], answer:1, explain:"20.22 SLS SPEED LIMIT, al igual que 10.09 SLS ACTIVE del Módulo 03, solo está disponible en la versión AS7R del firmware." },
+    { q:"¿Con qué parámetro de puesta en marcha está ligado el rango de 20.01 VELOCIDAD MINIMA y 20.02 VELOCIDAD MAXIMA?", options:["99.08 FREC NOM MOT", "99.02 MACRO APLICACION", "42.05 VEL CIERRE FRENO", "30.06 TIEMPO TERM MOTOR"], answer:0, explain:"El rango de 20.01/20.02 está ligado al parámetro 99.08 FREC NOM MOT definido en el grupo 99 DATOS DE PARTIDA." }
+  ]
+},
+
+{
+  id:'grupos21-22-25-rampas', title:'Grupos 21/22/25 — Marcha/paro, rampas y velocidades críticas', short:'Grupos 21-22-25 · Rampas',
+  eyebrow:'Módulo 07 · Dinámica de marcha', sub:'Función de marcha AUTO, tiempos de aceleración/deceleración, tipo de rampa (lineal o curva S), y velocidades críticas.',
+  content:`
+    <div class="card">
+      ${H3("21.01 FUNCION MARCHA")}
+      <p>Entre sus selecciones se incluye <strong>AUTO</strong>, que habilita el arranque con el motor girando (arranque al vuelo) y la restauración automática tras una interrupción.</p>
+
+      ${H3("Grupo 22 — Aceleración y deceleración")}
+      <table class="tech">
+        <tr><th>Parámetro</th><th>Nombre</th><th>Rango</th></tr>
+        <tr><td>22.01</td><td>SEL ACEL/DECEL</td><td>—</td></tr>
+        <tr><td>22.02</td><td>TIEMPO ACELER 1</td><td>0,00...1800,00s</td></tr>
+        <tr><td>22.03</td><td>TIEMPO DECELER 1</td><td>0,00...1800,00s</td></tr>
+        <tr><td>22.04</td><td>TIEMPO ACELER 2</td><td>0,00...1800,00s</td></tr>
+        <tr><td>22.05</td><td>TIEMPO DECELER 2</td><td>0,00...1800,00s</td></tr>
+        <tr><td>22.06</td><td>TIPO RAMPA ACE/DE</td><td>0,00s = lineal; 0,01...1000,00s = curva S</td></tr>
+        <tr><td>22.07</td><td>TIEMP DEC STOP EM</td><td>0,00...2000,00s</td></tr>
+      </table>
+      ${INFO("22.06 TIPO RAMPA ACE/DE usa un mismo parámetro para dos comportamientos: en 0,00s la rampa es lineal; cualquier valor entre 0,01 y 1000,00s da forma de curva S, suavizando el arranque/parada de la rampa.")}
+
+      ${H3("Grupo 25 — Velocidades críticas")}
+      <table class="tech">
+        <tr><th>Parámetro</th><th>Nombre</th></tr>
+        <tr><td>25.01</td><td>SEL VELOC CRITICA (OFF/ON)</td></tr>
+        <tr><td>25.02–25.03</td><td>VELOC CRIT 1 BAJA/ALTA</td></tr>
+        <tr><td>25.04–25.05</td><td>VELOC CRIT 2 BAJA/ALTA</td></tr>
+        <tr><td>25.06–25.07</td><td>VELOC CRIT 3 BAJA/ALTA</td></tr>
+      </table>
+      <p>Ejemplo real citado en el manual: un ventilador presentaba vibración mecánica en las bandas <strong>540–690 rpm</strong> y <strong>1380–1590 rpm</strong>, definidas como velocidades críticas a evitar (el convertidor salta esas bandas en la rampa en lugar de sostener el funcionamiento dentro de ellas).</p>
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué habilita la selección AUTO del parámetro 21.01 FUNCION MARCHA?", options:["El arranque con el motor girando (arranque al vuelo) y la restauración automática tras una interrupción", "Solo la Marcha de ID", "El cambio automático de macro de aplicación", "La activación automática del freno mecánico"], answer:0, explain:"AUTO en 21.01 FUNCION MARCHA habilita el arranque al vuelo (con el motor ya girando) y la restauración automática tras una interrupción." },
+    { q:"¿Cuál es el rango de 22.02 TIEMPO ACELER 1?", options:["0,00...1800,00s", "0,0...600,0%", "0...1000%", "0,00...2000,00s"], answer:0, explain:"22.02 TIEMPO ACELER 1 (igual que 22.03, 22.04 y 22.05) tiene un rango de 0,00 a 1800,00 segundos." },
+    { q:"En el parámetro 22.06 TIPO RAMPA ACE/DE, ¿qué representa un valor de 0,00s?", options:["Rampa en forma de curva S", "Rampa lineal", "Parada de emergencia inmediata", "Rampa deshabilitada por completo"], answer:1, explain:"En 22.06, 0,00s corresponde a rampa lineal, mientras que valores entre 0,01 y 1000,00s producen una rampa en curva S." },
+    { q:"¿Cuál es el rango del parámetro 22.07 TIEMP DEC STOP EM?", options:["0,00...1800,00s", "0,00...2000,00s", "0...1000%", "-300...300%"], answer:1, explain:"22.07 TIEMP DEC STOP EM (tiempo de deceleración de parada de emergencia) tiene un rango de 0,00 a 2000,00 segundos." },
+    { q:"Según el ejemplo real citado en el manual, ¿en qué bandas de rpm presentaba vibración un ventilador, definidas como velocidades críticas?", options:["100-200 rpm y 800-900 rpm", "540-690 rpm y 1380-1590 rpm", "0-50 rpm y 3000-3500 rpm", "1000-1100 rpm únicamente"], answer:1, explain:"El manual cita el ejemplo de un ventilador con vibración mecánica en las bandas 540-690 rpm y 1380-1590 rpm, configuradas como velocidades críticas mediante el grupo 25." }
+  ]
+},
+
+{
+  id:'grupo30-funciones-fallos', title:'Grupo 30 — FUNCIONES FALLOS (protecciones)', short:'Grupo 30 · Protecciones',
+  eyebrow:'Módulo 08 · Protecciones', sub:'Función de entrada analógica mínima, fallo externo, protección térmica del motor y sus tres modos de medición.',
+  content:`
+    <div class="card">
+      ${H3("30.01 EA<FUNCION MINIMA")}
+      <p>Define el comportamiento cuando una entrada analógica cae por debajo de su valor mínimo: <strong>FALLO / NO / VEL CONST 15 / ULTIMA VELOC</strong>. Si el valor de la señal es inferior al mínimo configurado (FUNC&lt;EA MIN), se genera una alarma con código <strong>8110</strong>.</p>
+
+      ${H3("30.03 FALLO EXTERNO")}
+      <p>Selecciona la fuente de la señal de fallo externo: <strong>ED1–ED12</strong> o <strong>PROT TERMICA MOT</strong>.</p>
+
+      ${H3("30.04 PROT TERMICA MOT")}
+      <p>Selecciona cómo reacciona el convertidor cuando se detecta el límite de temperatura del motor mediante la función definida en <strong>30.05</strong>. Selecciones: <strong>FALLO (95% alarma, 100% fallo) / ALARMA / NO</strong>.</p>
+
+      ${H3("30.05 MODO PROT TERM MO")}
+      <p>Selecciona el modo de protección térmica del motor, con tres modalidades:</p>
+      <table class="tech">
+        <tr><th>Modo</th><th>Descripción</th></tr>
+        <tr><td>DTC</td><td>Modelo térmico interno del convertidor; asume una temperatura ambiente de 30°C</td></tr>
+        <tr><td>MODO USUARIO</td><td>Curva térmica definida por el usuario mediante los parámetros 30.07–30.09</td></tr>
+        <tr><td>TEMP SENSOR</td><td>Termistor conectado en la entrada digital ED6: 0–1,5kΩ = exceso de temperatura; ≥4kΩ = temperatura normal</td></tr>
+      </table>
+      ${NOTE("El modo TEMP SENSOR (termistor por ED6) NO aplica cuando 99.06 (o la corriente nominal del motor asociada) supera 800A — verificar el umbral exacto de aplicabilidad en el manual para equipos de esa potencia antes de configurar este modo.")}
+
+      ${H3("30.06 TIEMPO TERM MOTOR")}
+      <p>Rango: <strong>256,0...9999,8s</strong>.</p>
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuáles son las selecciones exactas de 30.01 EA<FUNCION MINIMA?", options:["FALLO / NO / VEL CONST 15 / ULTIMA VELOC", "DTC / ESCALAR", "ESTANDAR / REDUCIDA", "ON / OFF únicamente"], answer:0, explain:"30.01 EA<FUNCION MINIMA se selecciona entre FALLO, NO, VEL CONST 15 o ULTIMA VELOC." },
+    { q:"¿Qué código de alarma corresponde a FUNC<EA MIN?", options:["3210", "8110", "2330", "4290"], answer:1, explain:"La alarma FUNC<EA MIN, asociada al comportamiento de 30.01, lleva el código 8110." },
+    { q:"¿Qué selecciona el parámetro 30.03 FALLO EXTERNO?", options:["La fuente de la señal de fallo externo: ED1-ED12 o PROT TERMICA MOT", "El idioma del panel", "El tiempo de aceleración", "La macro de aplicación"], answer:0, explain:"30.03 FALLO EXTERNO selecciona entre las entradas digitales ED1-ED12 o PROT TERMICA MOT como fuente de la señal de fallo externo." },
+    { q:"En el modo TEMP SENSOR de 30.05 MODO PROT TERM MO (termistor por ED6), ¿qué rango de resistencia indica exceso de temperatura?", options:["0-1,5kΩ", "≥4kΩ", "2-3kΩ exactos", "10kΩ fijos"], answer:0, explain:"En el modo TEMP SENSOR, una lectura de 0 a 1,5kΩ en el termistor conectado a ED6 indica exceso de temperatura; ≥4kΩ indica temperatura normal." },
+    { q:"¿Cuál es el rango del parámetro 30.06 TIEMPO TERM MOTOR?", options:["0,00...1800,00s", "256,0...9999,8s", "0...1000%", "0,0...600,0%"], answer:1, explain:"30.06 TIEMPO TERM MOTOR tiene un rango de 256,0 a 9999,8 segundos." }
+  ]
+},
+
+{
+  id:'grupo42-control-freno', title:'Grupo 42 — CONTROL FRENO', short:'Grupo 42 · Control freno',
+  eyebrow:'Módulo 09 · Control de freno', sub:'Habilitación, reconocimiento y temporización de apertura/cierre del freno mecánico, y referencia de par de arranque.',
+  content:`
+    <div class="card">
+      <table class="tech">
+        <tr><th>Parámetro</th><th>Nombre</th><th>Rango/Selecciones</th></tr>
+        <tr><td>42.01</td><td>CONTRL FRENO</td><td>OFF/ON</td></tr>
+        <tr><td>42.02</td><td>RECONOC FRENO</td><td>OFF/ED5 (1=abierto, 0=cerrado)</td></tr>
+        <tr><td>42.03</td><td>RETR APERTURA FRENO</td><td>0,0...5,0s</td></tr>
+        <tr><td>42.04</td><td>RETR CIERRE FRENO</td><td>0,0...60,0s</td></tr>
+        <tr><td>42.05</td><td>VEL CIERRE FRENO</td><td>0...1000rpm</td></tr>
+        <tr><td>42.06</td><td>FUNC FALLO FRENO</td><td>FALLO/ALARMA</td></tr>
+        <tr><td>42.07</td><td>SEL REF PAR ARRAN</td><td>NO/EA1/EA2/EA3/EA5/EA6/PAR 42.08/MEMORIA</td></tr>
+        <tr><td>42.08</td><td>REF PAR ARRAN</td><td>-300...300%</td></tr>
+        <tr><td>42.09</td><td>TIEMPO EXTEN MAR</td><td>0,0...60,0s</td></tr>
+        <tr><td>42.10</td><td>MANT FRENO REF</td><td>0,0...60,0s</td></tr>
+      </table>
+
+      ${H3("Lógica de reconocimiento del freno")}
+      <p>Con <strong>42.02 RECONOC FRENO = ED5</strong>, la entrada digital ED5 reporta el estado físico real del freno: <strong>1 = freno abierto</strong>, <strong>0 = freno cerrado</strong>. Esta realimentación permite al convertidor confirmar que el freno respondió antes de continuar la secuencia de marcha.</p>
+
+      ${NOTE("42.06 FUNC FALLO FRENO define qué ocurre si el freno no confirma su estado esperado (por ejemplo, si ED5 no reporta apertura dentro del tiempo de 42.03 RETR APERTURA FRENO): el convertidor puede declarar FALLO o solo ALARMA, según esta selección.")}
+
+      <p>El par de arranque (necesario para sostener la carga antes de liberar el freno mecánico, típico en aplicaciones de izaje) se define mediante <strong>42.07 SEL REF PAR ARRAN</strong>, que puede tomar el valor fijo de <strong>42.08 REF PAR ARRAN</strong> (rango -300 a 300%) o provenir de una entrada analógica (EA1/EA2/EA3/EA5/EA6) o de MEMORIA.</p>
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué indica un valor de ED5 = 1 cuando 42.02 RECONOC FRENO = ED5?", options:["Freno cerrado", "Freno abierto", "Fallo de freno", "Freno en modo mantenimiento"], answer:1, explain:"Con 42.02 RECONOC FRENO=ED5, un valor de ED5=1 indica freno abierto, y ED5=0 indica freno cerrado." },
+    { q:"¿Cuál es el rango del parámetro 42.08 REF PAR ARRAN?", options:["0...1000rpm", "-300...300%", "0,0...60,0s", "256,0...9999,8s"], answer:1, explain:"42.08 REF PAR ARRAN tiene un rango de -300 a 300%." },
+    { q:"¿Qué selecciones admite 42.06 FUNC FALLO FRENO?", options:["FALLO/ALARMA", "OFF/ED5", "ON/OFF únicamente", "DTC/ESCALAR"], answer:0, explain:"42.06 FUNC FALLO FRENO se selecciona entre FALLO o ALARMA, según cómo deba reaccionar el convertidor si el freno no confirma su estado esperado." },
+    { q:"¿Qué parámetro define la velocidad a la que se ordena el cierre del freno mecánico?", options:["42.05 VEL CIERRE FRENO", "42.03 RETR APERTURA FRENO", "20.01 VELOCIDAD MINIMA", "22.03 TIEMPO DECELER 1"], answer:0, explain:"42.05 VEL CIERRE FRENO, con rango de 0 a 1000rpm, define la velocidad a la que se ordena el cierre del freno durante la parada." },
+    { q:"¿Qué parámetro selecciona la fuente de la referencia de par de arranque (42.07)?", options:["42.07 SEL REF PAR ARRAN, entre NO/EA1/EA2/EA3/EA5/EA6/PAR 42.08/MEMORIA", "42.01 CONTRL FRENO", "30.03 FALLO EXTERNO", "11.01 SELEC REF PANEL"], answer:0, explain:"42.07 SEL REF PAR ARRAN selecciona la fuente del par de arranque entre NO, varias entradas analógicas, el valor fijo de 42.08, o MEMORIA." }
+  ]
+},
+
+{
+  id:'analisis-fallos-alarmas', title:'Análisis de fallos y alarmas (apéndice completo)', short:'Fallos y alarmas',
+  eyebrow:'Módulo 10 · Diagnóstico', sub:'Listado completo de alarmas y fallos del programa de control estándar, con sus códigos exactos citados del apéndice del manual.',
+  content:`
+    <div class="card">
+      ${H3("Alarmas con código")}
+      <table class="tech">
+        <tr><th>Nombre</th><th>Código</th></tr>
+        <tr><td>CALIBRA REQ</td><td>FF36</td></tr>
+        <tr><td>LIM BUS CC</td><td>3211</td></tr>
+        <tr><td>FALLO A TIERRA</td><td>2330</td></tr>
+        <tr><td>ENCODER A&lt;&gt;B</td><td>7302</td></tr>
+        <tr><td>ENCODER</td><td>7301</td></tr>
+        <tr><td>FAN OTEMP</td><td>FF83</td></tr>
+        <tr><td>HW RECONF RQ</td><td>FF38</td></tr>
+        <tr><td>ID REALIZADA</td><td>FF32</td></tr>
+        <tr><td>IDENT MAGN</td><td>FF31</td></tr>
+        <tr><td>REQ ID MAGN</td><td>FF30</td></tr>
+        <tr><td>CAMB NUM ID</td><td>FF68</td></tr>
+        <tr><td>MARCHA ID</td><td>FF35</td></tr>
+        <tr><td>MARCH ID SEL</td><td>FF33</td></tr>
+        <tr><td>TEMP REACT</td><td>FF81</td></tr>
+        <tr><td>LIM INTE INV</td><td>2212</td></tr>
+        <tr><td>INV DESHABIL</td><td>3200</td></tr>
+        <tr><td>SOBRETMP INV</td><td>4290</td></tr>
+        <tr><td>CONFIG E/S</td><td>FF8B</td></tr>
+        <tr><td>CAMBIO MACRO</td><td>FF69</td></tr>
+        <tr><td>MOD BOARD T</td><td>FF88</td></tr>
+        <tr><td>MOD CHOKE T</td><td>FF89</td></tr>
+        <tr><td>LIM INTE MOT</td><td>2300</td></tr>
+        <tr><td>MOTOR BLOQ</td><td>7121</td></tr>
+        <tr><td>ARRANQUE MOT</td><td>FF34</td></tr>
+        <tr><td>MOTOR TEMP</td><td>4310</td></tr>
+        <tr><td>TEMP MOTOR 1</td><td>4312</td></tr>
+        <tr><td>TEMP MOTOR 2</td><td>4313</td></tr>
+        <tr><td>LIM POT MOT</td><td>FF86</td></tr>
+        <tr><td>LIM PAR MOT</td><td>FF85</td></tr>
+        <tr><td>FALLO PANEL</td><td>5300</td></tr>
+        <tr><td>POINTER ERROR</td><td>FFD0</td></tr>
+        <tr><td>POWEROFF!</td><td>FF39</td></tr>
+        <tr><td>PPCC LINK</td><td>5210</td></tr>
+        <tr><td>SOBRECARG PP</td><td>5482</td></tr>
+        <tr><td>SUST VENTIL</td><td>4280</td></tr>
+        <tr><td>PERMISO DE MARCHA</td><td>FF8E</td></tr>
+        <tr><td>MODO DORMIR</td><td>FF8C</td></tr>
+        <tr><td>START INHIBI</td><td>FF7A (Safe Torque Off)</td></tr>
+        <tr><td>START INTERL</td><td>FF8D</td></tr>
+        <tr><td>VEL SINCR</td><td>FF87</td></tr>
+        <tr><td>TEMP DIF xx y</td><td>4380</td></tr>
+        <tr><td>TERMISTOR</td><td>4311</td></tr>
+        <tr><td>TEMP MED</td><td>FF91</td></tr>
+        <tr><td>BAJA CARGA</td><td>FF6A</td></tr>
+        <tr><td>CURV CARG U</td><td>2312</td></tr>
+      </table>
+
+      ${H3("Fallos con código")}
+      <table class="tech">
+        <tr><th>Nombre</th><th>Código</th></tr>
+        <tr><td>TEMP DEL RADIADOR</td><td>4210</td></tr>
+        <tr><td>ACS TEMP xx y</td><td>4210</td></tr>
+        <tr><td>FUNC&lt;EA MIN</td><td>8110</td></tr>
+        <tr><td>AD BACKUP ERROR</td><td>FFA2</td></tr>
+        <tr><td>TEMP CHOP</td><td>7114</td></tr>
+        <tr><td>CORTOC CHOPP</td><td>7113</td></tr>
+        <tr><td>RECONOC FRENO</td><td>FF74</td></tr>
+      </table>
+
+      ${H3("Alarmas de panel sin código (interfaz del CDP312R)")}
+      <p>DOWNLOADING FAILED, CONVERT EN MARCHA, DESCARGA NO ES POSIBLE, SIN COMUNICACION(X), NO HAY NUM ID LIBRES, DATOS NO CARGADOS, FALLO CARGA, ESCRITURA DENEGADA, AJUSTE DE PARAMETROS NO ES POSIBLE.</p>
+
+      ${NOTE("START INHIBI (FF7A) corresponde a la función de seguridad Safe Torque Off (STO) — su aparición indica que la cadena de seguridad de par está abierta, no un fallo de hardware convencional del inversor.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué código de alarma corresponde a FALLO A TIERRA?", options:["2330", "3210", "4290", "7302"], answer:0, explain:"FALLO A TIERRA corresponde al código 2330." },
+    { q:"¿Qué diferencia hay entre ENCODER (7301) y ENCODER A<>B (7302)?", options:["Son el mismo código repetido por error", "7301 es una alarma general de encoder; 7302 apunta a una discrepancia entre canales A y B", "7302 es un fallo, no una alarma, mientras que 7301 sí es alarma", "No existen ambos, solo uno es real"], answer:1, explain:"ENCODER (7301) es una alarma general de encoder, mientras que ENCODER A<>B (7302) señala específicamente una discrepancia entre los canales A y B." },
+    { q:"¿A qué función de seguridad corresponde la alarma START INHIBI (FF7A)?", options:["Safe Torque Off (STO)", "Protección térmica del motor", "Control de sobretensión", "Reconocimiento de freno"], answer:0, explain:"START INHIBI (FF7A) corresponde a la función de seguridad Safe Torque Off (STO): indica que la cadena de seguridad de par está abierta." },
+    { q:"¿Qué código de fallo corresponde a FUNC<EA MIN?", options:["8110", "2330", "4290", "FF74"], answer:0, explain:"FUNC<EA MIN, asociado al comportamiento definido por 30.01 EA<FUNCION MINIMA, tiene código de fallo/alarma 8110." },
+    { q:"¿Cuál de estas alarmas de panel NO lleva un código numérico?", options:["MOTOR BLOQ", "TEMP MOTOR 1", "ESCRITURA DENEGADA", "SOBRECARG PP"], answer:2, explain:"ESCRITURA DENEGADA es una alarma propia de la interfaz del panel CDP312R, sin código numérico asociado, a diferencia de las alarmas y fallos del firmware que sí llevan un número o código FFxx." }
+  ]
+},
+
+{
+  id:'macros-aplicacion-detalle', title:'Macros de aplicación en detalle', short:'Macros en detalle',
+  eyebrow:'Módulo 11 · Parametrización avanzada', sub:'Las 5 macros estándar más 2 de usuario, el detalle de la macro FABRICA, y el comportamiento de 99.05 RESTAURAR APLIC.',
+  content:`
+    <div class="card">
+      <p>El parámetro 99.02 MACRO APLICACION admite <strong>5 macros estándar</strong> más <strong>2 macros de usuario</strong>:</p>
+      <table class="tech">
+        <tr><th>Tipo</th><th>Macros</th></tr>
+        <tr><td>Estándar</td><td>FABRICA, MANUAL/AUTO, CTRL PID, CTRL PAR, CTRL SEC</td></tr>
+        <tr><td>Usuario</td><td>CAR USUARIO1, CAR USUARIO2</td></tr>
+      </table>
+
+      ${H3("Detalle de la macro FABRICA")}
+      <p>La macro FABRICA configura de fábrica:</p>
+      <ul>
+        <li><strong>EXT1</strong> en <strong>EA1</strong> (entrada analógica 1) como referencia de velocidad.</li>
+        <li><strong>ED1/ED2</strong> como marcha-paro-dirección.</li>
+        <li><strong>ED5/ED6</strong> seleccionando entre tres velocidades constantes.</li>
+        <li><strong>Dos rampas</strong> de aceleración/deceleración, seleccionadas mediante <strong>ED4</strong>.</li>
+        <li><strong>Dos salidas analógicas</strong>: una de velocidad, otra de intensidad.</li>
+        <li><strong>Tres salidas de relé</strong>: listo, en marcha, y fallo inverso.</li>
+      </ul>
+
+      ${H3("99.05 RESTAURAR APLIC — comportamiento clave")}
+      <p>Al restaurar una macro mediante 99.05 RESTAURAR APLIC, el comportamiento difiere según el tipo de macro:</p>
+      <table class="tech">
+        <tr><th>Tipo de macro restaurada</th><th>Comportamiento del grupo 99 y modelo de motor</th></tr>
+        <tr><td>Macro estándar (FABRICA, MANUAL/AUTO, CTRL PID, CTRL PAR, CTRL SEC)</td><td>Los parámetros del grupo 99 y el modelo de motor NO cambian</td></tr>
+        <tr><td>Macro de usuario (CAR USUARIO1/2)</td><td>Se restauran a los últimos valores guardados, EXCEPTO 16.05 y 99.02</td></tr>
+      </table>
+      ${NOTE("Este comportamiento es una nota clave del manual: restaurar una macro ESTÁNDAR nunca borra los datos de partida (grupo 99) ni el modelo del motor ya identificado — solo reorganiza los parámetros de aplicación. Restaurar una macro de USUARIO, en cambio, sí reescribe la configuración con los últimos valores guardados de esa macro, con la única excepción de 16.05 y del propio 99.02.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuántas macros estándar y cuántas de usuario admite el parámetro 99.02?", options:["5 estándar + 2 de usuario", "7 estándar + 0 de usuario", "3 estándar + 4 de usuario", "5 estándar + 5 de usuario"], answer:0, explain:"99.02 MACRO APLICACION admite 5 macros estándar (FABRICA, MANUAL/AUTO, CTRL PID, CTRL PAR, CTRL SEC) más 2 macros de usuario (CAR USUARIO1, CAR USUARIO2)." },
+    { q:"En la macro FABRICA, ¿qué entradas digitales seleccionan entre tres velocidades constantes?", options:["ED1/ED2", "ED4", "ED5/ED6", "ED7/ED8"], answer:2, explain:"En la macro FABRICA, las entradas digitales ED5/ED6 seleccionan entre tres velocidades constantes." },
+    { q:"¿Cuántas salidas de relé configura por defecto la macro FABRICA, y para qué funciones?", options:["Dos: listo y fallo", "Tres: listo, en marcha, y fallo inverso", "Una sola, de fallo general", "Cuatro, incluyendo freno abierto"], answer:1, explain:"La macro FABRICA configura tres salidas de relé: listo, en marcha, y fallo inverso." },
+    { q:"Al restaurar una macro ESTÁNDAR mediante 99.05 RESTAURAR APLIC, ¿qué ocurre con el grupo 99 y el modelo de motor?", options:["Se borran por completo y hay que recargarlos", "NO cambian", "Se restauran a los valores de fábrica del motor genérico", "Se reinicia automáticamente la Marcha de ID"], answer:1, explain:"Al restaurar una macro estándar, los parámetros del grupo 99 (datos de partida) y el modelo de motor NO cambian." },
+    { q:"Al restaurar una macro de USUARIO (CAR USUARIO1/2), ¿qué parámetros quedan como EXCEPCIÓN y no se restauran junto con el resto?", options:["16.05 y 99.02", "20.01 y 20.02", "42.01 y 42.02", "99.06 y 99.07"], answer:0, explain:"Al restaurar una macro de usuario, todos los parámetros vuelven a sus últimos valores guardados excepto 16.05 y 99.02, que quedan como excepción explícita." }
+  ]
+}
+];
+
+/* ============================================================
+   ESTADO + PERSISTENCIA (localStorage)
+   ============================================================ */
+const STORAGE_KEY = 'abb-acs800-firmware_training_progress_v1';
+const THEME_KEY = 'capacitacion-theme';
+
+const state = {
+  currentId: 'overview',
+  view: 'learn',
+  quizProgress: {},
+  quizIndex: {},
+};
+MODULES.forEach(m=>{
+  if(m.quiz){ state.quizProgress[m.id] = { answered: new Array(m.quiz.length).fill(null) }; state.quizIndex[m.id] = 0; }
+});
+
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const saved = JSON.parse(raw);
+    MODULES.forEach(m=>{
+      if(!m.quiz) return;
+      const savedAnswers = saved && saved[m.id];
+      if(Array.isArray(savedAnswers) && savedAnswers.length === m.quiz.length){
+        state.quizProgress[m.id].answered = savedAnswers;
+      }
+    });
+  }catch(e){ console.warn('No se pudo cargar el progreso guardado:', e); }
+}
+function saveProgress(){
+  try{
+    const data = {};
+    MODULES.forEach(m=>{ if(m.quiz) data[m.id] = state.quizProgress[m.id].answered; });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }catch(e){ console.warn('No se pudo guardar el progreso:', e); }
+  syncPortalProgress();
+}
+function syncPortalProgress(){
+  try{
+    const teachable = MODULES.filter(m=>!m.isOverview);
+    const total = teachable.reduce((s,m)=>s+m.quiz.length,0);
+    const done = teachable.reduce((s,m)=>s+state.quizProgress[m.id].answered.filter(a=>a!==null).length,0);
+    localStorage.setItem('vfd_progress_abb-acs800-firmware', JSON.stringify({ done, total }));
+  }catch(e){ console.warn('No se pudo sincronizar el progreso con el portal:', e); }
+}
+function resetAllProgress(){
+  MODULES.forEach(m=>{
+    if(!m.quiz) return;
+    state.quizProgress[m.id].answered = new Array(m.quiz.length).fill(null);
+    state.quizIndex[m.id] = 0;
+  });
+  saveProgress();
+  render();
+}
+loadProgress();
+syncPortalProgress();
+
+/* ============================================================
+   TEMA
+   ============================================================ */
+function applyTheme(){
+  const saved = localStorage.getItem(THEME_KEY);
+  if(saved === 'light'){ document.documentElement.classList.add('light-theme'); }
+  else { document.documentElement.classList.remove('light-theme'); }
+}
+applyTheme();
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  const isLight = document.documentElement.classList.toggle('light-theme');
+  localStorage.setItem(THEME_KEY, isLight ? 'light' : 'dark');
+});
+
+/* ============================================================
+   ANIMACIÓN DE ENTRADA
+   ============================================================ */
+function animateIn(container){
+  const items = container.querySelectorAll('.modhead, .card, .fig, .ovwcard, .qcard, .barwrap, .flash');
+  items.forEach((el,i)=>{ el.classList.add('reveal'); el.style.transitionDelay = Math.min(i*70,560)+'ms'; });
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ items.forEach(el=>el.classList.add('in')); }));
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+function ledStateFor(m){
+  if(m.isOverview) return '';
+  const p = state.quizProgress[m.id];
+  if(!p) return '';
+  const answeredCount = p.answered.filter(a=>a!==null).length;
+  if(answeredCount===0) return '';
+  if(answeredCount < m.quiz.length) return 'partial';
+  return 'done';
+}
+let sidebarAnimated = false;
+function renderSidebar(){
+  const ul = document.getElementById('navlist');
+  ul.innerHTML = '';
+  MODULES.forEach((m,i)=>{
+    const li = document.createElement('li');
+    li.className = 'navitem' + (state.currentId===m.id ? ' active' : '');
+    if(!sidebarAnimated){ li.style.animation = `slideInLeft .45s cubic-bezier(.2,.7,.3,1) ${i*35}ms both`; }
+    const ledClass = ledStateFor(m);
+    li.innerHTML = `
+      ${m.isOverview ? '<span class="led"></span>' : `<span class="led ${ledClass}"></span>`}
+      <span class="num">${m.isOverview ? '★' : String(i).padStart(2,'0')}</span>
+      <span class="label">${m.short}</span>
+    `;
+    li.onclick = ()=>{ state.currentId = m.id; state.view = 'learn'; render(); window.scrollTo(0,0); };
+    ul.appendChild(li);
+  });
+  sidebarAnimated = true;
+}
+
+/* ============================================================
+   OVERVIEW
+   ============================================================ */
+function renderOverview(){
+  const teachable = MODULES.filter(m=>!m.isOverview);
+  const totalQ = teachable.reduce((s,m)=>s+m.quiz.length,0);
+  const answeredQ = teachable.reduce((s,m)=>s+state.quizProgress[m.id].answered.filter(a=>a!==null).length,0);
+  const pct = totalQ ? Math.round(answeredQ/totalQ*100) : 0;
+
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="modhead">
+      <p class="eyebrow">Capacitación · ABB ACS800-17</p>
+      <h2>Biblioteca de módulos</h2>
+      <p class="sub">Navega libremente entre los ${teachable.length} módulos. Cada uno tiene su contenido técnico y su quiz — el progreso se guarda automáticamente en este navegador.</p>
+    </div>
+    <div class="barwrap"><div class="barfill" style="width:${pct}%"></div></div>
+    <p style="font-family:var(--mono); font-size:11.5px; color:var(--text-dim); margin:8px 0 24px 0;">${answeredQ} / ${totalQ} preguntas respondidas · ${pct}%</p>
+    ${pct===100 ? `
+    <div class="card" style="border-color:var(--emerald); background:var(--emerald-dim);">
+      <h3 style="color:var(--emerald); margin-top:0;">🏆 Capacitación completa</h3>
+      <p style="margin-bottom:0;">Completaste el quiz de los ${teachable.length} módulos de la capacitación ABB ACS800-17 — Programa de Control Estándar. Puedes reintentar cualquier módulo cuando quieras para reforzar los conceptos con menos aciertos.</p>
+    </div>` : ''}
+    <div class="ovwgrid">
+      ${teachable.map((m,i)=>{
+        const p = state.quizProgress[m.id];
+        const answered = p.answered.filter(a=>a!==null).length;
+        const correct = p.answered.reduce((s,a)=> s + (a===true?1:0), 0);
+        let status = 'sin iniciar';
+        if(answered>0 && answered<m.quiz.length) status = `en curso · ${answered}/${m.quiz.length}`;
+        if(answered===m.quiz.length) status = `completo · ${correct}/${m.quiz.length} correctas`;
+        const startBadge = m.id==='panel-cdp312r-navegacion' ? `<span style="font-family:var(--mono); font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--emerald); border:1px solid var(--emerald); border-radius:4px; padding:2px 6px; margin-left:8px;">Empieza aquí</span>` : '';
+        return `<div class="ovwcard" data-id="${m.id}">
+          <div class="top"><span class="t-title">${String(i).padStart(2,'0')} · ${m.title}${startBadge}</span><span class="led ${ledStateFor(m)}"></span></div>
+          <div class="t-sub">${m.sub}</div>
+          <div class="t-status" style="margin-top:10px;">${status}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="resetrow">
+      <button class="btn ghost" id="resetAllBtn">Borrar todo el progreso guardado</button>
+    </div>
+  `;
+  const resetBtn = document.getElementById('resetAllBtn');
+  if(resetBtn){
+    resetBtn.onclick = ()=>{
+      if(confirm('¿Borrar el progreso guardado de todos los módulos? Esta acción no se puede deshacer.')){
+        resetAllProgress();
+      }
+    };
+  }
+  main.querySelectorAll('.ovwcard').forEach(el=>{
+    el.onclick = ()=>{ state.currentId = el.dataset.id; state.view = 'learn'; render(); window.scrollTo(0,0); };
+  });
+  animateIn(main);
+}
+
+/* ============================================================
+   MÓDULO (learn / quiz)
+   ============================================================ */
+function renderModule(m){
+  const main = document.getElementById('main');
+  const hasCards = !!m.flashcards;
+  main.innerHTML = `
+    <div class="modhead">
+      <p class="eyebrow">${m.eyebrow}</p>
+      <h2>${m.title}</h2>
+      <p class="sub">${m.sub}</p>
+    </div>
+    <div class="tabs no-print">
+      <div class="tab ${state.view==='learn'?'active':''}" data-v="learn">Aprender</div>
+      <div class="tab ${state.view==='quiz'?'active':''}" data-v="quiz">Quiz (${m.quiz.length})</div>
+      <div style="margin-left:auto; align-self:center;"><button class="btn ghost" id="printBtn" style="font-size:10.5px; padding:6px 12px;">🖨️ Imprimir esta unidad</button></div>
+    </div>
+    <div id="modbody"></div>
+  `;
+  main.querySelectorAll('.tab').forEach(t=>{ t.onclick = ()=>{ state.view = t.dataset.v; render(); }; });
+  const printBtn = document.getElementById('printBtn');
+  if(printBtn) printBtn.onclick = ()=> window.print();
+  const body = document.getElementById('modbody');
+  if(state.view==='learn'){
+    body.innerHTML = m.content;
+    if(hasCards) renderFlashcards(m);
+  } else {
+    renderQuiz(m, body);
+  }
+  animateIn(main);
+}
+
+function renderFlashcards(m){
+  const grid = document.getElementById('flashgrid');
+  if(!grid) return;
+  grid.innerHTML = m.flashcards.map((f)=>`
+    <div class="flash" tabindex="0" role="button" aria-label="Tarjeta ${f.acr}, presiona Enter o Espacio para revelar">
+      <div class="flash-inner">
+        <div class="flash-face flash-front"><div class="acr">${f.acr}</div><div class="hint">toca para revelar</div></div>
+        <div class="flash-face flash-back"><div class="full">${f.full}</div><div class="desc">${f.desc}</div></div>
+      </div>
+    </div>
+  `).join('');
+  grid.querySelectorAll('.flash').forEach(el=>{
+    el.onclick = ()=> el.classList.toggle('flipped');
+    el.onkeydown = (e)=>{
+      if(e.key==='Enter' || e.key===' ' || e.key==='Spacebar'){
+        e.preventDefault();
+        el.classList.toggle('flipped');
+      }
+    };
+  });
+}
+
+/* ---------- Quiz engine ---------- */
+function renderQuiz(m, body){
+  const progress = state.quizProgress[m.id];
+  const total = m.quiz.length;
+  const answeredAll = progress.answered.every(a=>a!==null);
+
+  if(answeredAll){
+    const correct = progress.answered.filter(a=>a===true).length;
+    const missed = m.quiz.map((q,qi)=>({q,qi})).filter(x=>progress.answered[x.qi]===false);
+    body.innerHTML = `
+      <div class="qcard">
+        <div class="quizresult">
+          <div class="score">${correct}/${total}</div>
+          <div class="label">respuestas correctas en este módulo</div>
+          <button class="btn ghost" id="retryBtn">Reintentar quiz</button>
+        </div>
+        ${missed.length ? `
+        <div style="text-align:left; margin-top:10px;">
+          <h3 style="color:var(--red);">Preguntas a repasar (${missed.length})</h3>
+          ${missed.map(x=>`
+            <div class="note warn" style="margin:10px 0;">
+              <strong>${x.q.q}</strong><br>
+              Respuesta correcta: ${x.q.options[x.q.answer]}<br>
+              ${x.q.explain}
+            </div>
+          `).join('')}
+        </div>` : ''}
+      </div>
+    `;
+    document.getElementById('retryBtn').onclick = ()=>{
+      progress.answered = new Array(total).fill(null);
+      state.quizIndex[m.id] = 0;
+      saveProgress();
+      render();
+    };
+    return;
+  }
+
+  let idx = state.quizIndex[m.id];
+  if(progress.answered[idx]!==null){
+    idx = progress.answered.findIndex(a=>a===null);
+    state.quizIndex[m.id] = idx;
+  }
+  const q = m.quiz[idx];
+  body.innerHTML = `
+    <div class="qcounter">Pregunta ${idx+1} de ${total}</div>
+    <div class="qcard">
+      <p class="qtext">${q.q}</p>
+      <div id="optlist">
+        ${q.options.map((o,oi)=>`<div class="opt" data-oi="${oi}"><span class="bullet">${String.fromCharCode(65+oi)}</span><span>${o}</span></div>`).join('')}
+      </div>
+      <div class="explain" id="explainBox">${q.explain}</div>
+      <div class="qnav">
+        <span style="font-family:var(--mono); font-size:11px; color:var(--text-dim);">selecciona una opción</span>
+        <button class="btn" id="nextBtn" disabled>Siguiente</button>
+      </div>
+    </div>
+  `;
+  let picked = false;
+  document.querySelectorAll('#optlist .opt').forEach(el=>{
+    el.onclick = ()=>{
+      if(picked) return;
+      picked = true;
+      const oi = parseInt(el.dataset.oi);
+      const isCorrect = oi===q.answer;
+      progress.answered[idx] = isCorrect;
+      saveProgress();
+      document.querySelectorAll('#optlist .opt').forEach(o2=>{
+        const oi2 = parseInt(o2.dataset.oi);
+        if(oi2===q.answer) o2.classList.add('correct');
+        else if(oi2===oi) o2.classList.add('wrong');
+      });
+      document.getElementById('explainBox').classList.add('show');
+      const nb = document.getElementById('nextBtn');
+      nb.disabled = false;
+      nb.onclick = ()=>{
+        state.quizIndex[m.id] = idx+1 < total ? idx+1 : idx;
+        render();
+      };
+      renderSidebar();
+    };
+  });
+}
+
+/* ============================================================
+   RENDER PRINCIPAL
+   ============================================================ */
+function render(){
+  renderSidebar();
+  const m = MODULES.find(mm=>mm.id===state.currentId);
+  if(m.isOverview) renderOverview();
+  else renderModule(m);
+}
+
+render();
+</script>
+</body>
+</html>
