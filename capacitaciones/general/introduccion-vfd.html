@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Introducción a VFD · Capacitación Interactiva</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0f1620;
+    --panel: #16202c;
+    --panel-raised: #1e2a38;
+    --line: #2b3a4a;
+    --text: #e6edf5;
+    --text-dim: #8fa0b3;
+    --sky: #38bdf8;
+    --sky-dim: #163244;
+    --emerald: #34d399;
+    --emerald-dim: #14332a;
+    --red: #f87171;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+  :root.light-theme{
+    --bg: #f3f6fa;
+    --panel: #ffffff;
+    --panel-raised: #eef2f7;
+    --line: #d7e0ea;
+    --text: #1b2530;
+    --text-dim: #5c6b7d;
+    --sky-dim: #e0f2fe;
+    --emerald-dim: #d4f5e4;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  ::selection{background:var(--sky-dim);color:var(--text);}
+
+  @keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+  @keyframes slideInLeft{ from{opacity:0; transform:translateX(-14px);} to{opacity:1; transform:translateX(0);} }
+  @keyframes logoIn{ from{opacity:0; transform:scale(.9);} to{opacity:1; transform:scale(1);} }
+  .reveal{opacity:0; transform:translateY(18px); transition:opacity .55s cubic-bezier(.2,.7,.3,1), transform .55s cubic-bezier(.2,.7,.3,1);}
+  .reveal.in{opacity:1; transform:translateY(0);}
+
+  .app{display:flex; min-height:100vh;}
+  .sidebar{
+    width:280px; flex-shrink:0; background:var(--panel);
+    border-right:1px solid var(--line);
+    padding:22px 16px; position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .brand{padding:4px 8px 20px 8px; border-bottom:1px solid var(--line); margin-bottom:16px;}
+  .brand-logo{width:100%; max-width:170px; display:block; margin:0 0 14px 0; background:#fff; border-radius:6px; padding:8px 10px; animation:logoIn .8s cubic-bezier(.2,.8,.3,1);}
+  .brand .tag{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--emerald); text-transform:uppercase;}
+  .brand h1{font-size:18px; margin:6px 0 2px 0; line-height:1.25;}
+  .brand p{font-size:12px; color:var(--text-dim); margin:0;}
+
+  .navlist{list-style:none; margin:0; padding:0;}
+  .navitem{display:flex; align-items:center; gap:10px; padding:10px 10px; border-radius:6px; cursor:pointer; margin-bottom:2px; border:1px solid transparent; transition:background .2s ease, transform .2s ease;}
+  .navitem:hover{background:var(--panel-raised); transform:translateX(2px);}
+  .navitem.active{background:var(--panel-raised); border-color:var(--line);}
+  .led{width:9px; height:9px; border-radius:50%; flex-shrink:0; background:#3a4048; box-shadow:inset 0 0 0 1px rgba(0,0,0,.4);}
+  .led.done{background:var(--emerald); box-shadow:0 0 6px rgba(52,211,153,.7);}
+  .led.partial{background:var(--sky); box-shadow:0 0 6px rgba(56,189,248,.6);}
+  .navitem .num{font-family:var(--mono); font-size:11px; color:var(--text-dim); width:18px;}
+  .navitem .label{font-size:13.5px;}
+  .navitem.active .label{color:var(--sky);}
+
+  .sidebar-foot{margin-top:18px; padding-top:14px; border-top:1px solid var(--line); font-family:var(--mono); font-size:11px; color:var(--text-dim);}
+  .themebtn{margin-top:10px; width:100%; font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.04em; background:transparent; color:var(--text-dim); border:1px solid var(--line); padding:8px 10px; border-radius:6px; cursor:pointer;}
+  .themebtn:hover{color:var(--text); border-color:var(--sky);}
+
+  .main{flex:1; padding:36px 44px; max-width:920px; animation:fadeIn .5s ease;}
+  @media (max-width: 860px){ .app{flex-direction:column;} .sidebar{width:100%; height:auto; position:relative; border-right:none; border-bottom:1px solid var(--line);} .main{padding:24px;} }
+
+  .modhead{margin-bottom:8px;}
+  .modhead .eyebrow{font-family:var(--mono); font-size:11.5px; color:var(--sky); letter-spacing:.1em; text-transform:uppercase; margin:0 0 6px 0;}
+  .modhead h2{font-size:26px; margin:0 0 6px 0; line-height:1.2;}
+  .modhead .sub{color:var(--text-dim); font-size:14px; max-width:62ch; margin:0;}
+
+  .tabs{display:flex; gap:6px; margin:20px 0 22px 0; border-bottom:1px solid var(--line);}
+  .tab{font-family:var(--mono); font-size:12.5px; letter-spacing:.03em; padding:9px 14px; cursor:pointer; color:var(--text-dim); border-bottom:2px solid transparent; text-transform:uppercase;}
+  .tab:hover{color:var(--text);}
+  .tab.active{color:var(--sky); border-bottom-color:var(--sky);}
+
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:20px 22px; margin-bottom:14px; transition:transform .25s ease, border-color .25s ease;}
+  .card:hover{transform:translateY(-2px); border-color:var(--sky);}
+  .card h3{margin:18px 0 8px 0; font-size:14.5px; color:var(--sky); display:flex; align-items:center; gap:8px;}
+  .card h3:first-child{margin-top:0;}
+  .card p{margin:0 0 10px 0; font-size:14px; line-height:1.65;}
+  .card ul, .card ol{margin:8px 0 12px 0; padding-left:18px;}
+  .card li{font-size:13.5px; line-height:1.7; margin-bottom:5px;}
+
+  .note{margin:12px 0; padding:11px 13px; background:rgba(56,189,248,.07); border-left:3px solid var(--sky); font-size:12.5px; color:var(--text-dim); border-radius:0 5px 5px 0;}
+  .note.warn{background:rgba(248,113,113,.08); border-left-color:var(--red);}
+
+  table.tech{width:100%; border-collapse:collapse; font-family:var(--mono); font-size:12px; margin:6px 0 14px 0;}
+  table.tech th, table.tech td{padding:7px 9px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top;}
+  table.tech th{color:var(--sky); font-weight:600; background:var(--panel-raised);}
+  table.tech td{color:var(--text-dim);}
+
+  .fig{margin:14px 0 6px 0; text-align:center;}
+  .fig img{width:100%; max-width:460px; display:block; margin:0 auto; border-radius:6px; border:1px solid var(--line); background:#f5f3ee;}
+  .fig figcaption{font-family:var(--mono); font-size:10.5px; color:var(--text-dim); margin-top:6px;}
+
+  .placeholder{border:1px dashed var(--line); border-radius:8px; padding:16px; text-align:center; font-size:12px; color:var(--text-dim); margin:12px 0;}
+
+  .cardsgrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:14px; margin-top:6px;}
+  .flash{perspective:1000px; height:130px; cursor:pointer;}
+  .flash-inner{position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d;}
+  .flash.flipped .flash-inner{transform:rotateY(180deg);}
+  .flash-face{position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--line); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:12px;}
+  .flash-front{background:var(--panel-raised);}
+  .flash-front .acr{font-family:var(--mono); font-size:19px; color:var(--sky); font-weight:600;}
+  .flash-front .hint{font-size:10px; color:var(--text-dim); margin-top:8px; text-transform:uppercase; letter-spacing:.05em;}
+  .flash-back{background:var(--sky-dim); transform:rotateY(180deg);}
+  .flash-back .full{font-size:12px; font-weight:600; margin-bottom:5px;}
+  .flash-back .desc{font-size:11px; color:var(--text-dim); line-height:1.4;}
+
+  .ovwgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; margin-top:10px;}
+  .ovwcard{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px 18px; cursor:pointer; transition:transform .2s ease, border-color .2s ease;}
+  .ovwcard:hover{border-color:var(--sky); transform:translateY(-3px);}
+  .ovwcard .top{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .ovwcard .t-title{font-size:13.5px; font-weight:600;}
+  .ovwcard .t-sub{font-size:12px; color:var(--text-dim); line-height:1.4;}
+  .ovwcard .t-status{font-family:var(--mono); font-size:10.5px; text-transform:uppercase; color:var(--text-dim);}
+
+  .barwrap{height:5px; background:var(--panel-raised); border-radius:3px; overflow:hidden; margin-top:16px;}
+  .barfill{height:100%; background:linear-gradient(90deg, var(--sky), var(--emerald)); transition:width .4s;}
+
+  .qcounter{font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-bottom:10px;}
+  .qcard{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:22px;}
+  .qtext{font-size:15.5px; margin:0 0 18px 0; line-height:1.5;}
+  .opt{display:flex; align-items:center; gap:10px; padding:11px 14px; border:1px solid var(--line); border-radius:6px; margin-bottom:9px; cursor:pointer; font-size:13.5px; background:var(--panel-raised); transition:transform .15s ease, border-color .15s ease;}
+  .opt:hover{border-color:var(--sky); transform:translateX(3px);}
+  .opt.correct{border-color:var(--emerald); background:rgba(52,211,153,.1);}
+  .opt.wrong{border-color:var(--red); background:rgba(248,113,113,.1);}
+  .opt .bullet{width:18px; height:18px; border-radius:50%; border:1px solid var(--text-dim); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:10px; color:var(--text-dim);}
+  .opt.correct .bullet{border-color:var(--emerald); color:var(--emerald);}
+  .opt.wrong .bullet{border-color:var(--red); color:var(--red);}
+
+  .explain{margin-top:14px; padding:12px 14px; border-radius:6px; font-size:13px; line-height:1.55; background:var(--panel-raised); border:1px solid var(--line); display:none;}
+  .explain.show{display:block;}
+
+  .qnav{display:flex; justify-content:space-between; align-items:center; margin-top:20px;}
+  .btn{font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.04em; background:var(--sky); color:#04222f; border:none; padding:10px 18px; border-radius:5px; cursor:pointer; font-weight:600; transition:transform .15s ease, background .2s ease;}
+  .btn:hover{background:#ffbb4d; transform:translateY(-1px);}
+  .btn.ghost{background:transparent; color:var(--text-dim); border:1px solid var(--line);}
+  .btn.ghost:hover{color:var(--text); border-color:var(--sky);}
+  .btn:disabled{opacity:.35; cursor:not-allowed;}
+
+  .quizresult{text-align:center; padding:40px 20px;}
+  .quizresult .score{font-family:var(--mono); font-size:50px; color:var(--sky); margin-bottom:6px;}
+  .quizresult .label{color:var(--text-dim); font-size:12.5px; margin-bottom:22px;}
+
+  .resetrow{margin-top:26px; padding-top:16px; border-top:1px solid var(--line);}
+  ::-webkit-scrollbar{width:10px;}
+  ::-webkit-scrollbar-thumb{background:#4a3f2c; border-radius:6px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  .flash:focus-visible{outline:2px solid var(--sky); outline-offset:2px;}
+
+  @media print{
+    .sidebar, .no-print, .themebtn, .resetrow{display:none !important;}
+    body{background:#fff; color:#111;}
+    .main{max-width:100%; padding:0;}
+    .card{border:1px solid #999; break-inside:avoid; box-shadow:none;}
+    table.tech th, table.tech td{color:#111; border-bottom:1px solid #999;}
+    table.tech th{background:#eee;}
+    .fig img{max-width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <nav class="sidebar">
+    <div class="brand">
+      <img class="brand-logo" src="../../assets/logo-industrial-technology.png" alt="Logo de la empresa">
+      <div class="tag">Fundamentos · Sin marca</div>
+      <h1>Introducción a VFD</h1>
+      <p>Qué es un variador de frecuencia, cómo funciona y por qué las plantas industriales lo usan — sin conocimientos previos.</p>
+    </div>
+    <ul class="navlist" id="navlist"></ul>
+    <div class="sidebar-foot">
+      Introducción general · progreso guardado en este navegador
+      <button class="themebtn" id="themeToggle">🌓 Cambiar tema</button>
+      <a href="../../index.html" class="themebtn" style="display:block; text-align:center; text-decoration:none; margin-top:8px;">← Volver al portal</a>
+    </div>
+  </nav>
+
+  <main class="main" id="main"></main>
+</div>
+
+<script>
+/* ============================================================
+   HELPERS DE CONTENIDO
+   ============================================================ */
+const PLACEHOLDER = (txt) => `<div class="placeholder">🖼️ [Marcador de imagen: ${txt}]</div>`;
+const NOTE = (txt) => `<div class="note warn">⚠️ ${txt}</div>`;
+const INFO = (txt) => `<div class="note">💡 ${txt}</div>`;
+const H3 = (txt) => `<h3><span style="width:6px;height:6px;border-radius:50%;background:var(--sky);display:inline-block;"></span>${txt}</h3>`;
+
+/* ============================================================
+   MÓDULOS
+   ============================================================ */
+const MODULES = [
+{ id:'overview', title:'Panel general', short:'Inicio', isOverview:true },
+
+{
+  id:'que-es-vfd', title:'¿Qué es un VFD y para qué sirve?', short:'¿Qué es un VFD?',
+  eyebrow:'Módulo 01 · Fundamentos', sub:'Definición, analogía del acelerador, aplicaciones típicas y diferencia con un arrancador suave.',
+  content:`
+    <div class="card">
+      <p>Un <strong>VFD</strong> (Variable Frequency Drive — variador de velocidad o inversor de frecuencia) es un equipo electrónico que controla la <strong>velocidad y el torque</strong> de un motor eléctrico variando la frecuencia y el voltaje que le entrega, en lugar de conectarlo directamente a la red eléctrica a su velocidad fija de diseño.</p>
+
+      ${H3("La analogía del acelerador")}
+      <p>Pensá en un VFD como el "acelerador" del motor. Un arranque directo a red es como encender un auto sin acelerador gradual: el motor pasa de detenido a su velocidad máxima casi instantáneamente. Un VFD, en cambio, lleva al motor de forma suave y controlada exactamente a la velocidad que el proceso necesita en cada momento — ni más, ni menos.</p>
+
+      ${H3("Aplicaciones típicas")}
+      <ul>
+        <li>Bombas</li>
+        <li>Ventiladores</li>
+        <li>Compresores</li>
+        <li>Cintas transportadoras</li>
+        <li>Extrusoras</li>
+        <li>Grúas</li>
+      </ul>
+
+      ${H3("VFD vs. arrancador suave (soft starter)")}
+      <p>Es una confusión común, pero cumplen roles distintos: un <strong>arrancador suave</strong> solo controla la rampa de arranque y de parada del motor — una vez arrancado, el motor queda funcionando a la velocidad fija de la red. Un <strong>VFD</strong> controla la velocidad de forma continua durante <em>toda</em> la operación, no solo al arrancar, permitiendo ajustarla en cualquier momento según lo requiera el proceso.</p>
+
+      ${INFO("A lo largo de este curso vas a ver términos como \"macro de aplicación\" o \"control vectorial\" que cada fabricante nombra distinto — acá se explican de forma genérica; los detalles específicos de cada marca se profundizan en las capacitaciones dedicadas del sitio.")}
+
+      ${PLACEHOLDER("Comparación lado a lado: motor conectado directo a red a velocidad fija vs. motor controlado por un VFD a velocidad variable")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué controla principalmente un VFD en un motor eléctrico?", options:["Solo el sentido de giro","La velocidad y el torque, variando frecuencia y voltaje entregados","Solo la temperatura del motor","El color del gabinete"], answer:1, explain:"Un VFD controla velocidad y torque del motor variando la frecuencia y el voltaje que le entrega, en vez de conectarlo directo a red a velocidad fija." },
+    { q:"¿Cuál es la analogía usada para explicar la función del VFD?", options:["El freno de mano","El acelerador del motor","El limpiaparabrisas","La bocina"], answer:1, explain:"El VFD funciona como un acelerador: lleva al motor suavemente a la velocidad que el proceso necesita, en vez de un encendido/apagado a máxima velocidad." },
+    { q:"¿Cuál de estas NO es una aplicación típica mencionada para VFD?", options:["Bombas","Cintas transportadoras","Grúas","Refrigeradores domésticos"], answer:3, explain:"Las aplicaciones típicas mencionadas son bombas, ventiladores, compresores, cintas transportadoras, extrusoras y grúas — no electrodomésticos." },
+    { q:"¿Cuál es la diferencia clave entre un VFD y un arrancador suave?", options:["No hay diferencia, son lo mismo","El arrancador suave solo controla arranque/parada; el VFD controla la velocidad de forma continua durante toda la operación","El arrancador suave es más caro","El VFD solo sirve para detener motores"], answer:1, explain:"El arrancador suave gestiona únicamente la rampa de arranque y parada; el VFD mantiene control continuo de velocidad durante toda la operación." },
+    { q:"Una vez arrancado con un arrancador suave, ¿a qué velocidad queda funcionando el motor?", options:["A la velocidad fija que impone la red eléctrica","A una velocidad variable ajustable en todo momento","Se detiene automáticamente","A la mitad de su velocidad nominal siempre"], answer:0, explain:"Con un arrancador suave, una vez completado el arranque, el motor queda funcionando a la velocidad fija de la red — no hay control continuo de velocidad como en un VFD." }
+  ]
+},
+
+{
+  id:'arquitectura-basica', title:'Arquitectura básica: cómo funciona por dentro', short:'Arquitectura básica',
+  eyebrow:'Módulo 02 · Fundamentos', sub:'Rectificador, bus DC e inversor — las tres etapas que reconstruyen una onda de frecuencia variable.',
+  content:`
+    <div class="card">
+      <p>Internamente, un VFD se organiza en tres etapas principales conectadas en cascada:</p>
+
+      ${H3("1. Rectificador — AC de red a DC")}
+      <p>Convierte la corriente alterna (AC) de la red eléctrica en corriente continua (DC), típicamente mediante un puente de diodos o tiristores.</p>
+
+      ${H3("2. Bus DC — almacena y filtra")}
+      <p>Un banco de condensadores almacena y filtra esa energía DC, entregando una tensión continua estable como reserva de energía para la siguiente etapa. En instalaciones grandes, el bus DC puede <strong>compartirse entre múltiples inversores</strong>, permitiendo que varios motores tomen energía de una misma reserva DC.</p>
+
+      ${H3("3. Inversor — DC a AC de frecuencia y voltaje variable")}
+      <p>Semiconductores de potencia (IGBTs) reconstruyen una salida de corriente alterna con frecuencia y voltaje variables, usando una técnica llamada <strong>PWM (Pulse Width Modulation, modulación por ancho de pulso)</strong>: una conmutación muy rápida de pulsos DC de ancho variable que, promediados en el tiempo, simulan una onda senoidal de frecuencia ajustable.</p>
+
+      ${INFO("Filtros opcionales (du/dt, senoidales) pueden agregarse a la salida del inversor para reducir el estrés dieléctrico en el motor y en cables largos — un concepto a tener en cuenta en instalaciones con distancias grandes entre el VFD y el motor, aunque el detalle de cuándo son necesarios depende de cada instalación y fabricante.")}
+
+      ${PLACEHOLDER("Diagrama de bloques: Red AC → Rectificador → Bus DC → Inversor (IGBT) → Motor, mostrando la onda senoidal de entrada y la señal PWM de salida")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuáles son las tres etapas principales de un VFD, en orden?", options:["Inversor → Bus DC → Rectificador","Rectificador → Bus DC → Inversor","Motor → Rectificador → Inversor","Bus DC → Rectificador → Motor"], answer:1, explain:"La energía fluye: rectificador (AC a DC) → bus DC (almacena/filtra) → inversor (DC a AC variable)." },
+    { q:"¿Qué función cumple el rectificador?", options:["Convierte AC de red en DC","Convierte DC en AC","Almacena energía en condensadores","Mide la velocidad del motor"], answer:0, explain:"El rectificador convierte la corriente alterna de la red en corriente continua, típicamente con diodos o tiristores." },
+    { q:"¿Qué es el PWM (Pulse Width Modulation)?", options:["Un tipo de motor","Una conmutación rápida de pulsos DC de ancho variable que simula una onda senoidal de frecuencia ajustable","Un protocolo de comunicación digital","El nombre de la etapa rectificadora"], answer:1, explain:"PWM es la técnica de conmutación rápida con pulsos de ancho variable que el inversor usa para reconstruir una onda de frecuencia y voltaje variable." },
+    { q:"En instalaciones grandes, ¿qué puede compartirse entre múltiples inversores?", options:["El motor","El bus DC","El rectificador de otro variador distinto","El panel de control únicamente"], answer:1, explain:"El bus DC puede compartirse entre varios inversores, permitiendo que múltiples motores tomen energía de una misma reserva DC común." },
+    { q:"¿Para qué se usan los filtros opcionales du/dt o senoidales mencionados en este módulo?", options:["Para aumentar la velocidad máxima del motor","Para reducir el estrés dieléctrico en el motor y en cables largos","Para reemplazar al rectificador","Para eliminar el bus DC"], answer:1, explain:"Estos filtros opcionales reducen el estrés dieléctrico que la conmutación PWM puede generar en el motor y en cables largos entre el VFD y el motor." }
+  ]
+},
+
+{
+  id:'beneficios', title:'Por qué usar un VFD: beneficios', short:'Beneficios',
+  eyebrow:'Módulo 03 · Fundamentos', sub:'Ahorro energético, arranque suave, control de proceso y reducción de desgaste mecánico.',
+  content:`
+    <div class="card">
+      ${H3("Ahorro energético — la ley de afinidad (ley del cubo)")}
+      <p>En cargas de <strong>par cuadrático</strong> (bombas, ventiladores), la potencia consumida es proporcional al <strong>cubo de la velocidad</strong>. Esto significa que reducir la velocidad un 20% puede ahorrar hasta aproximadamente un <strong>50% de energía</strong>, en lugar de estrangular una válvula o una compuerta para lograr el mismo efecto de caudal reducido.</p>
+      ${NOTE("Esta cifra (~50% de ahorro al reducir 20% la velocidad) es un rango típico ilustrativo de la ley de afinidad; el ahorro real varía según la aplicación, el punto de operación y la curva específica del sistema — no debe tomarse como una garantía numérica universal.")}
+
+      ${H3("Arranque suave")}
+      <p>Un arranque directo a red puede generar picos de corriente de arranque de <strong>6 a 8 veces la corriente nominal</strong> del motor, además de golpes mecánicos bruscos en acoples y estructura. Un VFD reduce ambos efectos llevando al motor a su velocidad de forma gradual.</p>
+
+      ${H3("Control de proceso")}
+      <p>Permite ajustar velocidad, presión o caudal en tiempo real según las necesidades reales del proceso, en vez de operar siempre a máxima capacidad.</p>
+
+      ${H3("Reducción de desgaste mecánico")}
+      <p>Al eliminar arranques bruscos y permitir operar a la velocidad justa necesaria, se reduce el estrés mecánico en acoples, rodamientos y correas, extendiendo su vida útil.</p>
+
+      ${PLACEHOLDER("Gráfico potencia vs. velocidad mostrando la curva cúbica típica de cargas de par cuadrático (bombas/ventiladores)")}
+    </div>
+  `,
+  quiz:[
+    { q:"Según la ley de afinidad (ley del cubo), ¿a qué es proporcional la potencia en cargas de par cuadrático como bombas y ventiladores?", options:["A la velocidad","Al cuadrado de la velocidad","Al cubo de la velocidad","Es independiente de la velocidad"], answer:2, explain:"En cargas de par cuadrático, la potencia consumida es proporcional al cubo de la velocidad — por eso reducciones pequeñas de velocidad generan ahorros energéticos grandes." },
+    { q:"¿Qué ahorro energético aproximado puede lograrse al reducir la velocidad un 20% en una carga de par cuadrático, según el rango típico mencionado?", options:["Ninguno","Hasta aproximadamente 50%","Exactamente 20%","100%"], answer:1, explain:"El módulo indica que reducir la velocidad un 20% puede ahorrar hasta aproximadamente un 50% de energía, aclarando que es un rango típico y no una cifra garantizada." },
+    { q:"¿Cuántas veces la corriente nominal puede alcanzar el pico de corriente en un arranque directo a red?", options:["1-2 veces","6-8 veces","20-30 veces","No hay pico de corriente"], answer:1, explain:"Un arranque directo puede generar picos de corriente de 6 a 8 veces la corriente nominal del motor." },
+    { q:"¿Qué beneficio aporta el VFD en términos de desgaste mecánico?", options:["Aumenta el desgaste de rodamientos","Reduce el estrés mecánico en acoples, rodamientos y correas al evitar arranques bruscos","No tiene relación con el desgaste mecánico","Solo afecta el desgaste eléctrico, nunca el mecánico"], answer:1, explain:"Al eliminar arranques bruscos y operar a la velocidad justa necesaria, se reduce el estrés mecánico en acoples, rodamientos y correas." },
+    { q:"¿Por qué el módulo aclara que la cifra de ahorro de ~50% es un \"rango típico\" y no una garantía?", options:["Porque es un error tipográfico","Porque el ahorro real varía según la aplicación, el punto de operación y la curva específica del sistema","Porque nunca hay ahorro energético con VFD","Porque solo aplica a motores monofásicos"], answer:1, explain:"El ahorro real depende de la aplicación específica, el punto de operación y la curva del sistema, por lo que la cifra es ilustrativa, no una garantía numérica universal." }
+  ]
+},
+
+{
+  id:'control-escalar-vectorial', title:'Control escalar vs. vectorial/DTC', short:'Escalar vs. vectorial',
+  eyebrow:'Módulo 04 · Fundamentos', sub:'Dos filosofías de control con distinto nivel de sofisticación, precisión y costo.',
+  content:`
+    <div class="card">
+      ${H3("Control escalar (V/Hz)")}
+      <p>Mantiene una relación fija entre voltaje y frecuencia (V/Hz). Es simple y económico, adecuado para cargas simples que no exigen gran torque a baja velocidad, como muchos ventiladores y bombas centrífugas.</p>
+
+      ${H3("Control vectorial")}
+      <p>Calcula y controla por separado las componentes de <strong>flujo</strong> y <strong>torque</strong> de la corriente del motor. Esto le da una respuesta dinámica mucho mejor y buen torque incluso a baja velocidad o velocidad cero — algo que el control escalar no logra bien.</p>
+
+      ${H3("DTC (Direct Torque Control) — ejemplo ilustrativo")}
+      <p>El DTC es una variante de control vectorial que controla directamente el torque y el flujo del motor, sin un modulador PWM tradicional intermedio entre el cálculo de control y la conmutación del inversor.</p>
+      ${NOTE("El DTC se menciona acá únicamente como ejemplo ilustrativo de una implementación de control avanzado que existe comercialmente en el mercado de VFD — no es un estándar universal de la industria ni una técnica exclusiva de una sola marca, y este curso no lo atribuye a ningún fabricante específico de los cubiertos en este sitio. Cada fabricante documenta su propia variante de control vectorial/directo con su propio nombre comercial.")}
+
+      ${H3("Comparativa rápida")}
+      <table class="tech">
+        <tr><th>Aspecto</th><th>Control escalar (V/Hz)</th><th>Control vectorial (incl. variantes tipo DTC)</th></tr>
+        <tr><td>Precisión de torque a baja velocidad</td><td>Limitada</td><td>Alta, incluso a velocidad cero</td></tr>
+        <tr><td>Respuesta dinámica</td><td>Más lenta</td><td>Rápida</td></tr>
+        <tr><td>Costo / complejidad de puesta en marcha</td><td>Bajo / simple</td><td>Mayor / requiere más ajuste</td></tr>
+        <tr><td>Uso típico</td><td>Ventiladores y bombas centrífugas simples</td><td>Grúas, extrusoras, procesos con exigencia dinámica de torque</td></tr>
+      </table>
+
+      ${INFO("Mensaje clave: a mayor sofisticación de control, mejor precisión y respuesta dinámica se obtiene, pero también aumenta el costo y la complejidad de la puesta en marcha. La elección depende de lo que realmente exige la aplicación.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué relación mantiene fija el control escalar (V/Hz)?", options:["Velocidad y torque","Voltaje y frecuencia","Corriente y flujo","Presión y caudal"], answer:1, explain:"El control escalar mantiene una relación fija entre voltaje y frecuencia (V/Hz)." },
+    { q:"¿Qué componentes de la corriente del motor calcula y controla por separado el control vectorial?", options:["Voltaje y frecuencia únicamente","Flujo y torque","Presión y temperatura","Solo la corriente total"], answer:1, explain:"El control vectorial calcula y controla por separado las componentes de flujo y torque de la corriente del motor." },
+    { q:"Según el módulo, ¿cómo debe interpretarse la mención de DTC (Direct Torque Control)?", options:["Como el único estándar de control vectorial de la industria","Como ejemplo ilustrativo de una implementación comercial existente, no como estándar universal ni exclusivo de una marca","Como una técnica exclusiva de control escalar","Como algo obsoleto que ya no se usa"], answer:1, explain:"El módulo aclara explícitamente que el DTC se menciona como ejemplo ilustrativo, no como estándar universal ni atribuible a una marca específica." },
+    { q:"¿Qué tipo de control ofrece mejor torque a baja velocidad o velocidad cero?", options:["Control escalar","Control vectorial","Ninguno de los dos puede controlar torque","Depende solo del tamaño del motor"], answer:1, explain:"El control vectorial ofrece mejor respuesta dinámica y buen torque incluso a baja velocidad o velocidad cero, algo que el escalar no logra bien." },
+    { q:"¿Cuál es el mensaje clave del módulo respecto a la sofisticación del control?", options:["Siempre conviene usar el control más simple posible","A mayor sofisticación, mejor precisión y respuesta dinámica, pero mayor costo y complejidad de puesta en marcha","El costo es siempre el mismo sin importar el tipo de control","La sofisticación del control no afecta la precisión"], answer:1, explain:"El mensaje clave es que a mayor sofisticación de control se gana precisión y respuesta dinámica, a costa de mayor costo y complejidad de puesta en marcha." }
+  ]
+},
+
+{
+  id:'macros-modos-control', title:'Macros y modos de control comunes', short:'Macros y control',
+  eyebrow:'Módulo 05 · Fundamentos', sub:'Macros de aplicación, fuentes de referencia de velocidad y control PID integrado.',
+  content:`
+    <div class="card">
+      ${H3("Macro de aplicación")}
+      <p>Una <strong>macro de aplicación</strong> es un conjunto preconfigurado de parámetros y de asignación de entradas/salidas orientado a una aplicación típica (por ejemplo: bomba, ventilador, transportador, control PID). Usar una macro acelera considerablemente la puesta en marcha, ya que evita configurar cada parámetro individual desde cero.</p>
+
+      ${H3("Modos de referencia de velocidad comunes")}
+      <ul>
+        <li><strong>Potenciómetro o panel local:</strong> ajuste manual directo en el equipo.</li>
+        <li><strong>Señal analógica:</strong> 4-20 mA o 0-10V desde un instrumento o controlador externo.</li>
+        <li><strong>Velocidades fijas (multi-step):</strong> selección entre un set de velocidades predefinidas mediante entradas digitales.</li>
+        <li><strong>Comunicación digital (fieldbus):</strong> referencia enviada por un bus de comunicación industrial desde un PLC/SCADA.</li>
+      </ul>
+
+      ${H3("Control PID integrado")}
+      <p>Muchos VFD incluyen un lazo <strong>PID</strong> integrado que permite regular directamente presión, caudal o temperatura sin necesidad de un controlador externo dedicado — el propio variador ajusta su velocidad para mantener la variable de proceso en el punto deseado.</p>
+
+      ${NOTE("Los nombres exactos de las macros y su forma de configuración varían de un fabricante a otro. Ese nivel de detalle específico se cubre en las capacitaciones de marca de este sitio — revisá las secciones dedicadas a cada fabricante en el <a href=\"../../index.html#cursos\" style=\"color:var(--sky);\">portal de capacitaciones</a> para ver la implementación concreta de cada uno.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué es una macro de aplicación?", options:["Un tipo de motor especial","Un conjunto preconfigurado de parámetros y asignación de E/S orientado a una aplicación típica","Un cable de comunicación","Un accesorio mecánico del variador"], answer:1, explain:"Una macro de aplicación agrupa parámetros y asignación de entradas/salidas preconfigurados para una aplicación típica, acelerando la puesta en marcha." },
+    { q:"¿Cuál de estos NO es un modo de referencia de velocidad mencionado en el módulo?", options:["Potenciómetro/panel local","Señal analógica 4-20mA/0-10V","Comunicación digital (fieldbus)","Control manual por radio frecuencia doméstica"], answer:3, explain:"Los modos mencionados son potenciómetro/panel local, señal analógica, velocidades fijas (multi-step) y comunicación digital (fieldbus)." },
+    { q:"¿Qué permite hacer el control PID integrado de muchos VFD?", options:["Cambiar el sentido de giro del motor","Regular presión, caudal o temperatura sin necesidad de un controlador externo dedicado","Aumentar la frecuencia de conmutación","Sustituir al rectificador"], answer:1, explain:"El PID integrado permite que el propio variador ajuste su velocidad para mantener presión, caudal o temperatura en el punto deseado, sin controlador externo." },
+    { q:"¿Qué es el modo \"multi-step\" de referencia de velocidad?", options:["Selección entre un set de velocidades fijas predefinidas mediante entradas digitales","Un tipo de macro de seguridad","Un protocolo de comunicación serial","Un modo exclusivo para motores trifásicos"], answer:0, explain:"Multi-step permite seleccionar entre velocidades fijas predefinidas usando entradas digitales." },
+    { q:"Según el módulo, ¿dónde se profundiza en los nombres exactos de macros de cada fabricante?", options:["No se profundiza en ningún lado","En las capacitaciones específicas de marca del sitio","Solo en el manual del usuario final","Los nombres son siempre idénticos entre fabricantes"], answer:1, explain:"El módulo aclara que los nombres exactos de macros varían por fabricante y remite a las capacitaciones específicas de marca del portal." }
+  ]
+},
+
+{
+  id:'glosario', title:'Vocabulario técnico esencial', short:'Glosario',
+  eyebrow:'Módulo 06 · Fundamentos', sub:'Términos clave que vas a encontrar en cualquier capacitación de VFD, sin importar la marca.',
+  content:`
+    <div class="card">
+      <p>Este glosario reúne los términos técnicos esenciales que aparecen recurrentemente al hablar de variadores de frecuencia — conocerlos facilita seguir cualquiera de las capacitaciones específicas de marca de este sitio.</p>
+      <table class="tech">
+        <tr><th>Término</th><th>Definición</th></tr>
+        <tr><td>VFD / variador de frecuencia</td><td>Equipo que controla velocidad y torque de un motor variando frecuencia y voltaje entregados.</td></tr>
+        <tr><td>IGBT</td><td>Insulated Gate Bipolar Transistor — semiconductor de potencia que forma la etapa inversora del VFD.</td></tr>
+        <tr><td>PWM</td><td>Pulse Width Modulation — conmutación rápida de pulsos DC de ancho variable que simula una onda senoidal de frecuencia ajustable.</td></tr>
+        <tr><td>Bus DC</td><td>Etapa intermedia que almacena y filtra la energía en corriente continua entre el rectificador y el inversor.</td></tr>
+        <tr><td>Rectificador</td><td>Etapa que convierte la corriente alterna de red en corriente continua.</td></tr>
+        <tr><td>Inversor</td><td>Etapa que convierte la corriente continua del bus DC en corriente alterna de frecuencia y voltaje variable.</td></tr>
+        <tr><td>THD</td><td>Total Harmonic Distortion — distorsión armónica total; relevante por la contaminación que un VFD puede introducir en la red eléctrica.</td></tr>
+        <tr><td>Encoder</td><td>Dispositivo de realimentación de velocidad o posición usado en esquemas de control en lazo cerrado.</td></tr>
+        <tr><td>Macro de aplicación</td><td>Conjunto preconfigurado de parámetros y asignación de E/S orientado a una aplicación típica.</td></tr>
+        <tr><td>Control escalar (V/Hz)</td><td>Filosofía de control que mantiene una relación fija entre voltaje y frecuencia.</td></tr>
+        <tr><td>Control vectorial</td><td>Filosofía de control que calcula y controla por separado flujo y torque de la corriente del motor.</td></tr>
+        <tr><td>DTC (Direct Torque Control)</td><td>Variante de control vectorial que controla directamente torque y flujo sin modulador PWM tradicional intermedio.</td></tr>
+        <tr><td>Par / torque nominal</td><td>Torque de referencia para el cual el motor está diseñado a operar de forma continua.</td></tr>
+        <tr><td>Rampa de aceleración/desaceleración</td><td>Tiempo programado en que el VFD lleva al motor de una velocidad a otra de forma gradual.</td></tr>
+        <tr><td>Frecuencia de conmutación</td><td>Velocidad (switching frequency) a la que conmutan los IGBT del inversor al generar la señal PWM.</td></tr>
+        <tr><td>Grado de protección IP</td><td>Clasificación (Ingress Protection) del nivel de sellado del gabinete frente a polvo y agua.</td></tr>
+      </table>
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué significa la sigla IGBT?", options:["International Grid Bus Terminal","Insulated Gate Bipolar Transistor","Integrated General Board Type","Inverter Generated Bus Trigger"], answer:1, explain:"IGBT significa Insulated Gate Bipolar Transistor, el semiconductor de potencia de la etapa inversora del VFD." },
+    { q:"¿Qué mide el THD (Total Harmonic Distortion)?", options:["La temperatura del motor","La distorsión armónica total, relevante por la contaminación que un VFD introduce en la red","El torque nominal del motor","La velocidad de rotación del eje"], answer:1, explain:"THD es la distorsión armónica total, un indicador de la contaminación eléctrica que un VFD puede introducir en la red." },
+    { q:"¿Para qué se usa un encoder en un VFD?", options:["Para rectificar la corriente","Como realimentación de velocidad o posición en esquemas de control en lazo cerrado","Para almacenar energía en el bus DC","Para filtrar armónicos"], answer:1, explain:"El encoder entrega realimentación de velocidad o posición, usada en esquemas de control en lazo cerrado." },
+    { q:"¿Qué indica el grado de protección IP de un gabinete de VFD?", options:["El nivel de sellado frente a polvo y agua","La potencia nominal del equipo","El tipo de control (escalar o vectorial)","La marca del fabricante"], answer:0, explain:"El grado de protección IP (Ingress Protection) clasifica el nivel de sellado del gabinete frente a polvo y agua." },
+    { q:"¿Qué define la \"rampa de aceleración/desaceleración\"?", options:["La frecuencia de conmutación de los IGBT","El tiempo programado en que el VFD lleva al motor de una velocidad a otra de forma gradual","El torque nominal del motor","La distorsión armónica total"], answer:1, explain:"La rampa de aceleración/desaceleración es el tiempo programado en que el VFD cambia la velocidad del motor de forma gradual." }
+  ]
+},
+
+{
+  id:'seguridad-electrica', title:'Seguridad eléctrica básica al trabajar con VFDs', short:'Seguridad eléctrica',
+  eyebrow:'Módulo 07 · Seguridad', sub:'Energía residual del bus DC, EPP, bloqueo/etiquetado (LOTO) y riesgo de arranque inesperado.',
+  content:`
+    <div class="card">
+      ${NOTE("Este módulo tiene contenido de seguridad crítico. Su objetivo es dar una base conceptual general — siempre debe complementarse con el procedimiento de bloqueo/etiquetado y las normas de seguridad eléctrica vigentes en tu planta, y con el manual específico del equipo con el que trabajes.")}
+
+      ${H3("Riesgo de energía residual en el bus DC")}
+      <p>El bus DC de un VFD almacena energía en un banco de condensadores. Esa energía <strong>puede mantener voltaje peligroso durante varios minutos</strong> después de desconectar la alimentación de red, aunque el equipo "parezca" apagado. Nunca hay que asumir que un VFD está sin tensión solo porque se cortó el interruptor principal.</p>
+      ${NOTE("Siempre verificar la ausencia de tensión con un multímetro y respetar el tiempo de descarga indicado por el fabricante del equipo específico antes de manipular cualquier terminal de potencia o abrir el gabinete.")}
+
+      ${H3("Equipo de protección personal (EPP) básico")}
+      <ul>
+        <li>Guantes dieléctricos</li>
+        <li>Protección facial</li>
+        <li>Herramientas aisladas cuando se trabaja en tableros energizados</li>
+      </ul>
+
+      ${H3("Bloqueo y etiquetado (LOTO — Lockout/Tagout)")}
+      <p>Antes de cualquier intervención sobre un VFD o su instalación, debe aplicarse el procedimiento de bloqueo y etiquetado de la fuente de energía, siguiendo el protocolo formal de tu planta.</p>
+
+      ${H3("Riesgo adicional: arranque inesperado")}
+      <p>Un VFD puede estar configurado para recibir su orden de marcha desde un control remoto o automático (PLC, fieldbus, temporizador). Por eso, siempre hay que verificar el modo de control activo antes de tocar el motor o su acople mecánico — un arranque remoto inesperado con alguien en contacto con el eje o el acople es un riesgo real.</p>
+
+      ${PLACEHOLDER("Pictograma de advertencia de energía residual, típico en la puerta de gabinetes de VFD")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Por qué el bus DC de un VFD puede seguir siendo peligroso después de desconectar la red?", options:["Porque el motor sigue girando","Porque el banco de condensadores del bus DC almacena energía que puede mantener voltaje peligroso durante varios minutos","Porque la red nunca se desconecta realmente","No es peligroso una vez desconectada la red"], answer:1, explain:"El banco de condensadores del bus DC almacena energía que puede mantener tensión peligrosa durante varios minutos tras desconectar la red." },
+    { q:"¿Qué se debe hacer antes de manipular terminales de potencia de un VFD, además de esperar el tiempo de descarga del fabricante?", options:["Nada más, alcanza con esperar","Verificar la ausencia de tensión con un multímetro","Golpear el gabinete para descargarlo","Desconectar solo el motor, no la red"], answer:1, explain:"Siempre hay que verificar con un multímetro la ausencia de tensión, sin confiar únicamente en el tiempo de espera." },
+    { q:"¿Qué procedimiento debe aplicarse antes de cualquier intervención sobre un VFD?", options:["Ninguno, se puede intervenir directamente","Bloqueo y etiquetado (LOTO) de la fuente de energía","Solo avisar por radio","Aumentar la velocidad del motor primero"], answer:1, explain:"El procedimiento de bloqueo y etiquetado (LOTO) debe aplicarse siempre antes de cualquier intervención." },
+    { q:"¿Cuál es el riesgo adicional de \"arranque inesperado\" mencionado en este módulo?", options:["Que el VFD explote sin razón","Que el motor arranque por una orden remota o automática mientras alguien está en contacto con el motor o su acople","Que se dañe el bus DC","Que la red eléctrica se sobrecargue"], answer:1, explain:"Un VFD puede recibir orden de marcha remota (PLC, fieldbus, temporizador), por lo que siempre hay que verificar el modo de control antes de tocar el motor o el acople." },
+    { q:"¿Cuál de estos elementos de EPP básico se menciona explícitamente en el módulo?", options:["Casco de obra únicamente","Guantes dieléctricos, protección facial y herramientas aisladas","Botas de lluvia","Chaleco reflectivo únicamente"], answer:1, explain:"El módulo menciona guantes dieléctricos, protección facial y herramientas aisladas como EPP básico al trabajar en tableros energizados." }
+  ]
+},
+
+{
+  id:'puesta-en-marcha', title:'Qué esperar de una puesta en marcha profesional', short:'Puesta en marcha',
+  eyebrow:'Módulo 08 · Fundamentos', sub:'Etapas típicas de comisionamiento, documentación esperada y hacia dónde seguir aprendiendo.',
+  content:`
+    <div class="card">
+      ${H3("Etapas típicas de una puesta en marcha")}
+      <ul>
+        <li>Inspección de la instalación (cableado, conexión a tierra, ventilación)</li>
+        <li>Configuración de parámetros básicos, usando los datos de placa del motor</li>
+        <li>Pruebas en vacío (sin carga mecánica conectada)</li>
+        <li>Ajuste de rampas de aceleración/desaceleración y de protecciones</li>
+        <li>Prueba final con carga real del proceso</li>
+      </ul>
+
+      ${H3("Documentación entregable esperada")}
+      <ul>
+        <li>Listado de parámetros configurados</li>
+        <li>Registro de las pruebas realizadas</li>
+        <li>Recomendaciones de mantenimiento</li>
+      </ul>
+
+      ${H3("Hacia dónde seguir")}
+      <p>Cada fabricante (VACON, ABB y otros) tiene su propio software de configuración, su propia nomenclatura de parámetros y su propio procedimiento de puesta en marcha. Las capacitaciones específicas de marca de este sitio profundizan en cada uno de esos detalles concretos, una vez que ya tenés esta base conceptual general.</p>
+
+      <div class="note" style="margin-top:18px;">
+        💡 ¿Necesitás ayuda con la puesta en marcha o el diagnóstico de un VFD en tu planta? <a href="../../index.html#contacto" style="color:var(--sky); font-weight:600;">Contactame para una consultoría →</a>
+      </div>
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuál de estas es una etapa típica de una puesta en marcha profesional de VFD?", options:["Configuración de parámetros básicos usando los datos de placa del motor","Pintar el gabinete","Cambiar el color de la interfaz","Eliminar el bus DC"], answer:0, explain:"La configuración de parámetros básicos con los datos de placa del motor es una etapa típica y esencial de la puesta en marcha." },
+    { q:"¿Qué se prueba antes de conectar la carga real del proceso?", options:["Solo la documentación","Pruebas en vacío, sin carga mecánica conectada","La factura del equipo","El color del motor"], answer:1, explain:"Antes de la prueba con carga real, se realizan pruebas en vacío (sin carga mecánica conectada) para validar el funcionamiento básico." },
+    { q:"¿Qué documentación entregable se espera al finalizar una puesta en marcha profesional?", options:["Nada, no se entrega documentación","Listado de parámetros configurados, registro de pruebas y recomendaciones de mantenimiento","Solo una factura","Solo el manual del fabricante sin anotaciones"], answer:1, explain:"Se espera entregar el listado de parámetros configurados, el registro de pruebas realizadas y recomendaciones de mantenimiento." },
+    { q:"¿Por qué el módulo remite a las capacitaciones específicas de marca del sitio?", options:["Porque este módulo no es válido","Porque cada fabricante tiene su propio software, nomenclatura de parámetros y procedimiento de puesta en marcha","Porque las marcas específicas no tienen relación con este contenido","Porque no hay más contenido disponible"], answer:1, explain:"Cada fabricante tiene su propio software, nomenclatura de parámetros y procedimiento, por lo que ese detalle se profundiza en las capacitaciones de marca." },
+    { q:"¿Qué ajuste se menciona junto con las protecciones dentro de las etapas típicas de puesta en marcha?", options:["El ajuste de rampas de aceleración/desaceleración","El ajuste del logo de la empresa","El cambio de idioma del panel","La pintura del gabinete"], answer:0, explain:"El ajuste de rampas de aceleración/desaceleración se realiza junto con el ajuste de protecciones como parte de la puesta en marcha." }
+  ]
+}
+];
+
+/* ============================================================
+   ESTADO + PERSISTENCIA (localStorage)
+   ============================================================ */
+const STORAGE_KEY = 'introduccion_vfd_training_progress_v1';
+const THEME_KEY = 'capacitacion-theme';
+
+const state = {
+  currentId: 'overview',
+  view: 'learn',
+  quizProgress: {},
+  quizIndex: {},
+};
+MODULES.forEach(m=>{
+  if(m.quiz){ state.quizProgress[m.id] = { answered: new Array(m.quiz.length).fill(null) }; state.quizIndex[m.id] = 0; }
+});
+
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const saved = JSON.parse(raw);
+    MODULES.forEach(m=>{
+      if(!m.quiz) return;
+      const savedAnswers = saved && saved[m.id];
+      if(Array.isArray(savedAnswers) && savedAnswers.length === m.quiz.length){
+        state.quizProgress[m.id].answered = savedAnswers;
+      }
+    });
+  }catch(e){ console.warn('No se pudo cargar el progreso guardado:', e); }
+}
+function saveProgress(){
+  try{
+    const data = {};
+    MODULES.forEach(m=>{ if(m.quiz) data[m.id] = state.quizProgress[m.id].answered; });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }catch(e){ console.warn('No se pudo guardar el progreso:', e); }
+  syncPortalProgress();
+}
+function syncPortalProgress(){
+  try{
+    const teachable = MODULES.filter(m=>!m.isOverview);
+    const total = teachable.reduce((s,m)=>s+m.quiz.length,0);
+    const done = teachable.reduce((s,m)=>s+state.quizProgress[m.id].answered.filter(a=>a!==null).length,0);
+    localStorage.setItem('vfd_progress_introduccion-vfd', JSON.stringify({ done, total }));
+  }catch(e){ console.warn('No se pudo sincronizar el progreso con el portal:', e); }
+}
+function resetAllProgress(){
+  MODULES.forEach(m=>{
+    if(!m.quiz) return;
+    state.quizProgress[m.id].answered = new Array(m.quiz.length).fill(null);
+    state.quizIndex[m.id] = 0;
+  });
+  saveProgress();
+  render();
+}
+loadProgress();
+syncPortalProgress();
+
+/* ============================================================
+   TEMA
+   ============================================================ */
+function applyTheme(){
+  const saved = localStorage.getItem(THEME_KEY);
+  if(saved === 'light'){ document.documentElement.classList.add('light-theme'); }
+  else { document.documentElement.classList.remove('light-theme'); }
+}
+applyTheme();
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  const isLight = document.documentElement.classList.toggle('light-theme');
+  localStorage.setItem(THEME_KEY, isLight ? 'light' : 'dark');
+});
+
+/* ============================================================
+   ANIMACIÓN DE ENTRADA
+   ============================================================ */
+function animateIn(container){
+  const items = container.querySelectorAll('.modhead, .card, .fig, .ovwcard, .qcard, .barwrap, .flash');
+  items.forEach((el,i)=>{ el.classList.add('reveal'); el.style.transitionDelay = Math.min(i*70,560)+'ms'; });
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ items.forEach(el=>el.classList.add('in')); }));
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+function ledStateFor(m){
+  if(m.isOverview) return '';
+  const p = state.quizProgress[m.id];
+  if(!p) return '';
+  const answeredCount = p.answered.filter(a=>a!==null).length;
+  if(answeredCount===0) return '';
+  if(answeredCount < m.quiz.length) return 'partial';
+  return 'done';
+}
+let sidebarAnimated = false;
+function renderSidebar(){
+  const ul = document.getElementById('navlist');
+  ul.innerHTML = '';
+  MODULES.forEach((m,i)=>{
+    const li = document.createElement('li');
+    li.className = 'navitem' + (state.currentId===m.id ? ' active' : '');
+    if(!sidebarAnimated){ li.style.animation = `slideInLeft .45s cubic-bezier(.2,.7,.3,1) ${i*35}ms both`; }
+    const ledClass = ledStateFor(m);
+    li.innerHTML = `
+      ${m.isOverview ? '<span class="led"></span>' : `<span class="led ${ledClass}"></span>`}
+      <span class="num">${m.isOverview ? '★' : String(i).padStart(2,'0')}</span>
+      <span class="label">${m.short}</span>
+    `;
+    li.onclick = ()=>{ state.currentId = m.id; state.view = 'learn'; render(); window.scrollTo(0,0); };
+    ul.appendChild(li);
+  });
+  sidebarAnimated = true;
+}
+
+/* ============================================================
+   OVERVIEW
+   ============================================================ */
+function renderOverview(){
+  const teachable = MODULES.filter(m=>!m.isOverview);
+  const totalQ = teachable.reduce((s,m)=>s+m.quiz.length,0);
+  const answeredQ = teachable.reduce((s,m)=>s+state.quizProgress[m.id].answered.filter(a=>a!==null).length,0);
+  const pct = totalQ ? Math.round(answeredQ/totalQ*100) : 0;
+
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="modhead">
+      <p class="eyebrow">Capacitación · Introducción a VFD</p>
+      <h2>Biblioteca de módulos</h2>
+      <p class="sub">Navega libremente entre los 8 módulos. Cada uno tiene su contenido y su quiz — el progreso se guarda automáticamente en este navegador.</p>
+    </div>
+    <div class="barwrap"><div class="barfill" style="width:${pct}%"></div></div>
+    <p style="font-family:var(--mono); font-size:11.5px; color:var(--text-dim); margin:8px 0 24px 0;">${answeredQ} / ${totalQ} preguntas respondidas · ${pct}%</p>
+    ${pct===100 ? `
+    <div class="card" style="border-color:var(--emerald); background:var(--emerald-dim);">
+      <h3 style="color:var(--emerald); margin-top:0;">🏆 Capacitación completa</h3>
+      <p style="margin-bottom:0;">Completaste el quiz de los 8 módulos de Introducción a VFD. Ya tenés la base para avanzar a las capacitaciones específicas de marca del portal.</p>
+    </div>` : ''}
+    <div class="ovwgrid">
+      ${teachable.map((m,i)=>{
+        const p = state.quizProgress[m.id];
+        const answered = p.answered.filter(a=>a!==null).length;
+        const correct = p.answered.reduce((s,a)=> s + (a===true?1:0), 0);
+        let status = 'sin iniciar';
+        if(answered>0 && answered<m.quiz.length) status = `en curso · ${answered}/${m.quiz.length}`;
+        if(answered===m.quiz.length) status = `completo · ${correct}/${m.quiz.length} correctas`;
+        const startBadge = m.id==='que-es-vfd' ? `<span style="font-family:var(--mono); font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--emerald); border:1px solid var(--emerald); border-radius:4px; padding:2px 6px; margin-left:8px;">Empieza aquí</span>` : '';
+        return `<div class="ovwcard" data-id="${m.id}">
+          <div class="top"><span class="t-title">${String(i).padStart(2,'0')} · ${m.title}${startBadge}</span><span class="led ${ledStateFor(m)}"></span></div>
+          <div class="t-sub">${m.sub}</div>
+          <div class="t-status" style="margin-top:10px;">${status}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="resetrow">
+      <button class="btn ghost" id="resetAllBtn">Borrar todo el progreso guardado</button>
+    </div>
+  `;
+  const resetBtn = document.getElementById('resetAllBtn');
+  if(resetBtn){
+    resetBtn.onclick = ()=>{
+      if(confirm('¿Borrar el progreso guardado de todos los módulos? Esta acción no se puede deshacer.')){
+        resetAllProgress();
+      }
+    };
+  }
+  main.querySelectorAll('.ovwcard').forEach(el=>{
+    el.onclick = ()=>{ state.currentId = el.dataset.id; state.view = 'learn'; render(); window.scrollTo(0,0); };
+  });
+  animateIn(main);
+}
+
+/* ============================================================
+   MÓDULO (learn / quiz)
+   ============================================================ */
+function renderModule(m){
+  const main = document.getElementById('main');
+  const hasCards = !!m.flashcards;
+  main.innerHTML = `
+    <div class="modhead">
+      <p class="eyebrow">${m.eyebrow}</p>
+      <h2>${m.title}</h2>
+      <p class="sub">${m.sub}</p>
+    </div>
+    <div class="tabs no-print">
+      <div class="tab ${state.view==='learn'?'active':''}" data-v="learn">Aprender</div>
+      <div class="tab ${state.view==='quiz'?'active':''}" data-v="quiz">Quiz (${m.quiz.length})</div>
+      <div style="margin-left:auto; align-self:center;"><button class="btn ghost" id="printBtn" style="font-size:10.5px; padding:6px 12px;">🖨️ Imprimir esta unidad</button></div>
+    </div>
+    <div id="modbody"></div>
+  `;
+  main.querySelectorAll('.tab').forEach(t=>{ t.onclick = ()=>{ state.view = t.dataset.v; render(); }; });
+  const printBtn = document.getElementById('printBtn');
+  if(printBtn) printBtn.onclick = ()=> window.print();
+  const body = document.getElementById('modbody');
+  if(state.view==='learn'){
+    body.innerHTML = m.content;
+    if(hasCards) renderFlashcards(m);
+  } else {
+    renderQuiz(m, body);
+  }
+  animateIn(main);
+}
+
+function renderFlashcards(m){
+  const grid = document.getElementById('flashgrid');
+  if(!grid) return;
+  grid.innerHTML = m.flashcards.map((f)=>`
+    <div class="flash" tabindex="0" role="button" aria-label="Tarjeta ${f.acr}, presiona Enter o Espacio para revelar">
+      <div class="flash-inner">
+        <div class="flash-face flash-front"><div class="acr">${f.acr}</div><div class="hint">toca para revelar</div></div>
+        <div class="flash-face flash-back"><div class="full">${f.full}</div><div class="desc">${f.desc}</div></div>
+      </div>
+    </div>
+  `).join('');
+  grid.querySelectorAll('.flash').forEach(el=>{
+    el.onclick = ()=> el.classList.toggle('flipped');
+    el.onkeydown = (e)=>{
+      if(e.key==='Enter' || e.key===' ' || e.key==='Spacebar'){
+        e.preventDefault();
+        el.classList.toggle('flipped');
+      }
+    };
+  });
+}
+
+/* ---------- Quiz engine ---------- */
+function renderQuiz(m, body){
+  const progress = state.quizProgress[m.id];
+  const total = m.quiz.length;
+  const answeredAll = progress.answered.every(a=>a!==null);
+
+  if(answeredAll){
+    const correct = progress.answered.filter(a=>a===true).length;
+    const missed = m.quiz.map((q,qi)=>({q,qi})).filter(x=>progress.answered[x.qi]===false);
+    body.innerHTML = `
+      <div class="qcard">
+        <div class="quizresult">
+          <div class="score">${correct}/${total}</div>
+          <div class="label">respuestas correctas en este módulo</div>
+          <button class="btn ghost" id="retryBtn">Reintentar quiz</button>
+        </div>
+        ${missed.length ? `
+        <div style="text-align:left; margin-top:10px;">
+          <h3 style="color:var(--red);">Preguntas a repasar (${missed.length})</h3>
+          ${missed.map(x=>`
+            <div class="note warn" style="margin:10px 0;">
+              <strong>${x.q.q}</strong><br>
+              Respuesta correcta: ${x.q.options[x.q.answer]}<br>
+              ${x.q.explain}
+            </div>
+          `).join('')}
+        </div>` : ''}
+      </div>
+    `;
+    document.getElementById('retryBtn').onclick = ()=>{
+      progress.answered = new Array(total).fill(null);
+      state.quizIndex[m.id] = 0;
+      saveProgress();
+      render();
+    };
+    return;
+  }
+
+  let idx = state.quizIndex[m.id];
+  if(progress.answered[idx]!==null){
+    idx = progress.answered.findIndex(a=>a===null);
+    state.quizIndex[m.id] = idx;
+  }
+  const q = m.quiz[idx];
+  body.innerHTML = `
+    <div class="qcounter">Pregunta ${idx+1} de ${total}</div>
+    <div class="qcard">
+      <p class="qtext">${q.q}</p>
+      <div id="optlist">
+        ${q.options.map((o,oi)=>`<div class="opt" data-oi="${oi}"><span class="bullet">${String.fromCharCode(65+oi)}</span><span>${o}</span></div>`).join('')}
+      </div>
+      <div class="explain" id="explainBox">${q.explain}</div>
+      <div class="qnav">
+        <span style="font-family:var(--mono); font-size:11px; color:var(--text-dim);">selecciona una opción</span>
+        <button class="btn" id="nextBtn" disabled>Siguiente</button>
+      </div>
+    </div>
+  `;
+  let picked = false;
+  document.querySelectorAll('#optlist .opt').forEach(el=>{
+    el.onclick = ()=>{
+      if(picked) return;
+      picked = true;
+      const oi = parseInt(el.dataset.oi);
+      const isCorrect = oi===q.answer;
+      progress.answered[idx] = isCorrect;
+      saveProgress();
+      document.querySelectorAll('#optlist .opt').forEach(o2=>{
+        const oi2 = parseInt(o2.dataset.oi);
+        if(oi2===q.answer) o2.classList.add('correct');
+        else if(oi2===oi) o2.classList.add('wrong');
+      });
+      document.getElementById('explainBox').classList.add('show');
+      const nb = document.getElementById('nextBtn');
+      nb.disabled = false;
+      nb.onclick = ()=>{
+        state.quizIndex[m.id] = idx+1 < total ? idx+1 : idx;
+        render();
+      };
+      renderSidebar();
+    };
+  });
+}
+
+/* ============================================================
+   RENDER PRINCIPAL
+   ============================================================ */
+function render(){
+  renderSidebar();
+  const m = MODULES.find(mm=>mm.id===state.currentId);
+  if(m.isOverview) renderOverview();
+  else renderModule(m);
+}
+
+render();
+</script>
+</body>
+</html>
