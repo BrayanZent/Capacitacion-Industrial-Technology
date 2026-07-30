@@ -1,0 +1,756 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Puesta en marcha · Capacitación Interactiva</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0f1620;
+    --panel: #16202c;
+    --panel-raised: #1e2a38;
+    --line: #2b3a4a;
+    --text: #e6edf5;
+    --text-dim: #8fa0b3;
+    --sky: #38bdf8;
+    --sky-dim: #163244;
+    --emerald: #34d399;
+    --emerald-dim: #14332a;
+    --red: #f87171;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+  :root.light-theme{
+    --bg: #f3f6fa;
+    --panel: #ffffff;
+    --panel-raised: #eef2f7;
+    --line: #d7e0ea;
+    --text: #1b2530;
+    --text-dim: #5c6b7d;
+    --sky-dim: #e0f2fe;
+    --emerald-dim: #d4f5e4;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  ::selection{background:var(--sky-dim);color:var(--text);}
+
+  @keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+  @keyframes slideInLeft{ from{opacity:0; transform:translateX(-14px);} to{opacity:1; transform:translateX(0);} }
+  @keyframes logoIn{ from{opacity:0; transform:scale(.9);} to{opacity:1; transform:scale(1);} }
+  .reveal{opacity:0; transform:translateY(18px); transition:opacity .55s cubic-bezier(.2,.7,.3,1), transform .55s cubic-bezier(.2,.7,.3,1);}
+  .reveal.in{opacity:1; transform:translateY(0);}
+
+  .app{display:flex; min-height:100vh;}
+  .sidebar{
+    width:280px; flex-shrink:0; background:var(--panel);
+    border-right:1px solid var(--line);
+    padding:22px 16px; position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .brand{padding:4px 8px 20px 8px; border-bottom:1px solid var(--line); margin-bottom:16px;}
+  .brand-logo{width:100%; max-width:170px; display:block; margin:0 0 14px 0; background:#fff; border-radius:6px; padding:8px 10px; animation:logoIn .8s cubic-bezier(.2,.8,.3,1);}
+  .brand .tag{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--emerald); text-transform:uppercase;}
+  .brand h1{font-size:18px; margin:6px 0 2px 0; line-height:1.25;}
+  .brand p{font-size:12px; color:var(--text-dim); margin:0;}
+
+  .navlist{list-style:none; margin:0; padding:0;}
+  .navitem{display:flex; align-items:center; gap:10px; padding:10px 10px; border-radius:6px; cursor:pointer; margin-bottom:2px; border:1px solid transparent; transition:background .2s ease, transform .2s ease;}
+  .navitem:hover{background:var(--panel-raised); transform:translateX(2px);}
+  .navitem.active{background:var(--panel-raised); border-color:var(--line);}
+  .led{width:9px; height:9px; border-radius:50%; flex-shrink:0; background:#3a4048; box-shadow:inset 0 0 0 1px rgba(0,0,0,.4);}
+  .led.done{background:var(--emerald); box-shadow:0 0 6px rgba(52,211,153,.7);}
+  .led.partial{background:var(--sky); box-shadow:0 0 6px rgba(56,189,248,.6);}
+  .navitem .num{font-family:var(--mono); font-size:11px; color:var(--text-dim); width:18px;}
+  .navitem .label{font-size:13.5px;}
+  .navitem.active .label{color:var(--sky);}
+
+  .sidebar-foot{margin-top:18px; padding-top:14px; border-top:1px solid var(--line); font-family:var(--mono); font-size:11px; color:var(--text-dim);}
+  .themebtn{margin-top:10px; width:100%; font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.04em; background:transparent; color:var(--text-dim); border:1px solid var(--line); padding:8px 10px; border-radius:6px; cursor:pointer;}
+  .themebtn:hover{color:var(--text); border-color:var(--sky);}
+
+  .main{flex:1; padding:36px 44px; max-width:920px; animation:fadeIn .5s ease;}
+  @media (max-width: 860px){ .app{flex-direction:column;} .sidebar{width:100%; height:auto; position:relative; border-right:none; border-bottom:1px solid var(--line);} .main{padding:24px;} }
+
+  .modhead{margin-bottom:8px;}
+  .modhead .eyebrow{font-family:var(--mono); font-size:11.5px; color:var(--sky); letter-spacing:.1em; text-transform:uppercase; margin:0 0 6px 0;}
+  .modhead h2{font-size:26px; margin:0 0 6px 0; line-height:1.2;}
+  .modhead .sub{color:var(--text-dim); font-size:14px; max-width:62ch; margin:0;}
+
+  .tabs{display:flex; gap:6px; margin:20px 0 22px 0; border-bottom:1px solid var(--line);}
+  .tab{font-family:var(--mono); font-size:12.5px; letter-spacing:.03em; padding:9px 14px; cursor:pointer; color:var(--text-dim); border-bottom:2px solid transparent; text-transform:uppercase;}
+  .tab:hover{color:var(--text);}
+  .tab.active{color:var(--sky); border-bottom-color:var(--sky);}
+
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:20px 22px; margin-bottom:14px; transition:transform .25s ease, border-color .25s ease;}
+  .card:hover{transform:translateY(-2px); border-color:var(--sky);}
+  .card h3{margin:18px 0 8px 0; font-size:14.5px; color:var(--sky); display:flex; align-items:center; gap:8px;}
+  .card h3:first-child{margin-top:0;}
+  .card p{margin:0 0 10px 0; font-size:14px; line-height:1.65;}
+  .card ul, .card ol{margin:8px 0 12px 0; padding-left:18px;}
+  .card li{font-size:13.5px; line-height:1.7; margin-bottom:5px;}
+
+  .note{margin:12px 0; padding:11px 13px; background:rgba(56,189,248,.07); border-left:3px solid var(--sky); font-size:12.5px; color:var(--text-dim); border-radius:0 5px 5px 0;}
+  .note.warn{background:rgba(248,113,113,.08); border-left-color:var(--red);}
+
+  table.tech{width:100%; border-collapse:collapse; font-family:var(--mono); font-size:12px; margin:6px 0 14px 0;}
+  table.tech th, table.tech td{padding:7px 9px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top;}
+  table.tech th{color:var(--sky); font-weight:600; background:var(--panel-raised);}
+  table.tech td{color:var(--text-dim);}
+
+  .fig{margin:14px 0 6px 0; text-align:center;}
+  .fig img{width:100%; max-width:460px; display:block; margin:0 auto; border-radius:6px; border:1px solid var(--line); background:#f5f3ee;}
+  .fig.wide img{max-width:820px;}
+  .fig figcaption{font-family:var(--mono); font-size:10.5px; color:var(--text-dim); margin-top:6px;}
+
+  .placeholder{border:1px dashed var(--line); border-radius:8px; padding:16px; text-align:center; font-size:12px; color:var(--text-dim); margin:12px 0;}
+
+  .cardsgrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:14px; margin-top:6px;}
+  .flash{perspective:1000px; height:130px; cursor:pointer;}
+  .flash-inner{position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d;}
+  .flash.flipped .flash-inner{transform:rotateY(180deg);}
+  .flash-face{position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--line); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:12px;}
+  .flash-front{background:var(--panel-raised);}
+  .flash-front .acr{font-family:var(--mono); font-size:19px; color:var(--sky); font-weight:600;}
+  .flash-front .hint{font-size:10px; color:var(--text-dim); margin-top:8px; text-transform:uppercase; letter-spacing:.05em;}
+  .flash-back{background:var(--sky-dim); transform:rotateY(180deg);}
+  .flash-back .full{font-size:12px; font-weight:600; margin-bottom:5px;}
+  .flash-back .desc{font-size:11px; color:var(--text-dim); line-height:1.4;}
+
+  .ovwgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; margin-top:10px;}
+  .ovwcard{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px 18px; cursor:pointer; transition:transform .2s ease, border-color .2s ease;}
+  .ovwcard:hover{border-color:var(--sky); transform:translateY(-3px);}
+  .ovwcard .top{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .ovwcard .t-title{font-size:13.5px; font-weight:600;}
+  .ovwcard .t-sub{font-size:12px; color:var(--text-dim); line-height:1.4;}
+  .ovwcard .t-status{font-family:var(--mono); font-size:10.5px; text-transform:uppercase; color:var(--text-dim);}
+
+  .barwrap{height:5px; background:var(--panel-raised); border-radius:3px; overflow:hidden; margin-top:16px;}
+  .barfill{height:100%; background:linear-gradient(90deg, var(--sky), var(--emerald)); transition:width .4s;}
+
+  .qcounter{font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-bottom:10px;}
+  .qcard{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:22px;}
+  .qtext{font-size:15.5px; margin:0 0 18px 0; line-height:1.5;}
+  .opt{display:flex; align-items:center; gap:10px; padding:11px 14px; border:1px solid var(--line); border-radius:6px; margin-bottom:9px; cursor:pointer; font-size:13.5px; background:var(--panel-raised); transition:transform .15s ease, border-color .15s ease;}
+  .opt:hover{border-color:var(--sky); transform:translateX(3px);}
+  .opt.correct{border-color:var(--emerald); background:rgba(52,211,153,.1);}
+  .opt.wrong{border-color:var(--red); background:rgba(248,113,113,.1);}
+  .opt .bullet{width:18px; height:18px; border-radius:50%; border:1px solid var(--text-dim); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:10px; color:var(--text-dim);}
+  .opt.correct .bullet{border-color:var(--emerald); color:var(--emerald);}
+  .opt.wrong .bullet{border-color:var(--red); color:var(--red);}
+
+  .explain{margin-top:14px; padding:12px 14px; border-radius:6px; font-size:13px; line-height:1.55; background:var(--panel-raised); border:1px solid var(--line); display:none;}
+  .explain.show{display:block;}
+
+  .qnav{display:flex; justify-content:space-between; align-items:center; margin-top:20px;}
+  .btn{font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.04em; background:var(--sky); color:#04222f; border:none; padding:10px 18px; border-radius:5px; cursor:pointer; font-weight:600; transition:transform .15s ease, background .2s ease;}
+  .btn:hover{background:#ffbb4d; transform:translateY(-1px);}
+  .btn.ghost{background:transparent; color:var(--text-dim); border:1px solid var(--line);}
+  .btn.ghost:hover{color:var(--text); border-color:var(--sky);}
+  .btn:disabled{opacity:.35; cursor:not-allowed;}
+
+  .quizresult{text-align:center; padding:40px 20px;}
+  .quizresult .score{font-family:var(--mono); font-size:50px; color:var(--sky); margin-bottom:6px;}
+  .quizresult .label{color:var(--text-dim); font-size:12.5px; margin-bottom:22px;}
+
+  .resetrow{margin-top:26px; padding-top:16px; border-top:1px solid var(--line);}
+  ::-webkit-scrollbar{width:10px;}
+  ::-webkit-scrollbar-thumb{background:#4a3f2c; border-radius:6px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  .flash:focus-visible{outline:2px solid var(--sky); outline-offset:2px;}
+
+  @media print{
+    .sidebar, .no-print, .themebtn, .resetrow{display:none !important;}
+    body{background:#fff; color:#111;}
+    .main{max-width:100%; padding:0;}
+    .card{border:1px solid #999; break-inside:avoid; box-shadow:none;}
+    table.tech th, table.tech td{color:#111; border-bottom:1px solid #999;}
+    table.tech th{background:#eee;}
+    .fig img{max-width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <nav class="sidebar">
+    <div class="brand">
+      <img class="brand-logo" src="../../assets/logo-industrial-technology.png" alt="Logo de la empresa">
+      <div class="tag">Fundamentos · Sin marca</div>
+      <h1>Puesta en marcha</h1>
+      <p>De la inspección de instalación a los primeros arranques — el procedimiento genérico común a cualquier marca de VFD.</p>
+    </div>
+    <ul class="navlist" id="navlist"></ul>
+    <div class="sidebar-foot">
+      Puesta en marcha y parametrización genérica · progreso guardado en este navegador
+      <button class="themebtn" id="themeToggle">🌓 Cambiar tema</button>
+      <a href="../../index.html" class="themebtn" style="display:block; text-align:center; text-decoration:none; margin-top:8px;">← Todas las capacitaciones</a>
+      <a href="electricidad-basica.html" class="themebtn" style="display:block; text-align:center; text-decoration:none; margin-top:8px;">← Electricidad básica</a>
+      <a href="diagnostico-fallas.html" class="themebtn" style="display:block; text-align:center; text-decoration:none; margin-top:8px;">Seguir: Diagnóstico de fallas →</a>
+    </div>
+  </nav>
+
+  <main class="main" id="main"></main>
+</div>
+
+<script>
+/* ============================================================
+   HELPERS DE CONTENIDO
+   ============================================================ */
+const PLACEHOLDER = (txt) => `<div class="placeholder">🖼️ [Marcador de imagen: ${txt}]</div>`;
+const NOTE = (txt) => `<div class="note warn">⚠️ ${txt}</div>`;
+const INFO = (txt) => `<div class="note">💡 ${txt}</div>`;
+const H3 = (txt) => `<h3><span style="width:6px;height:6px;border-radius:50%;background:var(--sky);display:inline-block;"></span>${txt}</h3>`;
+const IMG = (src, caption, source, wide) => `<figure class="fig${wide ? ' wide' : ''}">
+  <img src="imagenes/${src}" alt="${caption}" loading="lazy">
+  <figcaption>${caption}${source ? ` — <span style="font-style:italic">${source}</span>` : ''}</figcaption>
+</figure>`;
+
+/* ============================================================
+   MÓDULOS
+   ============================================================ */
+const MODULES = [
+{ id:'overview', title:'Panel general', short:'Inicio', isOverview:true },
+
+{
+  id:'inspeccion-instalacion', title:'Inspección previa a energizar', short:'Inspección previa',
+  eyebrow:'Módulo 01 · Puesta en marcha', sub:'Separación de cableado, continuidad de tierra y ventilación — el chequeo obligatorio antes de dar tensión.',
+  content:`
+    <div class="card">
+      <p>Antes de energizar cualquier VFD por primera vez (o después de una intervención mayor de cableado), hay un chequeo visual y de continuidad que debe hacerse siempre. Saltearlo es una de las causas más comunes de fallas tempranas evitables en la puesta en marcha.</p>
+
+      ${H3("Separación física de cableado de potencia y de control")}
+      <p>El cableado de <strong>potencia</strong> (alimentación de red y cable motor) y el cableado de <strong>control</strong> (entradas/salidas digitales, analógicas, comunicación) deben tenderse en bandejas o conductos separados, o al menos mantenerse a una distancia mínima si comparten bandeja.</p>
+      <p>La razón es el <strong>ruido eléctrico</strong>: la conmutación PWM del inversor induce interferencia electromagnética en los conductores cercanos. Si el cable de control corre pegado o en paralelo largo al cable motor, esa interferencia puede acoplarse a las señales de control (especialmente señales analógicas de baja magnitud, como 0-10V o 4-20mA) y generar lecturas erráticas, arranques falsos o inestabilidad del lazo de control.</p>
+
+      ${H3("Verificación de continuidad de tierra")}
+      <p>Antes de energizar, se debe verificar con un multímetro que la conexión a tierra del gabinete del VFD y del motor tiene continuidad efectiva hacia la barra de tierra de la instalación. Una tierra deficiente no solo es un riesgo de seguridad personal: también degrada la efectividad de los filtros EMC del variador y puede generar corrientes de fuga elevadas.</p>
+
+      ${H3("Ventilación y espacio libre alrededor del gabinete")}
+      <p>Todo VFD disipa calor durante su operación y necesita flujo de aire libre para no derretear por sobretemperatura. Antes de energizar hay que confirmar:</p>
+      <ul>
+        <li>Que se respetan las distancias mínimas de espacio libre indicadas por el fabricante arriba, abajo y a los costados del equipo (varían según el tamaño y la potencia del variador).</li>
+        <li>Que las rejillas o ventiladores de refrigeración no están obstruidos por otros equipos, cableado o suciedad.</li>
+        <li>Que el grado de protección <strong>IP</strong> del gabinete (nivel de sellado frente a polvo y agua) es coherente con el ambiente de instalación real — un gabinete con ventilación forzada abierta no puede instalarse en un ambiente con polvo conductivo o alta humedad sin la protección adecuada.</li>
+      </ul>
+
+      ${NOTE("Recordatorio de seguridad: el bus DC del variador acumula energía residual en sus condensadores y puede mantener tensión peligrosa incluso después de desconectar la red — este riesgo ya se cubrió en detalle en Introducción a VFD. Antes de manipular cualquier terminal de potencia, siempre verificar ausencia de tensión con multímetro y respetar el tiempo de descarga del fabricante.")}
+
+      ${PLACEHOLDER("Checklist visual de inspección previa a energizar: bandejas separadas de potencia/control, punto de verificación de continuidad de tierra con multímetro, y distancias mínimas de ventilación alrededor del gabinete")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Por qué debe separarse físicamente el cableado de potencia del cableado de control?", options:["Por estética del tablero","Para evitar que el ruido eléctrico inducido por la conmutación PWM afecte las señales de control","Porque usan distinto voltaje y es obligatorio por norma de color","No hay ninguna razón técnica, es solo una convención"], answer:1, explain:"La conmutación PWM del inversor induce interferencia electromagnética; si el cableado de control corre pegado al de potencia, esa interferencia puede acoplarse y generar lecturas erráticas o inestabilidad del control." },
+    { q:"¿Qué tipo de señales de control son especialmente sensibles al ruido acoplado desde el cableado de potencia?", options:["Las señales de comunicación óptica","Las señales analógicas de baja magnitud, como 0-10V o 4-20mA","El cable de alimentación principal","Ninguna señal de control es sensible al ruido"], answer:1, explain:"Las señales analógicas de baja magnitud (0-10V, 4-20mA) son particularmente susceptibles a interferencia inducida por cableado de potencia cercano." },
+    { q:"¿Con qué instrumento se verifica la continuidad de tierra antes de energizar?", options:["Con un osciloscopio","Con un multímetro","Con una pinza amperométrica de gancho","No se verifica, se asume que está bien"], answer:1, explain:"La continuidad de la conexión a tierra se verifica con un multímetro antes de energizar el equipo." },
+    { q:"Además del riesgo de seguridad personal, ¿qué otro efecto tiene una tierra deficiente en un VFD?", options:["Ninguno adicional","Degrada la efectividad de los filtros EMC y puede generar corrientes de fuga elevadas","Aumenta la velocidad máxima del motor","Mejora el factor de potencia"], answer:1, explain:"Una tierra deficiente degrada la efectividad de los filtros EMC del variador y puede generar corrientes de fuga elevadas, además del riesgo de seguridad." },
+    { q:"¿Qué se debe verificar respecto a la ventilación del gabinete antes de energizar?", options:["Nada, la ventilación no importa en la puesta en marcha","Distancias mínimas de espacio libre, ausencia de obstrucción en rejillas/ventiladores y coherencia del grado IP con el ambiente","Solo que el gabinete tenga pintura anticorrosiva","Que el gabinete esté completamente sellado sin ninguna rejilla"], answer:1, explain:"Hay que confirmar distancias mínimas de espacio libre, que las rejillas o ventiladores no estén obstruidos, y que el grado de protección IP sea coherente con el ambiente de instalación." }
+  ]
+},
+
+{
+  id:'de-placa-a-parametros', title:'De la placa del motor a los parámetros básicos', short:'De placa a parámetros',
+  eyebrow:'Módulo 02 · Puesta en marcha', sub:'Cómo los datos de la chapa de identificación del motor alimentan el asistente de puesta en marcha de cualquier VFD.',
+  content:`
+    <div class="card">
+      <p>Todo motor eléctrico trae una <strong>placa de datos</strong> (chapa de identificación) con los valores para los que fue diseñado. Esos datos son la base de la que se derivan los parámetros básicos que cualquier VFD pide al arrancar su asistente de puesta en marcha, sin importar la marca.</p>
+
+      ${H3("Datos típicos de la placa del motor")}
+      <ul>
+        <li><strong>Tensión nominal:</strong> el voltaje de línea para el que está diseñado el motor (ej. 400V, 460V).</li>
+        <li><strong>Corriente nominal:</strong> la corriente que el motor consume operando a plena carga, a tensión y frecuencia nominal.</li>
+        <li><strong>Frecuencia nominal:</strong> la frecuencia de red para la que está diseñado el motor (ej. 50Hz, 60Hz).</li>
+        <li><strong>Velocidad nominal (RPM):</strong> la velocidad de giro del eje a plena carga, a la frecuencia nominal.</li>
+        <li><strong>Cos φ (factor de potencia):</strong> indica qué proporción de la corriente consumida contribuye a potencia real versus potencia reactiva.</li>
+      </ul>
+
+      ${H3("Mapeo genérico: dato de placa → parámetro del VFD")}
+      <table class="tech">
+        <tr><th>Dato de placa del motor</th><th>Parámetro genérico que pide el VFD</th><th>Para qué lo usa el VFD</th></tr>
+        <tr><td>Tensión nominal</td><td>Tensión nominal de motor</td><td>Referencia del voltaje máximo que el inversor debe entregar al motor</td></tr>
+        <tr><td>Corriente nominal</td><td>Corriente nominal de motor</td><td>Base para el modelo térmico interno y la protección de sobrecarga del motor</td></tr>
+        <tr><td>Frecuencia nominal</td><td>Frecuencia nominal de motor</td><td>Punto de referencia de la curva V/Hz o del modelo de control vectorial</td></tr>
+        <tr><td>Velocidad nominal (RPM)</td><td>Velocidad nominal de motor</td><td>Permite al VFD calcular el número de polos y el deslizamiento del motor</td></tr>
+        <tr><td>Cos φ</td><td>Factor de potencia de motor</td><td>Afinar el modelo interno del motor para mejorar la precisión del control</td></tr>
+      </table>
+
+      ${INFO("El nombre exacto de cada parámetro (código, texto en pantalla, unidades exactas) varía de un fabricante a otro — este mapeo es genérico y conceptual. El detalle específico de cómo se llama y dónde se ingresa cada uno se cubre en las capacitaciones de marca de este sitio (VACON, ABB, etc.).")}
+
+      ${NOTE("Cargar mal un solo dato de placa (por ejemplo la corriente nominal) puede hacer que el motor se dispare por sobrecarga prematuramente, o que quede sin protección real — siempre transcribir los datos de placa con cuidado y verificarlos dos veces antes de confirmar el asistente de puesta en marcha.")}
+
+      ${PLACEHOLDER("Foto de una placa de identificación típica de motor trifásico con los campos de tensión, corriente, frecuencia, RPM y cos φ señalados, junto a la pantalla de un asistente de puesta en marcha de VFD pidiendo esos mismos datos")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿De dónde se obtienen los valores base para los parámetros que pide el asistente de puesta en marcha de un VFD?", options:["De un catálogo genérico de internet","De la placa de datos (chapa de identificación) del motor","Del color del gabinete del motor","Siempre son los mismos valores por defecto del VFD"], answer:1, explain:"Los datos de placa del motor (tensión, corriente, frecuencia, RPM, cos φ) son la fuente de los parámetros básicos que pide cualquier VFD al arrancar el asistente de puesta en marcha." },
+    { q:"¿Qué representa la \"corriente nominal\" de la placa del motor?", options:["La corriente máxima instantánea que soporta el motor sin dañarse","La corriente que el motor consume operando a plena carga, a tensión y frecuencia nominal","La corriente de arranque del motor","La corriente del bus DC del VFD"], answer:1, explain:"La corriente nominal es la corriente que el motor consume a plena carga, a su tensión y frecuencia nominal de diseño." },
+    { q:"¿Para qué usa el VFD el parámetro de corriente nominal de motor, según la tabla de mapeo?", options:["Para calcular la velocidad máxima","Como base para el modelo térmico interno y la protección de sobrecarga del motor","Para ajustar el color de la pantalla","No se usa para nada en particular"], answer:1, explain:"La corriente nominal es la base para el modelo térmico interno del VFD y su función de protección de sobrecarga del motor." },
+    { q:"Según el módulo, ¿por qué el nombre exacto de cada parámetro de motor puede variar entre marcas de VFD?", options:["Porque no hay ningún estándar conceptual compartido entre fabricantes","Porque cada fabricante nombra sus parámetros de forma distinta, aunque el concepto detrás sea genérico y común","Porque solo algunas marcas piden datos de placa","Porque los datos de placa cambian según el fabricante del VFD"], answer:1, explain:"El mapeo es conceptual y genérico; el nombre exacto de cada parámetro varía por fabricante, y ese detalle se cubre en las capacitaciones específicas de marca." },
+    { q:"¿Qué riesgo menciona el módulo si se carga mal un dato de placa como la corriente nominal?", options:["Ninguno, los datos de placa no afectan la protección","El motor puede dispararse por sobrecarga prematuramente o quedar sin protección real","El VFD deja de encender por completo","Se pierde la garantía del motor automáticamente"], answer:1, explain:"Cargar mal la corriente nominal puede causar disparos por sobrecarga prematuros o dejar al motor sin protección térmica real." }
+  ]
+},
+
+{
+  id:'parametros-comunes', title:'Parámetros genéricos comunes a cualquier VFD', short:'Parámetros comunes',
+  eyebrow:'Módulo 03 · Puesta en marcha', sub:'Rampas, límite de corriente, tipo de control y fuente de referencia — el set mínimo que configura cualquier puesta en marcha.',
+  content:`
+    <div class="card">
+      <p>Más allá de los datos de placa del motor, hay un conjunto de parámetros de comportamiento que aparece en prácticamente cualquier VFD del mercado, independientemente de la marca. Configurarlos correctamente es parte central de cualquier puesta en marcha.</p>
+
+      ${H3("Rampa de aceleración / desaceleración")}
+      <p>Define el tiempo en que el VFD lleva al motor de una velocidad a otra de forma gradual (por ejemplo, de 0 a la velocidad nominal). Una rampa demasiado corta genera picos de corriente y estrés mecánico; una rampa demasiado larga puede no ser aceptable para el proceso o disparar límites de corriente durante la aceleración.</p>
+
+      ${H3("Límite de corriente")}
+      <p>Establece el valor máximo de corriente que el VFD permitirá entregar al motor, como protección adicional del motor y del propio variador. Si el proceso exige una aceleración rápida bajo carga alta, el límite de corriente puede terminar "aplanando" la rampa programada — el VFD prioriza no superar ese límite antes que respetar el tiempo de rampa exacto.</p>
+
+      ${H3("Tipo de control")}
+      <p>Selección entre control escalar (V/Hz) o control vectorial, según lo que exija la aplicación — este concepto ya se desarrolló en detalle en Introducción a VFD (módulo de control escalar vs. vectorial/DTC). En la puesta en marcha, esta selección suele hacerse temprano porque condiciona qué otros parámetros y procedimientos de auto-tuning estarán disponibles.</p>
+
+      ${H3("Fuente de referencia de velocidad")}
+      <p>Define de dónde toma el VFD el valor de velocidad deseada: potenciómetro/panel local, señal analógica, velocidades fijas o comunicación digital — las macros de aplicación que agrupan estas opciones ya se vieron en Introducción a VFD. En la puesta en marcha, se confirma y prueba que la fuente seleccionada efectivamente esté entregando la señal esperada antes de dar por buena la configuración.</p>
+
+      ${H3("Resumen de parámetros genéricos comunes")}
+      <table class="tech">
+        <tr><th>Parámetro genérico</th><th>Qué controla</th><th>Riesgo típico si está mal configurado</th></tr>
+        <tr><td>Rampa de aceleración</td><td>Tiempo para pasar de velocidad baja a alta</td><td>Picos de corriente o disparo por límite de corriente</td></tr>
+        <tr><td>Rampa de desaceleración</td><td>Tiempo para pasar de velocidad alta a baja</td><td>Sobretensión en el bus DC si la carga tiene mucha inercia</td></tr>
+        <tr><td>Límite de corriente</td><td>Corriente máxima entregada al motor</td><td>Motor sin protección real (muy alto) o disparos innecesarios (muy bajo)</td></tr>
+        <tr><td>Tipo de control</td><td>Filosofía de control (escalar/vectorial)</td><td>Mala respuesta de torque a baja velocidad si se elige escalar donde se necesita vectorial</td></tr>
+        <tr><td>Fuente de referencia de velocidad</td><td>Origen de la orden de velocidad deseada</td><td>El motor no responde, o responde a una fuente distinta de la esperada</td></tr>
+      </table>
+
+      ${INFO("Este set de cinco parámetros es un mínimo genérico común a cualquier VFD, no una lista exhaustiva — cada marca agrega parámetros adicionales propios y organiza estos mismos conceptos con su propia nomenclatura y estructura de menús.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué define la rampa de aceleración/desaceleración?", options:["El voltaje máximo del bus DC","El tiempo en que el VFD lleva al motor de una velocidad a otra de forma gradual","El número de polos del motor","La frecuencia de conmutación del inversor"], answer:1, explain:"La rampa de aceleración/desaceleración define el tiempo programado en que el VFD cambia la velocidad del motor de forma gradual." },
+    { q:"¿Qué puede pasar si el proceso exige una aceleración rápida bajo carga alta y el límite de corriente está activo?", options:["El VFD ignora el límite de corriente siempre","El VFD puede \"aplanar\" la rampa programada para no superar el límite de corriente","El motor se desconecta permanentemente","No tiene ningún efecto sobre la rampa"], answer:1, explain:"El VFD prioriza no superar el límite de corriente configurado, lo que puede hacer que la rampa real sea más lenta que la programada en esas condiciones." },
+    { q:"¿Dónde se desarrolló en detalle el concepto de control escalar vs. vectorial, según este módulo?", options:["En este mismo módulo por primera vez","Ya se desarrolló en detalle en Introducción a VFD","En el módulo de documentación de puesta en marcha","No se desarrolla en ningún lado del curso"], answer:1, explain:"El módulo indica que el control escalar vs. vectorial ya se cubrió en detalle en la capacitación Introducción a VFD, y aquí solo se referencia en el contexto de la puesta en marcha." },
+    { q:"Según la tabla de resumen, ¿qué riesgo tiene una rampa de desaceleración mal configurada en una carga de mucha inercia?", options:["Sobretensión en el bus DC","Pérdida de la conexión a tierra","Cambio automático de tipo de control","Ninguno, la desaceleración no afecta al bus DC"], answer:0, explain:"Una desaceleración demasiado rápida en una carga con mucha inercia puede generar sobretensión en el bus DC, porque el motor actúa momentáneamente como generador." },
+    { q:"¿Qué debe confirmarse durante la puesta en marcha respecto a la fuente de referencia de velocidad?", options:["Nada, se asume que funciona por defecto","Que la fuente seleccionada efectivamente esté entregando la señal esperada","Que el motor tenga el color correcto","Que la tensión de red sea trifásica"], answer:1, explain:"En la puesta en marcha se prueba y confirma que la fuente de referencia seleccionada (potenciómetro, señal analógica, etc.) efectivamente entrega la señal esperada antes de dar por buena la configuración." }
+  ]
+},
+
+{
+  id:'pruebas-en-vacio', title:'Pruebas en vacío', short:'Pruebas en vacío',
+  eyebrow:'Módulo 04 · Puesta en marcha', sub:'Verificar el motor desacoplado de la carga mecánica antes de arriesgar el proceso real.',
+  content:`
+    <div class="card">
+      <p>Una <strong>prueba en vacío</strong> consiste en hacer girar el motor con el VFD ya configurado, pero con el motor <strong>mecánicamente desacoplado</strong> de la carga del proceso (sin la bomba, el ventilador, la cinta transportadora, etc. conectados al eje). Es el primer arranque real del sistema y el punto donde conviene detectar errores de configuración, antes de que involucren a la carga.</p>
+
+      ${H3("Qué se verifica en una prueba en vacío")}
+      <ul>
+        <li><strong>Sentido de giro:</strong> confirmar que el eje gira en la dirección esperada según el proceso — si está invertido, suele corregirse cambiando el orden de dos fases en el cable motor o mediante un parámetro de inversión del sentido, según el equipo.</li>
+        <li><strong>Ausencia de vibración o ruido anormal:</strong> un motor sano y bien parametrizado debe girar de forma suave, sin ruidos mecánicos, zumbidos eléctricos fuera de lo normal ni vibración perceptible.</li>
+        <li><strong>Llegada a la velocidad de referencia sin fallas:</strong> el motor debe acelerar según la rampa configurada y estabilizarse en la velocidad de referencia solicitada, sin que el VFD dispare ninguna protección en el camino.</li>
+      </ul>
+
+      ${H3("Por qué se hace sin carga primero")}
+      <p>Desacoplar la carga mecánica reduce el riesgo durante la primera prueba: si hay un error de parametrización (por ejemplo, un dato de placa mal cargado o una fuente de referencia mal configurada), sus efectos se limitan al motor solo, sin comprometer el equipo mecánico del proceso ni generar una condición insegura en la línea de producción.</p>
+
+      ${NOTE("Nunca acoplar la carga mecánica al motor hasta confirmar que la prueba en vacío fue exitosa: sentido de giro correcto, sin vibración ni ruido anormal, y llegada estable a la velocidad de referencia sin disparo de fallas.")}
+
+      ${PLACEHOLDER("Diagrama de motor desacoplado del eje de la carga (acople mecánico abierto) durante la prueba en vacío, con checklist de verificación: sentido de giro, vibración/ruido, llegada a velocidad de referencia")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué caracteriza a una prueba en vacío?", options:["El motor gira con la carga del proceso ya acoplada","El motor gira mecánicamente desacoplado de la carga del proceso","El VFD está apagado durante toda la prueba","Solo se verifica documentación, sin energizar nada"], answer:1, explain:"En una prueba en vacío el motor gira sin estar acoplado mecánicamente a la carga del proceso (bomba, ventilador, cinta, etc.)." },
+    { q:"¿Cuál de estos NO es uno de los puntos que se verifica en una prueba en vacío según el módulo?", options:["Sentido de giro","Ausencia de vibración o ruido anormal","Llegada a la velocidad de referencia sin fallas","El consumo eléctrico total de toda la planta"], answer:3, explain:"Los puntos verificados son sentido de giro, ausencia de vibración/ruido anormal y llegada a la velocidad de referencia sin fallas — no el consumo eléctrico de toda la planta." },
+    { q:"¿Cómo suele corregirse un sentido de giro invertido detectado en la prueba en vacío?", options:["Cambiando el orden de dos fases en el cable motor o con un parámetro de inversión, según el equipo","Es imposible de corregir, hay que cambiar el motor","Aumentando la frecuencia de conmutación","Reduciendo la tensión nominal de motor"], answer:0, explain:"El sentido de giro invertido se corrige típicamente cambiando el orden de dos fases del cable motor, o mediante un parámetro de inversión de sentido según el equipo." },
+    { q:"¿Por qué se recomienda hacer la primera prueba sin la carga mecánica acoplada?", options:["Porque así el motor gira más rápido","Porque reduce el riesgo: si hay un error de parametrización, sus efectos se limitan al motor sin comprometer el equipo mecánico del proceso","Porque las normas lo prohíben explícitamente en todos los casos","Porque el VFD no puede arrancar con carga acoplada nunca"], answer:1, explain:"Desacoplar la carga reduce el riesgo de la primera prueba: un error de parametrización afecta solo al motor, sin comprometer el equipo mecánico ni generar una condición insegura en el proceso." },
+    { q:"Según el aviso de este módulo, ¿cuándo recién se debe acoplar la carga mecánica al motor?", options:["Antes de la primera prueba, para ahorrar tiempo","Solo después de confirmar que la prueba en vacío fue exitosa","Nunca, la carga no se acopla en la puesta en marcha","Inmediatamente después de energizar el VFD, sin más verificación"], answer:1, explain:"La carga mecánica debe acoplarse recién después de confirmar sentido de giro correcto, ausencia de vibración/ruido anormal y llegada estable a la velocidad de referencia sin fallas en la prueba en vacío." }
+  ]
+},
+
+{
+  id:'pruebas-con-carga', title:'Pruebas con carga', short:'Pruebas con carga',
+  eyebrow:'Módulo 05 · Puesta en marcha', sub:'Acoplar la carga real del proceso y ajustar rampas y límites según el comportamiento observado.',
+  content:`
+    <div class="card">
+      <p>Una vez que la prueba en vacío fue exitosa, se acopla la carga mecánica real del proceso (bomba, ventilador, cinta, etc.) y se realiza la <strong>prueba con carga</strong>, que valida el comportamiento del sistema completo en condiciones reales de operación.</p>
+
+      ${H3("Qué se verifica con la carga acoplada")}
+      <ul>
+        <li><strong>Comportamiento a distintas velocidades:</strong> operar el sistema en varios puntos de velocidad representativos del proceso real, no solo a velocidad nominal.</li>
+        <li><strong>Puntos de operación reales del proceso:</strong> confirmar que en las condiciones de trabajo habituales (caudal, presión, carga mecánica típica) el sistema responde de forma estable, sin disparos de protección ni comportamiento errático.</li>
+        <li><strong>Corriente real consumida:</strong> comparar la corriente que efectivamente consume el motor con carga contra el valor nominal de placa y contra el límite de corriente configurado en el módulo anterior.</li>
+      </ul>
+
+      ${H3("Ajuste fino según lo observado")}
+      <p>Es normal que las rampas y límites configurados inicialmente (a partir de valores de placa y criterio general) necesiten un ajuste fino una vez que se observa el comportamiento real del sistema con carga:</p>
+      <ul>
+        <li>Si la rampa de aceleración configurada dispara el límite de corriente al arrancar con carga, puede ser necesario alargarla.</li>
+        <li>Si la rampa de desaceleración genera sobretensión en el bus DC por la inercia real de la carga, puede ser necesario alargarla o habilitar algún mecanismo de frenado adicional si el equipo lo soporta.</li>
+        <li>Si el proceso requiere una respuesta más rápida de la que el ajuste inicial permite, se puede evaluar acortar rampas dentro de los límites seguros ya validados en la prueba en vacío y con carga.</li>
+      </ul>
+
+      ${INFO("Este ajuste fino es un proceso iterativo: se prueba, se observa el comportamiento real, se ajusta el parámetro correspondiente y se vuelve a probar — no se espera dejar todo perfecto en el primer intento con carga acoplada.")}
+
+      ${PLACEHOLDER("Gráfico ilustrativo de corriente del motor durante una rampa de aceleración con carga acoplada, mostrando el ajuste de la rampa antes y después de afinar el parámetro para evitar el disparo del límite de corriente")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuándo se realiza la prueba con carga, según la secuencia descrita en el curso?", options:["Antes de la prueba en vacío","Después de que la prueba en vacío fue exitosa","En reemplazo de la prueba en vacío","Al mismo tiempo que la inspección de instalación"], answer:1, explain:"La prueba con carga se realiza una vez que la prueba en vacío resultó exitosa, acoplando entonces la carga mecánica real del proceso." },
+    { q:"¿Qué se compara la corriente real consumida con carga, según el módulo?", options:["Con el color del cable motor","Con el valor nominal de placa y con el límite de corriente configurado","Con la frecuencia de la red eléctrica únicamente","No se compara con nada, solo se observa"], answer:1, explain:"La corriente real con carga se compara contra el valor nominal de placa del motor y contra el límite de corriente configurado previamente." },
+    { q:"¿Qué puede ser necesario si la rampa de aceleración configurada dispara el límite de corriente al arrancar con carga?", options:["Eliminar el límite de corriente por completo","Alargar la rampa de aceleración","Reducir la tensión nominal de motor","Desacoplar la carga permanentemente"], answer:1, explain:"Si la rampa dispara el límite de corriente al arrancar con carga, una respuesta típica es alargar la rampa de aceleración." },
+    { q:"¿Qué riesgo puede generar una rampa de desaceleración corta con una carga de mucha inercia, en la prueba con carga?", options:["Ninguno, la desaceleración no depende de la carga","Sobretensión en el bus DC","Pérdida del sentido de giro","Que el motor cambie automáticamente de tipo de control"], answer:1, explain:"Con carga de mucha inercia, una rampa de desaceleración demasiado corta puede generar sobretensión en el bus DC, ya que el motor actúa momentáneamente como generador." },
+    { q:"¿Cómo describe el módulo el proceso de ajuste fino de rampas y límites durante la prueba con carga?", options:["Como un proceso que debe quedar perfecto en el primer intento","Como un proceso iterativo de probar, observar, ajustar y volver a probar","Como algo que no requiere ninguna observación adicional","Como un proceso que solo se hace una vez, sin poder repetirse"], answer:1, explain:"El ajuste fino es iterativo: se prueba, se observa el comportamiento real con carga, se ajusta el parámetro correspondiente y se vuelve a probar." }
+  ]
+},
+
+{
+  id:'documentar-puesta-en-marcha', title:'Documentar el cierre de la puesta en marcha', short:'Documentar cierre',
+  eyebrow:'Módulo 06 · Puesta en marcha', sub:'Qué queda registrado al cerrar una puesta en marcha y el traspaso a producción y mantenimiento.',
+  content:`
+    <div class="card">
+      <p>Una puesta en marcha no se considera terminada solo porque el motor funciona correctamente con carga — falta documentar el trabajo realizado, tanto para dejar un respaldo técnico como para facilitar el traspaso a los equipos de producción y mantenimiento que operarán el sistema en adelante.</p>
+
+      ${H3("Qué documentar")}
+      <ul>
+        <li><strong>Parámetros finales configurados:</strong> listado completo (o backup del equipo, si el VFD lo permite) de todos los parámetros con los valores finales con que quedó configurado, no solo los básicos del asistente inicial.</li>
+        <li><strong>Datos de placa usados:</strong> los valores exactos de tensión, corriente, frecuencia, RPM y cos φ del motor que se cargaron en el VFD, con foto o copia de la placa de identificación como respaldo.</li>
+        <li><strong>Observaciones de las pruebas:</strong> resultados de la prueba en vacío y de la prueba con carga — sentido de giro, comportamiento observado, cualquier ajuste fino realizado y por qué se hizo.</li>
+        <li><strong>Checklist de traspaso a producción/mantenimiento:</strong> confirmación de que el personal que operará y mantendrá el equipo conoce los parámetros clave, sabe interpretar las fallas más comunes y tiene acceso a la documentación completa.</li>
+      </ul>
+
+      ${H3("Por qué importa este registro")}
+      <p>Sin esta documentación, cualquier intervención futura (una falla, un cambio de motor, una modificación del proceso) obliga a repetir trabajo de diagnóstico desde cero, sin saber qué se configuró originalmente ni por qué. Un registro claro de la puesta en marcha ahorra tiempo y reduce el riesgo de errores en cualquier intervención posterior.</p>
+
+      ${INFO("El formato exacto de este registro (planilla, backup digital del equipo, informe de puesta en marcha) varía según la práctica de cada empresa o integrador — lo esencial es que los cuatro puntos anteriores queden cubiertos de alguna forma verificable.")}
+
+      ${PLACEHOLDER("Plantilla ilustrativa de informe de cierre de puesta en marcha con las cuatro secciones: parámetros finales, datos de placa usados, observaciones de pruebas y checklist de traspaso")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuándo se considera terminada una puesta en marcha, según este módulo?", options:["Apenas el motor gira correctamente con carga, sin necesidad de más pasos","Cuando además de las pruebas exitosas queda documentado el trabajo realizado y se traspasa la información a producción/mantenimiento","Nunca se considera terminada formalmente","Solo cuando el fabricante del VFD lo certifica por escrito"], answer:1, explain:"El módulo aclara que además de las pruebas exitosas, hace falta documentar parámetros, datos de placa, observaciones y hacer el traspaso a producción/mantenimiento." },
+    { q:"¿Cuál de estos NO es uno de los cuatro elementos a documentar mencionados en el módulo?", options:["Parámetros finales configurados","Datos de placa usados","Observaciones de las pruebas","El precio de compra del VFD"], answer:3, explain:"Los cuatro elementos mencionados son parámetros finales, datos de placa usados, observaciones de las pruebas y checklist de traspaso — no el precio de compra del equipo." },
+    { q:"¿Qué debe incluir el checklist de traspaso a producción/mantenimiento?", options:["Nada en particular, es solo un trámite","Confirmación de que el personal conoce los parámetros clave, sabe interpretar fallas comunes y tiene acceso a la documentación completa","Solo la firma del proveedor del VFD","El número de serie del motor únicamente"], answer:1, explain:"El checklist de traspaso confirma que el personal de producción/mantenimiento conoce los parámetros clave, sabe interpretar fallas comunes y tiene acceso a la documentación completa." },
+    { q:"¿Qué consecuencia menciona el módulo si no se documenta correctamente la puesta en marcha?", options:["Ninguna consecuencia relevante","Cualquier intervención futura obliga a repetir trabajo de diagnóstico desde cero, sin saber qué se configuró ni por qué","El VFD deja de funcionar automáticamente","Se pierde la garantía del fabricante en todos los casos"], answer:1, explain:"Sin documentación, cualquier intervención futura obliga a repetir el diagnóstico desde cero, sin saber qué se configuró originalmente ni las razones detrás de esa configuración." },
+    { q:"Según el módulo, ¿el formato exacto del registro de puesta en marcha (planilla, backup digital, informe) es siempre el mismo entre empresas?", options:["Sí, existe un formato único obligatorio en toda la industria","No, varía según la práctica de cada empresa o integrador; lo esencial es que los puntos clave queden cubiertos de forma verificable","No se documenta nunca en ningún formato","Solo se documenta si el cliente lo exige por contrato"], answer:1, explain:"El formato exacto varía según cada empresa o integrador — lo importante es que los cuatro puntos clave (parámetros, datos de placa, observaciones, checklist de traspaso) queden cubiertos de alguna forma verificable." }
+  ]
+}
+];
+
+/* ============================================================
+   ESTADO + PERSISTENCIA (localStorage)
+   ============================================================ */
+const STORAGE_KEY = 'puesta_en_marcha_training_progress_v1';
+const THEME_KEY = 'capacitacion-theme';
+
+const state = {
+  currentId: 'overview',
+  view: 'learn',
+  quizProgress: {},
+  quizIndex: {},
+};
+MODULES.forEach(m=>{
+  if(m.quiz){ state.quizProgress[m.id] = { answered: new Array(m.quiz.length).fill(null) }; state.quizIndex[m.id] = 0; }
+});
+
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const saved = JSON.parse(raw);
+    MODULES.forEach(m=>{
+      if(!m.quiz) return;
+      const savedAnswers = saved && saved[m.id];
+      if(Array.isArray(savedAnswers) && savedAnswers.length === m.quiz.length){
+        state.quizProgress[m.id].answered = savedAnswers;
+      }
+    });
+  }catch(e){ console.warn('No se pudo cargar el progreso guardado:', e); }
+}
+function saveProgress(){
+  try{
+    const data = {};
+    MODULES.forEach(m=>{ if(m.quiz) data[m.id] = state.quizProgress[m.id].answered; });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }catch(e){ console.warn('No se pudo guardar el progreso:', e); }
+  syncPortalProgress();
+}
+function syncPortalProgress(){
+  try{
+    const teachable = MODULES.filter(m=>!m.isOverview);
+    const total = teachable.reduce((s,m)=>s+m.quiz.length,0);
+    const done = teachable.reduce((s,m)=>s+state.quizProgress[m.id].answered.filter(a=>a!==null).length,0);
+    localStorage.setItem('vfd_progress_puesta-en-marcha', JSON.stringify({ done, total }));
+  }catch(e){ console.warn('No se pudo sincronizar el progreso con el portal:', e); }
+}
+function resetAllProgress(){
+  MODULES.forEach(m=>{
+    if(!m.quiz) return;
+    state.quizProgress[m.id].answered = new Array(m.quiz.length).fill(null);
+    state.quizIndex[m.id] = 0;
+  });
+  saveProgress();
+  render();
+}
+loadProgress();
+syncPortalProgress();
+
+/* ============================================================
+   TEMA
+   ============================================================ */
+function applyTheme(){
+  const saved = localStorage.getItem(THEME_KEY);
+  if(saved === 'light'){ document.documentElement.classList.add('light-theme'); }
+  else { document.documentElement.classList.remove('light-theme'); }
+}
+applyTheme();
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  const isLight = document.documentElement.classList.toggle('light-theme');
+  localStorage.setItem(THEME_KEY, isLight ? 'light' : 'dark');
+});
+
+/* ============================================================
+   ANIMACIÓN DE ENTRADA
+   ============================================================ */
+function animateIn(container){
+  const items = container.querySelectorAll('.modhead, .card, .fig, .ovwcard, .qcard, .barwrap, .flash');
+  items.forEach((el,i)=>{ el.classList.add('reveal'); el.style.transitionDelay = Math.min(i*70,560)+'ms'; });
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ items.forEach(el=>el.classList.add('in')); }));
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+function ledStateFor(m){
+  if(m.isOverview) return '';
+  const p = state.quizProgress[m.id];
+  if(!p) return '';
+  const answeredCount = p.answered.filter(a=>a!==null).length;
+  if(answeredCount===0) return '';
+  if(answeredCount < m.quiz.length) return 'partial';
+  return 'done';
+}
+let sidebarAnimated = false;
+function renderSidebar(){
+  const ul = document.getElementById('navlist');
+  ul.innerHTML = '';
+  MODULES.forEach((m,i)=>{
+    const li = document.createElement('li');
+    li.className = 'navitem' + (state.currentId===m.id ? ' active' : '');
+    if(!sidebarAnimated){ li.style.animation = `slideInLeft .45s cubic-bezier(.2,.7,.3,1) ${i*35}ms both`; }
+    const ledClass = ledStateFor(m);
+    li.innerHTML = `
+      ${m.isOverview ? '<span class="led"></span>' : `<span class="led ${ledClass}"></span>`}
+      <span class="num">${m.isOverview ? '★' : String(i).padStart(2,'0')}</span>
+      <span class="label">${m.short}</span>
+    `;
+    li.onclick = ()=>{ state.currentId = m.id; state.view = 'learn'; render(); window.scrollTo(0,0); };
+    ul.appendChild(li);
+  });
+  sidebarAnimated = true;
+}
+
+/* ============================================================
+   OVERVIEW
+   ============================================================ */
+function renderOverview(){
+  const teachable = MODULES.filter(m=>!m.isOverview);
+  const totalQ = teachable.reduce((s,m)=>s+m.quiz.length,0);
+  const answeredQ = teachable.reduce((s,m)=>s+state.quizProgress[m.id].answered.filter(a=>a!==null).length,0);
+  const pct = totalQ ? Math.round(answeredQ/totalQ*100) : 0;
+
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="modhead">
+      <p class="eyebrow">Capacitación · Puesta en marcha y parametrización genérica</p>
+      <h2>Biblioteca de módulos</h2>
+      <p class="sub">Navega libremente entre los 6 módulos. Cada uno tiene su contenido y su quiz — el progreso se guarda automáticamente en este navegador.</p>
+    </div>
+    <div class="barwrap"><div class="barfill" style="width:${pct}%"></div></div>
+    <p style="font-family:var(--mono); font-size:11.5px; color:var(--text-dim); margin:8px 0 24px 0;">${answeredQ} / ${totalQ} preguntas respondidas · ${pct}%</p>
+    ${pct===100 ? `
+    <div class="card" style="border-color:var(--emerald); background:var(--emerald-dim);">
+      <h3 style="color:var(--emerald); margin-top:0;">🏆 Capacitación completa</h3>
+      <p style="margin-bottom:0;">Completaste el quiz de los 6 módulos de Puesta en marcha y parametrización genérica. Ya tenés la base para avanzar a Diagnóstico de fallas o a las capacitaciones específicas de marca del portal.</p>
+    </div>` : ''}
+    <div class="ovwgrid">
+      ${teachable.map((m,i)=>{
+        const p = state.quizProgress[m.id];
+        const answered = p.answered.filter(a=>a!==null).length;
+        const correct = p.answered.reduce((s,a)=> s + (a===true?1:0), 0);
+        let status = 'sin iniciar';
+        if(answered>0 && answered<m.quiz.length) status = `en curso · ${answered}/${m.quiz.length}`;
+        if(answered===m.quiz.length) status = `completo · ${correct}/${m.quiz.length} correctas`;
+        const startBadge = m.id==='inspeccion-instalacion' ? `<span style="font-family:var(--mono); font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--emerald); border:1px solid var(--emerald); border-radius:4px; padding:2px 6px; margin-left:8px;">Empieza aquí</span>` : '';
+        return `<div class="ovwcard" data-id="${m.id}">
+          <div class="top"><span class="t-title">${String(i).padStart(2,'0')} · ${m.title}${startBadge}</span><span class="led ${ledStateFor(m)}"></span></div>
+          <div class="t-sub">${m.sub}</div>
+          <div class="t-status" style="margin-top:10px;">${status}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="resetrow">
+      <button class="btn ghost" id="resetAllBtn">Borrar todo el progreso guardado</button>
+    </div>
+  `;
+  const resetBtn = document.getElementById('resetAllBtn');
+  if(resetBtn){
+    resetBtn.onclick = ()=>{
+      if(confirm('¿Borrar el progreso guardado de todos los módulos? Esta acción no se puede deshacer.')){
+        resetAllProgress();
+      }
+    };
+  }
+  main.querySelectorAll('.ovwcard').forEach(el=>{
+    el.onclick = ()=>{ state.currentId = el.dataset.id; state.view = 'learn'; render(); window.scrollTo(0,0); };
+  });
+  animateIn(main);
+}
+
+/* ============================================================
+   MÓDULO (learn / quiz)
+   ============================================================ */
+function renderModule(m){
+  const main = document.getElementById('main');
+  const hasCards = !!m.flashcards;
+  main.innerHTML = `
+    <div class="modhead">
+      <p class="eyebrow">${m.eyebrow}</p>
+      <h2>${m.title}</h2>
+      <p class="sub">${m.sub}</p>
+    </div>
+    <div class="tabs no-print">
+      <div class="tab ${state.view==='learn'?'active':''}" data-v="learn">Aprender</div>
+      <div class="tab ${state.view==='quiz'?'active':''}" data-v="quiz">Quiz (${m.quiz.length})</div>
+      <div style="margin-left:auto; align-self:center;"><button class="btn ghost" id="printBtn" style="font-size:10.5px; padding:6px 12px;">🖨️ Imprimir esta unidad</button></div>
+    </div>
+    <div id="modbody"></div>
+  `;
+  main.querySelectorAll('.tab').forEach(t=>{ t.onclick = ()=>{ state.view = t.dataset.v; render(); }; });
+  const printBtn = document.getElementById('printBtn');
+  if(printBtn) printBtn.onclick = ()=> window.print();
+  const body = document.getElementById('modbody');
+  if(state.view==='learn'){
+    body.innerHTML = m.content;
+    if(hasCards) renderFlashcards(m);
+  } else {
+    renderQuiz(m, body);
+  }
+  animateIn(main);
+}
+
+function renderFlashcards(m){
+  const grid = document.getElementById('flashgrid');
+  if(!grid) return;
+  grid.innerHTML = m.flashcards.map((f)=>`
+    <div class="flash" tabindex="0" role="button" aria-label="Tarjeta ${f.acr}, presiona Enter o Espacio para revelar">
+      <div class="flash-inner">
+        <div class="flash-face flash-front"><div class="acr">${f.acr}</div><div class="hint">toca para revelar</div></div>
+        <div class="flash-face flash-back"><div class="full">${f.full}</div><div class="desc">${f.desc}</div></div>
+      </div>
+    </div>
+  `).join('');
+  grid.querySelectorAll('.flash').forEach(el=>{
+    el.onclick = ()=> el.classList.toggle('flipped');
+    el.onkeydown = (e)=>{
+      if(e.key==='Enter' || e.key===' ' || e.key==='Spacebar'){
+        e.preventDefault();
+        el.classList.toggle('flipped');
+      }
+    };
+  });
+}
+
+/* ---------- Quiz engine ---------- */
+function renderQuiz(m, body){
+  const progress = state.quizProgress[m.id];
+  const total = m.quiz.length;
+  const answeredAll = progress.answered.every(a=>a!==null);
+
+  if(answeredAll){
+    const correct = progress.answered.filter(a=>a===true).length;
+    const missed = m.quiz.map((q,qi)=>({q,qi})).filter(x=>progress.answered[x.qi]===false);
+    body.innerHTML = `
+      <div class="qcard">
+        <div class="quizresult">
+          <div class="score">${correct}/${total}</div>
+          <div class="label">respuestas correctas en este módulo</div>
+          <button class="btn ghost" id="retryBtn">Reintentar quiz</button>
+        </div>
+        ${missed.length ? `
+        <div style="text-align:left; margin-top:10px;">
+          <h3 style="color:var(--red);">Preguntas a repasar (${missed.length})</h3>
+          ${missed.map(x=>`
+            <div class="note warn" style="margin:10px 0;">
+              <strong>${x.q.q}</strong><br>
+              Respuesta correcta: ${x.q.options[x.q.answer]}<br>
+              ${x.q.explain}
+            </div>
+          `).join('')}
+        </div>` : ''}
+      </div>
+    `;
+    document.getElementById('retryBtn').onclick = ()=>{
+      progress.answered = new Array(total).fill(null);
+      state.quizIndex[m.id] = 0;
+      saveProgress();
+      render();
+    };
+    return;
+  }
+
+  let idx = state.quizIndex[m.id];
+  if(progress.answered[idx]!==null){
+    idx = progress.answered.findIndex(a=>a===null);
+    state.quizIndex[m.id] = idx;
+  }
+  const q = m.quiz[idx];
+  body.innerHTML = `
+    <div class="qcounter">Pregunta ${idx+1} de ${total}</div>
+    <div class="qcard">
+      <p class="qtext">${q.q}</p>
+      <div id="optlist">
+        ${q.options.map((o,oi)=>`<div class="opt" data-oi="${oi}"><span class="bullet">${String.fromCharCode(65+oi)}</span><span>${o}</span></div>`).join('')}
+      </div>
+      <div class="explain" id="explainBox">${q.explain}</div>
+      <div class="qnav">
+        <span style="font-family:var(--mono); font-size:11px; color:var(--text-dim);">selecciona una opción</span>
+        <button class="btn" id="nextBtn" disabled>Siguiente</button>
+      </div>
+    </div>
+  `;
+  let picked = false;
+  document.querySelectorAll('#optlist .opt').forEach(el=>{
+    el.onclick = ()=>{
+      if(picked) return;
+      picked = true;
+      const oi = parseInt(el.dataset.oi);
+      const isCorrect = oi===q.answer;
+      progress.answered[idx] = isCorrect;
+      saveProgress();
+      document.querySelectorAll('#optlist .opt').forEach(o2=>{
+        const oi2 = parseInt(o2.dataset.oi);
+        if(oi2===q.answer) o2.classList.add('correct');
+        else if(oi2===oi) o2.classList.add('wrong');
+      });
+      document.getElementById('explainBox').classList.add('show');
+      const nb = document.getElementById('nextBtn');
+      nb.disabled = false;
+      nb.onclick = ()=>{
+        state.quizIndex[m.id] = idx+1 < total ? idx+1 : idx;
+        render();
+      };
+      renderSidebar();
+    };
+  });
+}
+
+/* ============================================================
+   RENDER PRINCIPAL
+   ============================================================ */
+function render(){
+  renderSidebar();
+  const m = MODULES.find(mm=>mm.id===state.currentId);
+  if(m.isOverview) renderOverview();
+  else renderModule(m);
+}
+
+render();
+</script>
+</body>
+</html>
