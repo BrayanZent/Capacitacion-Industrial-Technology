@@ -1,0 +1,783 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Electricidad industrial básica · Capacitación Interactiva</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0f1620;
+    --panel: #16202c;
+    --panel-raised: #1e2a38;
+    --line: #2b3a4a;
+    --text: #e6edf5;
+    --text-dim: #8fa0b3;
+    --sky: #38bdf8;
+    --sky-dim: #163244;
+    --emerald: #34d399;
+    --emerald-dim: #14332a;
+    --red: #f87171;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+  :root.light-theme{
+    --bg: #f3f6fa;
+    --panel: #ffffff;
+    --panel-raised: #eef2f7;
+    --line: #d7e0ea;
+    --text: #1b2530;
+    --text-dim: #5c6b7d;
+    --sky-dim: #e0f2fe;
+    --emerald-dim: #d4f5e4;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  ::selection{background:var(--sky-dim);color:var(--text);}
+
+  @keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+  @keyframes slideInLeft{ from{opacity:0; transform:translateX(-14px);} to{opacity:1; transform:translateX(0);} }
+  @keyframes logoIn{ from{opacity:0; transform:scale(.9);} to{opacity:1; transform:scale(1);} }
+  .reveal{opacity:0; transform:translateY(18px); transition:opacity .55s cubic-bezier(.2,.7,.3,1), transform .55s cubic-bezier(.2,.7,.3,1);}
+  .reveal.in{opacity:1; transform:translateY(0);}
+
+  .app{display:flex; min-height:100vh;}
+  .sidebar{
+    width:280px; flex-shrink:0; background:var(--panel);
+    border-right:1px solid var(--line);
+    padding:22px 16px; position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .brand{padding:4px 8px 20px 8px; border-bottom:1px solid var(--line); margin-bottom:16px;}
+  .brand-logo{width:100%; max-width:170px; display:block; margin:0 0 14px 0; background:#fff; border-radius:6px; padding:8px 10px; animation:logoIn .8s cubic-bezier(.2,.8,.3,1);}
+  .brand .tag{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--emerald); text-transform:uppercase;}
+  .brand h1{font-size:18px; margin:6px 0 2px 0; line-height:1.25;}
+  .brand p{font-size:12px; color:var(--text-dim); margin:0;}
+
+  .navlist{list-style:none; margin:0; padding:0;}
+  .navitem{display:flex; align-items:center; gap:10px; padding:10px 10px; border-radius:6px; cursor:pointer; margin-bottom:2px; border:1px solid transparent; transition:background .2s ease, transform .2s ease;}
+  .navitem:hover{background:var(--panel-raised); transform:translateX(2px);}
+  .navitem.active{background:var(--panel-raised); border-color:var(--line);}
+  .led{width:9px; height:9px; border-radius:50%; flex-shrink:0; background:#3a4048; box-shadow:inset 0 0 0 1px rgba(0,0,0,.4);}
+  .led.done{background:var(--emerald); box-shadow:0 0 6px rgba(52,211,153,.7);}
+  .led.partial{background:var(--sky); box-shadow:0 0 6px rgba(56,189,248,.6);}
+  .navitem .num{font-family:var(--mono); font-size:11px; color:var(--text-dim); width:18px;}
+  .navitem .label{font-size:13.5px;}
+  .navitem.active .label{color:var(--sky);}
+
+  .sidebar-foot{margin-top:18px; padding-top:14px; border-top:1px solid var(--line); font-family:var(--mono); font-size:11px; color:var(--text-dim);}
+  .themebtn{margin-top:10px; width:100%; font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.04em; background:transparent; color:var(--text-dim); border:1px solid var(--line); padding:8px 10px; border-radius:6px; cursor:pointer;}
+  .themebtn:hover{color:var(--text); border-color:var(--sky);}
+
+  .main{flex:1; padding:36px 44px; max-width:920px; animation:fadeIn .5s ease;}
+  @media (max-width: 860px){ .app{flex-direction:column;} .sidebar{width:100%; height:auto; position:relative; border-right:none; border-bottom:1px solid var(--line);} .main{padding:24px;} }
+
+  .modhead{margin-bottom:8px;}
+  .modhead .eyebrow{font-family:var(--mono); font-size:11.5px; color:var(--sky); letter-spacing:.1em; text-transform:uppercase; margin:0 0 6px 0;}
+  .modhead h2{font-size:26px; margin:0 0 6px 0; line-height:1.2;}
+  .modhead .sub{color:var(--text-dim); font-size:14px; max-width:62ch; margin:0;}
+
+  .tabs{display:flex; gap:6px; margin:20px 0 22px 0; border-bottom:1px solid var(--line);}
+  .tab{font-family:var(--mono); font-size:12.5px; letter-spacing:.03em; padding:9px 14px; cursor:pointer; color:var(--text-dim); border-bottom:2px solid transparent; text-transform:uppercase;}
+  .tab:hover{color:var(--text);}
+  .tab.active{color:var(--sky); border-bottom-color:var(--sky);}
+
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:20px 22px; margin-bottom:14px; transition:transform .25s ease, border-color .25s ease;}
+  .card:hover{transform:translateY(-2px); border-color:var(--sky);}
+  .card h3{margin:18px 0 8px 0; font-size:14.5px; color:var(--sky); display:flex; align-items:center; gap:8px;}
+  .card h3:first-child{margin-top:0;}
+  .card p{margin:0 0 10px 0; font-size:14px; line-height:1.65;}
+  .card ul, .card ol{margin:8px 0 12px 0; padding-left:18px;}
+  .card li{font-size:13.5px; line-height:1.7; margin-bottom:5px;}
+
+  .note{margin:12px 0; padding:11px 13px; background:rgba(56,189,248,.07); border-left:3px solid var(--sky); font-size:12.5px; color:var(--text-dim); border-radius:0 5px 5px 0;}
+  .note.warn{background:rgba(248,113,113,.08); border-left-color:var(--red);}
+
+  table.tech{width:100%; border-collapse:collapse; font-family:var(--mono); font-size:12px; margin:6px 0 14px 0;}
+  table.tech th, table.tech td{padding:7px 9px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top;}
+  table.tech th{color:var(--sky); font-weight:600; background:var(--panel-raised);}
+  table.tech td{color:var(--text-dim);}
+
+  .fig{margin:14px 0 6px 0; text-align:center;}
+  .fig img{width:100%; max-width:460px; display:block; margin:0 auto; border-radius:6px; border:1px solid var(--line); background:#f5f3ee;}
+  .fig.wide img{max-width:820px;}
+  .fig figcaption{font-family:var(--mono); font-size:10.5px; color:var(--text-dim); margin-top:6px;}
+
+  .placeholder{border:1px dashed var(--line); border-radius:8px; padding:16px; text-align:center; font-size:12px; color:var(--text-dim); margin:12px 0;}
+
+  .cardsgrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:14px; margin-top:6px;}
+  .flash{perspective:1000px; height:130px; cursor:pointer;}
+  .flash-inner{position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d;}
+  .flash.flipped .flash-inner{transform:rotateY(180deg);}
+  .flash-face{position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--line); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:12px;}
+  .flash-front{background:var(--panel-raised);}
+  .flash-front .acr{font-family:var(--mono); font-size:19px; color:var(--sky); font-weight:600;}
+  .flash-front .hint{font-size:10px; color:var(--text-dim); margin-top:8px; text-transform:uppercase; letter-spacing:.05em;}
+  .flash-back{background:var(--sky-dim); transform:rotateY(180deg);}
+  .flash-back .full{font-size:12px; font-weight:600; margin-bottom:5px;}
+  .flash-back .desc{font-size:11px; color:var(--text-dim); line-height:1.4;}
+
+  .ovwgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; margin-top:10px;}
+  .ovwcard{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px 18px; cursor:pointer; transition:transform .2s ease, border-color .2s ease;}
+  .ovwcard:hover{border-color:var(--sky); transform:translateY(-3px);}
+  .ovwcard .top{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .ovwcard .t-title{font-size:13.5px; font-weight:600;}
+  .ovwcard .t-sub{font-size:12px; color:var(--text-dim); line-height:1.4;}
+  .ovwcard .t-status{font-family:var(--mono); font-size:10.5px; text-transform:uppercase; color:var(--text-dim);}
+
+  .barwrap{height:5px; background:var(--panel-raised); border-radius:3px; overflow:hidden; margin-top:16px;}
+  .barfill{height:100%; background:linear-gradient(90deg, var(--sky), var(--emerald)); transition:width .4s;}
+
+  .qcounter{font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-bottom:10px;}
+  .qcard{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:22px;}
+  .qtext{font-size:15.5px; margin:0 0 18px 0; line-height:1.5;}
+  .opt{display:flex; align-items:center; gap:10px; padding:11px 14px; border:1px solid var(--line); border-radius:6px; margin-bottom:9px; cursor:pointer; font-size:13.5px; background:var(--panel-raised); transition:transform .15s ease, border-color .15s ease;}
+  .opt:hover{border-color:var(--sky); transform:translateX(3px);}
+  .opt.correct{border-color:var(--emerald); background:rgba(52,211,153,.1);}
+  .opt.wrong{border-color:var(--red); background:rgba(248,113,113,.1);}
+  .opt .bullet{width:18px; height:18px; border-radius:50%; border:1px solid var(--text-dim); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:10px; color:var(--text-dim);}
+  .opt.correct .bullet{border-color:var(--emerald); color:var(--emerald);}
+  .opt.wrong .bullet{border-color:var(--red); color:var(--red);}
+
+  .explain{margin-top:14px; padding:12px 14px; border-radius:6px; font-size:13px; line-height:1.55; background:var(--panel-raised); border:1px solid var(--line); display:none;}
+  .explain.show{display:block;}
+
+  .qnav{display:flex; justify-content:space-between; align-items:center; margin-top:20px;}
+  .btn{font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.04em; background:var(--sky); color:#04222f; border:none; padding:10px 18px; border-radius:5px; cursor:pointer; font-weight:600; transition:transform .15s ease, background .2s ease;}
+  .btn:hover{background:#ffbb4d; transform:translateY(-1px);}
+  .btn.ghost{background:transparent; color:var(--text-dim); border:1px solid var(--line);}
+  .btn.ghost:hover{color:var(--text); border-color:var(--sky);}
+  .btn:disabled{opacity:.35; cursor:not-allowed;}
+
+  .quizresult{text-align:center; padding:40px 20px;}
+  .quizresult .score{font-family:var(--mono); font-size:50px; color:var(--sky); margin-bottom:6px;}
+  .quizresult .label{color:var(--text-dim); font-size:12.5px; margin-bottom:22px;}
+
+  .resetrow{margin-top:26px; padding-top:16px; border-top:1px solid var(--line);}
+  ::-webkit-scrollbar{width:10px;}
+  ::-webkit-scrollbar-thumb{background:#4a3f2c; border-radius:6px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  .flash:focus-visible{outline:2px solid var(--sky); outline-offset:2px;}
+
+  @media print{
+    .sidebar, .no-print, .themebtn, .resetrow{display:none !important;}
+    body{background:#fff; color:#111;}
+    .main{max-width:100%; padding:0;}
+    .card{border:1px solid #999; break-inside:avoid; box-shadow:none;}
+    table.tech th, table.tech td{color:#111; border-bottom:1px solid #999;}
+    table.tech th{background:#eee;}
+    .fig img{max-width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <nav class="sidebar">
+    <div class="brand">
+      <img class="brand-logo" src="../../assets/logo-industrial-technology.png" alt="Logo de la empresa">
+      <div class="tag">Fundamentos · Sin marca</div>
+      <h1>Electricidad industrial básica</h1>
+      <p>Los fundamentos eléctricos que necesitás antes de tocar un variador de frecuencia — sin conocimientos previos de electricidad.</p>
+    </div>
+    <ul class="navlist" id="navlist"></ul>
+    <div class="sidebar-foot">
+      Nivelación técnica · progreso guardado en este navegador
+      <button class="themebtn" id="themeToggle">🌓 Cambiar tema</button>
+      <a href="../../index.html" class="themebtn" style="display:block; text-align:center; text-decoration:none; margin-top:8px;">← Todas las capacitaciones</a>
+      <a href="puesta-en-marcha.html" class="themebtn" style="display:block; text-align:center; text-decoration:none; margin-top:8px;">Seguir: Puesta en marcha →</a>
+    </div>
+  </nav>
+
+  <main class="main" id="main"></main>
+</div>
+
+<script>
+/* ============================================================
+   HELPERS DE CONTENIDO
+   ============================================================ */
+const PLACEHOLDER = (txt) => `<div class="placeholder">🖼️ [Marcador de imagen: ${txt}]</div>`;
+const NOTE = (txt) => `<div class="note warn">⚠️ ${txt}</div>`;
+const INFO = (txt) => `<div class="note">💡 ${txt}</div>`;
+const H3 = (txt) => `<h3><span style="width:6px;height:6px;border-radius:50%;background:var(--sky);display:inline-block;"></span>${txt}</h3>`;
+const IMG = (src, caption, source, wide) => `<figure class="fig${wide ? ' wide' : ''}">
+  <img src="imagenes/${src}" alt="${caption}" loading="lazy">
+  <figcaption>${caption}${source ? ` — <span style="font-style:italic">${source}</span>` : ''}</figcaption>
+</figure>`;
+
+/* ============================================================
+   MÓDULOS
+   ============================================================ */
+const MODULES = [
+{ id:'overview', title:'Panel general', short:'Inicio', isOverview:true },
+
+{
+  id:'corriente-ac-dc', title:'Corriente continua (DC) vs. corriente alterna (AC)', short:'AC vs. DC',
+  eyebrow:'Módulo 01 · Fundamentos eléctricos', sub:'Qué diferencia hay entre corriente continua y alterna, y por qué un VFD necesita convertir una en la otra.',
+  content:`
+    <div class="card">
+      <p>Antes de hablar de motores o de variadores, hay que tener clara la diferencia entre los dos tipos básicos de corriente eléctrica: <strong>continua (DC)</strong> y <strong>alterna (AC)</strong>.</p>
+
+      ${H3("Corriente continua (DC — Direct Current)")}
+      <p>En DC, la corriente fluye siempre en el <strong>mismo sentido</strong> y con un valor de tensión que se mantiene constante en el tiempo (una línea recta si la graficamos). Ejemplos cotidianos: una batería, una pila, o el bus DC interno de un variador de frecuencia.</p>
+
+      ${H3("Corriente alterna (AC — Alternating Current)")}
+      <p>En AC, la corriente <strong>invierte su sentido periódicamente</strong>, siguiendo una forma de onda <strong>senoidal</strong>: sube desde cero hasta un máximo positivo, vuelve a cero, baja hasta un máximo negativo y vuelve a cero, repitiendo el ciclo. La cantidad de veces por segundo que se repite ese ciclo es la <strong>frecuencia</strong>, medida en Hertz (Hz). La red eléctrica industrial típica trabaja a 50 Hz o 60 Hz según el país.</p>
+
+      ${H3("¿Por qué la red eléctrica es AC?")}
+      <p>La corriente alterna se adoptó como estándar de distribución porque su tensión puede elevarse o reducirse fácilmente con transformadores, lo que permite transportar energía a largas distancias con pérdidas bajas (alta tensión, baja corriente) y luego bajarla a niveles seguros de uso. La corriente continua, en cambio, es mucho más difícil y costosa de transformar de un nivel de tensión a otro.</p>
+
+      ${H3("¿Por qué un VFD usa DC internamente?")}
+      <p>Un variador de frecuencia recibe AC de la red, pero internamente <strong>rectifica</strong> esa AC a DC y la almacena en un banco de condensadores llamado <strong>bus DC</strong>. Desde ese bus DC, una segunda etapa (el inversor) reconstruye una nueva señal AC de frecuencia y voltaje variables para entregarle al motor exactamente la velocidad que el proceso necesita — ese es, justamente, el principio básico que ya viste en el módulo de arquitectura de la capacitación "Introducción a VFD".</p>
+
+      ${PLACEHOLDER("Dos gráficos lado a lado: forma de onda DC (línea recta constante en el tiempo) vs. forma de onda AC (curva senoidal que sube y baja pasando por cero), con el eje de tiempo marcado en un ciclo completo")}
+
+      ${INFO("Conocimiento general de electricidad, no una cita de un manual puntual: sirve como base común a cualquier fabricante de VFD.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuál es la característica principal de la corriente continua (DC)?", options:["Cambia de sentido periódicamente","Fluye siempre en el mismo sentido con valor constante en el tiempo","Solo existe en la red eléctrica industrial","Tiene forma de onda senoidal"], answer:1, explain:"La DC fluye siempre en el mismo sentido y mantiene un valor de tensión constante en el tiempo." },
+    { q:"¿Qué forma de onda tiene la corriente alterna (AC)?", options:["Una línea recta constante","Una onda cuadrada","Una onda senoidal que invierte su sentido periódicamente","No tiene forma definida"], answer:2, explain:"La AC sigue una forma de onda senoidal, invirtiendo periódicamente su sentido entre un máximo positivo y uno negativo." },
+    { q:"¿Qué mide la frecuencia de una señal AC y en qué unidad se expresa?", options:["La tensión máxima, en Volts","Cuántas veces por segundo se repite el ciclo, en Hertz (Hz)","La corriente máxima, en Amperes","La potencia, en Watts"], answer:1, explain:"La frecuencia es la cantidad de veces por segundo que se repite el ciclo de la onda AC, medida en Hertz (Hz)." },
+    { q:"¿Por qué la red eléctrica de distribución usa AC en lugar de DC?", options:["Porque la AC es más simple de generar y no tiene otra ventaja","Porque la tensión de AC puede elevarse o reducirse fácilmente con transformadores para transportar energía con pérdidas bajas","Porque la AC no requiere cables","Porque los motores solo pueden alimentarse con AC, nunca con DC"], answer:1, explain:"La AC se adoptó como estándar porque su tensión se transforma fácilmente con transformadores, permitiendo transportar energía a largas distancias con pérdidas bajas." },
+    { q:"¿Por qué un VFD convierte la AC de red en DC internamente (bus DC)?", options:["Porque el motor solo puede alimentarse en DC","Para almacenar y filtrar la energía como etapa intermedia, antes de que el inversor reconstruya una nueva AC de frecuencia y voltaje variables para el motor","Porque así se ahorra el uso de un rectificador","Porque la DC es más barata de generar que la AC"], answer:1, explain:"El bus DC es una etapa intermedia de almacenamiento y filtrado; desde ahí el inversor reconstruye una AC de frecuencia y voltaje variables para el motor." }
+  ]
+},
+
+{
+  id:'sistemas-trifasicos', title:'Sistemas trifásicos: por qué la industria los usa', short:'Sistemas trifásicos',
+  eyebrow:'Módulo 02 · Fundamentos eléctricos', sub:'Qué es un sistema trifásico, sus ventajas frente al monofásico, y la diferencia conceptual entre estrella y triángulo.',
+  content:`
+    <div class="card">
+      ${H3("¿Qué es un sistema trifásico?")}
+      <p>Un sistema <strong>trifásico</strong> entrega energía eléctrica mediante <strong>tres corrientes alternas</strong> de la misma frecuencia y amplitud, pero <strong>desfasadas entre sí 120°</strong> una de otra. En vez de un solo conductor "vivo" como en un sistema monofásico, hay tres (habitualmente llamados L1, L2 y L3).</p>
+
+      ${H3("¿Por qué la industria usa trifásico en vez de monofásico?")}
+      <ul>
+        <li><strong>Potencia constante entregada:</strong> en un sistema monofásico, la potencia instantánea entregada varía en el tiempo (pulsa con la onda). En un sistema trifásico bien balanceado, la suma de las tres fases entrega una potencia prácticamente <strong>constante</strong> en cada instante — esto se traduce en un funcionamiento más suave del motor, sin las vibraciones asociadas a esa pulsación.</li>
+        <li><strong>Menor tamaño de conductores por potencia transmitida:</strong> para transmitir la misma potencia, un sistema trifásico requiere conductores de menor sección que un sistema monofásico equivalente, lo que reduce costo de cableado e infraestructura en instalaciones industriales de potencia elevada.</li>
+        <li><strong>Motores más simples y eficientes:</strong> un motor trifásico genera su campo magnético giratorio de forma natural a partir del desfase de 120° entre fases, sin necesitar los devanados auxiliares o capacitores de arranque que suelen requerir los motores monofásicos.</li>
+      </ul>
+
+      ${H3("Estrella (Y) vs. triángulo (Δ) — diferencia conceptual")}
+      <p>Los devanados de un motor o transformador trifásico pueden interconectarse de dos formas básicas:</p>
+      <ul>
+        <li><strong>Estrella (Y):</strong> un extremo de cada uno de los tres devanados se une en un punto común (el "neutro"), y el otro extremo de cada devanado se conecta a una fase de la red. Permite disponer de dos niveles de tensión (fase-neutro y fase-fase).</li>
+        <li><strong>Triángulo (Δ):</strong> los devanados se conectan en serie formando un anillo cerrado, sin punto neutro común, y cada unión entre dos devanados se conecta a una fase de la red.</li>
+      </ul>
+      <p>La elección entre estrella y triángulo afecta la tensión que "ve" cada devanado del motor y su corriente de línea — es uno de los datos que figura en la <strong>placa de datos del motor</strong>, tema que se profundiza más adelante en esta capacitación.</p>
+
+      ${PLACEHOLDER("Diagrama comparativo: tres ondas senoidales desfasadas 120° (L1, L2, L3) a la izquierda, y a la derecha dos esquemas de conexión de devanados — estrella (Y) con punto neutro común y triángulo (Δ) en anillo cerrado")}
+
+      ${INFO("Conocimiento general de electricidad industrial, no cita de un manual puntual.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuántas corrientes alternas componen un sistema trifásico y con qué desfase entre ellas?", options:["Dos corrientes, desfasadas 90°","Tres corrientes de la misma frecuencia y amplitud, desfasadas 120° entre sí","Cuatro corrientes desfasadas 180°","Una sola corriente dividida en tres cables"], answer:1, explain:"Un sistema trifásico entrega tres corrientes alternas de igual frecuencia y amplitud, desfasadas 120° entre sí." },
+    { q:"¿Qué ventaja tiene un sistema trifásico bien balanceado frente a uno monofásico en cuanto a la potencia entregada?", options:["Entrega menos potencia total","Entrega una potencia prácticamente constante en el tiempo, en vez de pulsante","No hay ninguna diferencia en la potencia entregada","Solo funciona con motores de corriente continua"], answer:1, explain:"En un sistema trifásico balanceado, la suma de las tres fases entrega potencia prácticamente constante, a diferencia de la potencia pulsante del monofásico." },
+    { q:"¿Qué ventaja de infraestructura ofrece el trifásico frente al monofásico para transmitir la misma potencia?", options:["Requiere conductores de mayor sección","Requiere conductores de menor sección, reduciendo costo de cableado","No hay diferencia en el tamaño de los conductores","Elimina la necesidad de cualquier conductor"], answer:1, explain:"Para transmitir la misma potencia, el sistema trifásico requiere conductores de menor sección que el monofásico equivalente." },
+    { q:"¿Cómo se conectan los devanados en una conexión estrella (Y)?", options:["En un anillo cerrado sin punto común","Un extremo de cada devanado se une en un punto común (neutro) y el otro se conecta a una fase","Todos los devanados en paralelo directo a tierra","No se conectan entre sí"], answer:1, explain:"En estrella, un extremo de cada devanado se une en un punto común (neutro) y el otro extremo se conecta a una fase de la red." },
+    { q:"¿Por qué un motor trifásico no necesita devanados auxiliares ni capacitor de arranque, a diferencia de muchos motores monofásicos?", options:["Porque no tiene devanados","Porque genera su campo magnético giratorio de forma natural a partir del desfase de 120° entre las tres fases","Porque siempre funciona en DC","Porque no necesita campo magnético para girar"], answer:1, explain:"El desfase de 120° entre las tres fases genera de forma natural un campo magnético giratorio, sin necesitar devanados auxiliares o capacitores de arranque." }
+  ]
+},
+
+{
+  id:'motor-induccion', title:'El motor de inducción: velocidad síncrona y deslizamiento', short:'Motor de inducción',
+  eyebrow:'Módulo 03 · Fundamentos eléctricos', sub:'Partes básicas del motor, la fórmula de velocidad síncrona y por qué el deslizamiento conecta directamente con el funcionamiento de un VFD.',
+  content:`
+    <div class="card">
+      ${H3("Partes básicas de un motor de inducción")}
+      <ul>
+        <li><strong>Estator:</strong> la parte fija del motor, con devanados que, alimentados por la red trifásica, generan un campo magnético giratorio.</li>
+        <li><strong>Rotor:</strong> la parte móvil, montada sobre el eje, que gira arrastrada por el campo magnético generado en el estator. En el tipo más común (rotor jaula de ardilla), no tiene conexión eléctrica directa a una fuente externa: la corriente se induce en él por el propio campo giratorio, de ahí el nombre "motor de inducción".</li>
+        <li><strong>Entrehierro:</strong> el espacio de aire pequeño entre el estator y el rotor, que permite que el rotor gire libremente mientras queda expuesto al campo magnético del estator.</li>
+      </ul>
+
+      ${H3("Velocidad síncrona")}
+      <p>Es la velocidad a la que gira el campo magnético del estator (no necesariamente la velocidad real del rotor). Se calcula con la fórmula:</p>
+      <table class="tech">
+        <tr><th>Fórmula</th><th>Variables</th></tr>
+        <tr><td>n = 120 · f / p</td><td>n = velocidad síncrona (RPM) · f = frecuencia de alimentación (Hz) · p = número de polos del motor</td></tr>
+      </table>
+      <p>Por ejemplo, un motor de 4 polos alimentado a 60 Hz tiene una velocidad síncrona de n = 120 × 60 / 4 = <strong>1800 RPM</strong>.</p>
+
+      ${H3("Deslizamiento (slip)")}
+      <p>En un motor de inducción real, el rotor <strong>nunca llega a girar exactamente</strong> a la velocidad síncrona — siempre gira un poco más lento. Esa diferencia se llama <strong>deslizamiento</strong> (slip), y es necesaria: si el rotor girara exactamente a la misma velocidad que el campo giratorio, no habría movimiento relativo entre ambos y, por lo tanto, no se induciría corriente en el rotor ni se generaría el torque necesario para moverlo. El deslizamiento suele expresarse como porcentaje de la velocidad síncrona (típicamente entre 1% y 5% en motores industriales a plena carga).</p>
+
+      ${H3("La conexión con el VFD")}
+      <p>Mirá de nuevo la fórmula: <strong>n = 120 · f / p</strong>. El número de polos (p) es fijo, propio de la construcción del motor. Pero la frecuencia (f) es justamente la variable que un variador de frecuencia controla. <strong>Por eso cambiar la frecuencia (f) cambia directamente la velocidad del motor</strong> — ese es, en el fondo, el principio físico completo detrás de todo lo que hace un VFD.</p>
+
+      ${PLACEHOLDER("Corte transversal de un motor de inducción mostrando estator, rotor jaula de ardilla y entrehierro, con una flecha indicando el campo magnético giratorio del estator y otra, algo más lenta, indicando el giro real del rotor")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué parte del motor de inducción genera el campo magnético giratorio al ser alimentada por la red trifásica?", options:["El rotor","El estator","El entrehierro","El eje"], answer:1, explain:"El estator es la parte fija con devanados que, alimentados por la red trifásica, generan el campo magnético giratorio." },
+    { q:"¿Por qué se llama 'motor de inducción' al tipo más común (rotor jaula de ardilla)?", options:["Porque el rotor tiene conexión eléctrica directa a la red","Porque la corriente se induce en el rotor por el propio campo giratorio del estator, sin conexión eléctrica directa","Porque solo funciona con corriente continua","Porque induce calor en el estator"], answer:1, explain:"En el rotor jaula de ardilla la corriente se induce por el campo giratorio del estator, sin conexión eléctrica directa externa — de ahí el nombre." },
+    { q:"Usando n = 120 · f / p, ¿cuál es la velocidad síncrona de un motor de 4 polos alimentado a 60 Hz?", options:["900 RPM","1200 RPM","1800 RPM","3600 RPM"], answer:2, explain:"n = 120 × 60 / 4 = 1800 RPM, tal como se calcula en el ejemplo del módulo." },
+    { q:"¿Por qué es necesario que exista deslizamiento (slip) en un motor de inducción?", options:["Para que el motor consuma más corriente sin razón","Porque si el rotor girara exactamente a la velocidad síncrona no habría movimiento relativo con el campo, y no se induciría corriente ni torque en el rotor","Para reducir el tamaño del motor","No es necesario, es un defecto de fabricación"], answer:1, explain:"Sin deslizamiento no hay movimiento relativo entre rotor y campo giratorio, por lo que no se induciría corriente ni se generaría torque." },
+    { q:"¿Por qué cambiar la frecuencia (f) con un VFD cambia directamente la velocidad del motor?", options:["Porque cambia el número de polos del motor","Porque la frecuencia es una de las variables de la fórmula n = 120·f/p que determina la velocidad síncrona, y el número de polos es fijo","Porque afecta solo al entrehierro","Porque desconecta el rotor del estator"], answer:1, explain:"El número de polos (p) es fijo por construcción; la frecuencia (f) es la variable que el VFD controla, y al aparecer en la fórmula n=120·f/p, cambiarla cambia directamente la velocidad." }
+  ]
+},
+
+{
+  id:'puesta-a-tierra', title:'Puesta a tierra: qué es y para qué existe', short:'Puesta a tierra',
+  eyebrow:'Módulo 04 · Fundamentos eléctricos', sub:'Camino de baja impedancia para fallas, protección de personas y la diferencia entre tierra de protección y tierra de referencia de señal.',
+  content:`
+    <div class="card">
+      ${H3("¿Qué es la puesta a tierra?")}
+      <p>La <strong>puesta a tierra</strong> es la conexión intencional de partes metálicas de una instalación (carcasas de equipos, gabinetes, estructuras) a un electrodo enterrado en el suelo, de forma que esas partes queden al mismo potencial eléctrico que la tierra física (idealmente 0 V respecto a tierra).</p>
+
+      ${H3("¿Por qué existe?")}
+      <ul>
+        <li><strong>Camino de baja impedancia para corrientes de falla:</strong> si por un defecto de aislamiento una parte energizada entra en contacto con la carcasa metálica de un equipo, la conexión a tierra ofrece un camino de muy baja resistencia para que esa corriente de falla circule y haga actuar rápidamente las protecciones (fusibles, interruptores termomagnéticos, diferenciales), en vez de quedar "atrapada" en la carcasa.</li>
+        <li><strong>Protección de personas:</strong> sin una tierra adecuada, una carcasa metálica con una falla de aislamiento puede quedar energizada sin que nada lo indique. Si una persona la toca, su cuerpo puede convertirse en el camino de baja impedancia hacia tierra — con riesgo de electrocución. La puesta a tierra reduce drásticamente ese riesgo.</li>
+      </ul>
+
+      ${H3("Tierra de protección vs. tierra de referencia de señal — diferencia conceptual")}
+      <p>No toda conexión a "tierra" cumple el mismo rol:</p>
+      <ul>
+        <li><strong>Tierra de protección (safety ground / PE):</strong> es la que se describió arriba — conecta carcasas y partes metálicas por seguridad, para dar un camino de falla y proteger personas. Es la que exigen las normas de seguridad eléctrica.</li>
+        <li><strong>Tierra de referencia de señal (signal ground):</strong> es un punto de referencia de 0 V para circuitos electrónicos de control y comunicación (por ejemplo, la referencia de una señal analógica 4-20 mA o de un bus de comunicación). Su objetivo no es la seguridad de personas, sino dar una referencia estable que evite ruido eléctrico e interferencias en la señal.</li>
+      </ul>
+      ${NOTE("Mezclar mal ambas tierras (por ejemplo, usar la tierra de protección de potencia como referencia de una señal analógica sensible) es una causa común de ruido eléctrico y lecturas erráticas en instrumentación — el criterio exacto de cómo separarlas en cada instalación depende del diseño específico del sistema y de las normas locales aplicables, y debe validarse en cada caso, no darse por sentado.")}
+
+      ${PLACEHOLDER("Esquema de un gabinete industrial mostrando el electrodo de puesta a tierra enterrado, el conductor de tierra de protección conectado a la carcasa metálica del equipo, y por separado, dentro del gabinete, la referencia de tierra de señal de una tarjeta de control")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué es la puesta a tierra?", options:["Un tipo de fusible","La conexión intencional de partes metálicas de una instalación a un electrodo enterrado, para quedar al mismo potencial que la tierra física","Un dispositivo que aumenta la tensión de la red","Un componente exclusivo de motores monofásicos"], answer:1, explain:"La puesta a tierra conecta partes metálicas (carcasas, gabinetes) a un electrodo enterrado, dejándolas al mismo potencial que la tierra física." },
+    { q:"¿Qué función cumple la tierra de protección ante una falla de aislamiento?", options:["Aumenta el voltaje de la carcasa","Ofrece un camino de baja impedancia para la corriente de falla, permitiendo que las protecciones actúen rápido","Elimina por completo el riesgo de electrocución sin necesidad de otras protecciones","Sirve solo para reducir el ruido de instrumentación"], answer:1, explain:"La tierra de protección da un camino de baja impedancia para la corriente de falla, permitiendo que fusibles/interruptores actúen rápidamente." },
+    { q:"¿Qué riesgo mitiga principalmente la puesta a tierra de protección respecto a las personas?", options:["El riesgo de que una carcasa metálica con falla de aislamiento quede energizada sin indicación, exponiendo a electrocución al tocarla","El riesgo de sobrecalentamiento del motor","El riesgo de sobretensión en la red","El riesgo de ruido en señales analógicas"], answer:0, explain:"Sin tierra adecuada, una carcasa con falla puede quedar energizada; si una persona la toca, su cuerpo puede volverse el camino a tierra, con riesgo de electrocución." },
+    { q:"¿Cuál es el objetivo de una tierra de referencia de señal (signal ground)?", options:["Proteger a las personas de electrocución","Dar una referencia estable de 0V a circuitos de control/comunicación, evitando ruido eléctrico e interferencias", "Reemplazar por completo a la tierra de protección","Aumentar la corriente de falla"], answer:1, explain:"La tierra de referencia de señal da un punto de referencia estable de 0V para circuitos electrónicos, reduciendo ruido e interferencias — no tiene fin de seguridad de personas." },
+    { q:"Según el módulo, ¿qué puede causar mezclar mal la tierra de protección con la tierra de referencia de señal?", options:["Ningún problema, es indistinto","Ruido eléctrico y lecturas erráticas en instrumentación","Un aumento de la velocidad síncrona del motor","Una reducción del deslizamiento del motor"], answer:1, explain:"Mezclar mal ambas tierras es una causa común de ruido eléctrico y lecturas erráticas en instrumentación sensible." }
+  ]
+},
+
+{
+  id:'multimetro', title:'Uso correcto del multímetro', short:'Multímetro',
+  eyebrow:'Módulo 05 · Fundamentos eléctricos', sub:'Cómo medir voltaje, corriente, continuidad y resistencia sin dañar el instrumento ni exponerte a un riesgo.',
+  content:`
+    <div class="card">
+      <p>El multímetro es la herramienta básica de diagnóstico eléctrico. Usarlo mal puede dañar el instrumento, dar lecturas engañosas, o exponerte a un riesgo eléctrico real. Estas son las cuatro mediciones más comunes y cómo hacerlas correctamente.</p>
+
+      ${H3("Medición de voltaje (AC/DC)")}
+      <p>Se mide en <strong>paralelo</strong> (las dos puntas del multímetro se apoyan directamente sobre los dos puntos entre los que querés conocer la diferencia de potencial, sin abrir el circuito). Es fundamental seleccionar correctamente el modo AC o DC según el tipo de corriente que se está midiendo — un multímetro digital moderno normalmente detecta automáticamente el rango, pero no siempre el tipo (AC/DC) si no tiene modo automático.</p>
+
+      ${H3("Medición de corriente")}
+      <p>Se mide en <strong>serie</strong>: hay que abrir el circuito e insertar el multímetro dentro del camino de la corriente, de forma que toda la corriente pase a través del instrumento. La mayoría de los multímetros tienen un <strong>fusible interno</strong> en la entrada de corriente — si se intenta medir corriente conectando el instrumento como si fuera una medición de voltaje (en paralelo, sobre una fuente de baja impedancia), se genera un cortocircuito a través del multímetro que típicamente quema ese fusible interno, o en el peor caso daña el instrumento.</p>
+
+      ${H3("Medición de continuidad y de resistencia")}
+      <p>Ambas mediciones funcionan inyectando una pequeña corriente propia del multímetro a través del componente o cable bajo prueba, y midiendo la caída resultante. Por eso:</p>
+      ${NOTE("Nunca medir resistencia o continuidad en un circuito energizado. Cualquier tensión externa presente en el circuito se suma a la señal interna del multímetro, dando lecturas erróneas y, en muchos casos, dañando el instrumento. Siempre hay que desenergizar y, cuando corresponda, descargar el circuito (ver el módulo de seguridad eléctrica) antes de medir continuidad o resistencia.")}
+
+      ${H3("Resumen rápido")}
+      <table class="tech">
+        <tr><th>Medición</th><th>Conexión</th><th>¿Circuito energizado?</th></tr>
+        <tr><td>Voltaje (AC/DC)</td><td>En paralelo</td><td>Sí, es la medición típica con el circuito energizado</td></tr>
+        <tr><td>Corriente</td><td>En serie (abriendo el circuito)</td><td>Sí, pero con cuidado del rango y del fusible interno</td></tr>
+        <tr><td>Continuidad</td><td>En paralelo, sobre el componente/cable aislado</td><td>No — siempre desenergizado</td></tr>
+        <tr><td>Resistencia</td><td>En paralelo, sobre el componente aislado</td><td>No — siempre desenergizado</td></tr>
+      </table>
+
+      ${PLACEHOLDER("Cuatro ilustraciones pequeñas en una fila mostrando cada tipo de medición: multímetro en paralelo sobre dos puntos para voltaje, multímetro insertado en serie dentro del circuito para corriente, y el símbolo de continuidad/resistencia sobre un componente aislado con el circuito claramente desenergizado")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cómo se conecta correctamente un multímetro para medir voltaje?", options:["En serie, abriendo el circuito","En paralelo, sobre los dos puntos entre los que se quiere conocer la diferencia de potencial","Solo con el circuito desenergizado","No puede medirse voltaje con un multímetro"], answer:1, explain:"El voltaje se mide en paralelo, apoyando las puntas del multímetro sobre los dos puntos de interés, sin abrir el circuito." },
+    { q:"¿Cómo se conecta correctamente un multímetro para medir corriente?", options:["En paralelo, igual que el voltaje","En serie, abriendo el circuito para que toda la corriente pase a través del instrumento","Directamente sobre la carcasa del equipo","Nunca se puede medir corriente con un multímetro"], answer:1, explain:"La corriente se mide en serie: hay que abrir el circuito e insertar el multímetro en el camino de la corriente." },
+    { q:"¿Qué puede pasar si se conecta un multímetro en modo corriente como si fuera una medición de voltaje (en paralelo)?", options:["No pasa nada, es intercambiable","Se genera un cortocircuito a través del multímetro que típicamente quema el fusible interno, o daña el instrumento","Mejora la precisión de la lectura","El multímetro se autoprotege sin ningún efecto"], answer:1, explain:"Conectar el multímetro en modo corriente en paralelo genera un cortocircuito a través del instrumento, que suele quemar el fusible interno o dañarlo." },
+    { q:"Según el módulo, ¿en qué condición NUNCA debe medirse resistencia o continuidad?", options:["Con el circuito desenergizado","Con el circuito energizado","Con guantes puestos","De noche"], answer:1, explain:"Nunca debe medirse resistencia o continuidad en un circuito energizado, porque la tensión externa se suma a la señal interna del multímetro y puede dañarlo o dar lecturas erróneas." },
+    { q:"¿Por qué las mediciones de continuidad y resistencia requieren que el circuito esté desenergizado?", options:["Porque el multímetro inyecta su propia corriente pequeña a través del componente, y una tensión externa presente distorsionaría o dañaría esa medición", "Porque consumen demasiada batería del multímetro","Porque el multímetro no tiene modo AC/DC para esas mediciones","No hay ninguna razón técnica, es solo una recomendación arbitraria"], answer:0, explain:"El multímetro inyecta su propia corriente para medir resistencia/continuidad; una tensión externa presente se suma a esa señal y distorsiona la lectura o daña el instrumento." }
+  ]
+},
+
+{
+  id:'placa-motor', title:'Cómo leer la placa de datos de un motor', short:'Placa de motor',
+  eyebrow:'Módulo 06 · Fundamentos eléctricos', sub:'Los datos de la placa del motor son exactamente lo que después necesitás para parametrizar un VFD correctamente.',
+  content:`
+    <div class="card">
+      <p>La <strong>placa de datos</strong> (nameplate) de un motor eléctrico es una etiqueta metálica adosada a su carcasa con los parámetros de diseño del fabricante. Saber leerla es indispensable antes de conectar cualquier motor a un VFD, porque esos datos son justamente los que después hay que cargar en los parámetros básicos del variador.</p>
+
+      ${H3("Datos típicos de una placa de motor")}
+      <table class="tech">
+        <tr><th>Dato</th><th>Qué indica</th></tr>
+        <tr><td>Tensión nominal (V)</td><td>Tensión de alimentación para la que está diseñado el motor (y su conexión, estrella o triángulo).</td></tr>
+        <tr><td>Corriente nominal (A)</td><td>Corriente que consume el motor trabajando a plena carga, a la tensión y frecuencia nominal.</td></tr>
+        <tr><td>Frecuencia (Hz)</td><td>Frecuencia de red para la que está diseñado (50 Hz o 60 Hz típicamente).</td></tr>
+        <tr><td>Velocidad nominal (RPM)</td><td>Velocidad real del rotor a plena carga — siempre algo menor que la velocidad síncrona, por el deslizamiento visto en el módulo anterior.</td></tr>
+        <tr><td>Factor de potencia (cos φ)</td><td>Relación entre la potencia activa (útil) y la potencia aparente que consume el motor; indica qué tan "eficiente" es el uso de la corriente entregada en términos de desfase eléctrico.</td></tr>
+        <tr><td>Clase de aislamiento</td><td>Letra (por ejemplo B, F, H) que indica la temperatura máxima que soportan los materiales aislantes de los devanados sin degradarse prematuramente.</td></tr>
+        <tr><td>Grado de protección IP</td><td>Código (Ingress Protection) que indica el nivel de sellado de la carcasa del motor frente a polvo y agua, por ejemplo IP55.</td></tr>
+      </table>
+
+      ${H3("¿Por qué esto importa para un VFD?")}
+      <p>Al poner en marcha un VFD, uno de los primeros pasos siempre es cargar los <strong>datos de placa del motor</strong> en los parámetros básicos del variador (tensión nominal, corriente nominal, frecuencia nominal, velocidad nominal, y a veces cos φ). Con esos datos, el VFD calcula internamente el modelo eléctrico del motor que necesita para controlarlo correctamente — es la base de cualquier puesta en marcha, sin importar la marca del variador.</p>
+
+      ${NOTE("Este mismo listado de datos de placa (tensión, corriente, frecuencia, velocidad, cos φ) es exactamente lo que vas a ver pedido como parámetros básicos de motor en la puesta en marcha de cualquier VFD específico de marca — memorizar bien qué significa cada uno ahora ahorra confusión después.")}
+
+      ${PLACEHOLDER("Foto ilustrativa de una placa de datos de motor trifásico típica, con recuadros señalando cada campo: tensión (V), corriente (A), frecuencia (Hz), RPM, cos φ, clase de aislamiento y grado IP")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué es la placa de datos (nameplate) de un motor?", options:["Un accesorio decorativo sin información técnica","Una etiqueta con los parámetros de diseño del fabricante, adosada a la carcasa del motor","Un componente eléctrico interno del motor","Un tipo de fusible de protección"], answer:1, explain:"La placa de datos es una etiqueta metálica con los parámetros de diseño del fabricante, adosada a la carcasa del motor." },
+    { q:"¿Qué indica la corriente nominal en la placa de un motor?", options:["La corriente que consume el motor trabajando a plena carga, a tensión y frecuencia nominal","La corriente máxima que soporta el cableado de la instalación","La corriente del bus DC de un VFD","La corriente de arranque del motor únicamente"], answer:0, explain:"La corriente nominal indica el consumo del motor a plena carga, con la tensión y frecuencia nominal." },
+    { q:"¿Por qué la velocidad nominal (RPM) de la placa siempre es algo menor que la velocidad síncrona?", options:["Por un error de fabricación","Por el deslizamiento (slip), necesario para que se induzca corriente y torque en el rotor","Porque la placa siempre redondea hacia abajo","Porque el motor gira más rápido en la práctica que en teoría"], answer:1, explain:"La velocidad nominal es menor que la síncrona debido al deslizamiento, necesario para inducir corriente y torque en el rotor." },
+    { q:"¿Qué indica el grado de protección IP en la placa de un motor?", options:["El factor de potencia del motor","El nivel de sellado de la carcasa frente a polvo y agua","La clase de aislamiento térmico","La tensión nominal de alimentación"], answer:1, explain:"El grado de protección IP (Ingress Protection) indica el nivel de sellado de la carcasa frente a polvo y agua." },
+    { q:"¿Por qué los datos de la placa del motor son relevantes al poner en marcha un VFD?", options:["No tienen ninguna relación con la puesta en marcha de un VFD","Porque se cargan como parámetros básicos del variador (tensión, corriente, frecuencia, velocidad y cos φ nominales) para que el VFD calcule el modelo eléctrico del motor","Porque determinan el color del gabinete del VFD","Porque reemplazan la necesidad de cualquier otro parámetro del variador"], answer:1, explain:"Los datos de placa se cargan como parámetros básicos del VFD para que calcule internamente el modelo eléctrico del motor y lo controle correctamente." }
+  ]
+},
+
+{
+  id:'glosario-electrico', title:'Glosario de electricidad básica', short:'Glosario',
+  eyebrow:'Módulo 07 · Fundamentos eléctricos', sub:'Términos eléctricos esenciales de esta capacitación de nivelación, previos al vocabulario específico de VFD.',
+  content:`
+    <div class="card">
+      <p>Este glosario reúne los términos de electricidad básica cubiertos en esta capacitación. El vocabulario específico de variadores de frecuencia (IGBT, PWM, bus DC, etc.) se cubre en el glosario de la capacitación "Introducción a VFD" — no se repite acá.</p>
+      <table class="tech">
+        <tr><th>Término</th><th>Definición</th></tr>
+        <tr><td>AC (corriente alterna)</td><td>Corriente que invierte periódicamente su sentido, siguiendo una forma de onda senoidal, caracterizada por su frecuencia en Hz.</td></tr>
+        <tr><td>DC (corriente continua)</td><td>Corriente que fluye siempre en el mismo sentido, con valor constante en el tiempo.</td></tr>
+        <tr><td>Trifásico</td><td>Sistema eléctrico compuesto por tres corrientes alternas de igual frecuencia y amplitud, desfasadas 120° entre sí.</td></tr>
+        <tr><td>Tierra (puesta a tierra)</td><td>Conexión intencional de partes metálicas de una instalación a un electrodo enterrado, para dar un camino de falla y proteger personas.</td></tr>
+        <tr><td>Multímetro</td><td>Instrumento de medición eléctrica que mide voltaje, corriente, resistencia y continuidad, entre otras magnitudes.</td></tr>
+        <tr><td>Placa de motor (nameplate)</td><td>Etiqueta con los datos de diseño de un motor: tensión, corriente, frecuencia, RPM, cos φ, clase de aislamiento e IP.</td></tr>
+        <tr><td>Velocidad síncrona</td><td>Velocidad del campo magnético giratorio del estator, calculada como n = 120·f/p.</td></tr>
+        <tr><td>Deslizamiento (slip)</td><td>Diferencia entre la velocidad síncrona y la velocidad real del rotor, necesaria para inducir corriente y torque.</td></tr>
+        <tr><td>Cos φ (factor de potencia)</td><td>Relación entre la potencia activa y la potencia aparente consumida por el motor.</td></tr>
+        <tr><td>IP (grado de protección)</td><td>Código (Ingress Protection) que indica el nivel de sellado de un gabinete o carcasa frente a polvo y agua.</td></tr>
+      </table>
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué caracteriza a la corriente alterna (AC) según este glosario?", options:["Fluye siempre en el mismo sentido","Invierte periódicamente su sentido en una forma de onda senoidal, caracterizada por su frecuencia en Hz","No tiene forma de onda","Solo existe en baterías"], answer:1, explain:"La AC invierte periódicamente su sentido en una onda senoidal, caracterizada por su frecuencia en Hz." },
+    { q:"¿Cómo se define un sistema trifásico en este glosario?", options:["Una sola corriente dividida en tres cables idénticos","Tres corrientes alternas de igual frecuencia y amplitud, desfasadas 120° entre sí","Tres corrientes continuas en paralelo","Un sistema exclusivo de motores monofásicos"], answer:1, explain:"El sistema trifásico está compuesto por tres corrientes alternas de igual frecuencia y amplitud, desfasadas 120° entre sí." },
+    { q:"¿Cómo se calcula la velocidad síncrona según este glosario?", options:["n = f/p", "n = 120 · f / p", "n = p / 120·f", "n = 120 + f + p"], answer:1, explain:"La velocidad síncrona se calcula como n = 120·f/p, siendo f la frecuencia y p el número de polos." },
+    { q:"¿Qué es el deslizamiento (slip) según este glosario?", options:["La velocidad máxima que puede alcanzar un motor","La diferencia entre la velocidad síncrona y la velocidad real del rotor, necesaria para inducir corriente y torque","Un tipo de falla eléctrica grave","La tensión nominal de un motor"], answer:1, explain:"El deslizamiento es la diferencia entre la velocidad síncrona y la real del rotor, necesaria para que se induzca corriente y torque." },
+    { q:"¿Qué indica el grado de protección IP según este glosario?", options:["El factor de potencia de un motor","El nivel de sellado de un gabinete o carcasa frente a polvo y agua","La velocidad síncrona de un motor","El tipo de conexión (estrella o triángulo) de un motor"], answer:1, explain:"El grado de protección IP indica el nivel de sellado de un gabinete o carcasa frente a polvo y agua." }
+  ]
+}
+];
+
+/* ============================================================
+   ESTADO + PERSISTENCIA (localStorage)
+   ============================================================ */
+const STORAGE_KEY = 'electricidad_basica_training_progress_v1';
+const THEME_KEY = 'capacitacion-theme';
+
+const state = {
+  currentId: 'overview',
+  view: 'learn',
+  quizProgress: {},
+  quizIndex: {},
+};
+MODULES.forEach(m=>{
+  if(m.quiz){ state.quizProgress[m.id] = { answered: new Array(m.quiz.length).fill(null) }; state.quizIndex[m.id] = 0; }
+});
+
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const saved = JSON.parse(raw);
+    MODULES.forEach(m=>{
+      if(!m.quiz) return;
+      const savedAnswers = saved && saved[m.id];
+      if(Array.isArray(savedAnswers) && savedAnswers.length === m.quiz.length){
+        state.quizProgress[m.id].answered = savedAnswers;
+      }
+    });
+  }catch(e){ console.warn('No se pudo cargar el progreso guardado:', e); }
+}
+function saveProgress(){
+  try{
+    const data = {};
+    MODULES.forEach(m=>{ if(m.quiz) data[m.id] = state.quizProgress[m.id].answered; });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }catch(e){ console.warn('No se pudo guardar el progreso:', e); }
+  syncPortalProgress();
+}
+function syncPortalProgress(){
+  try{
+    const teachable = MODULES.filter(m=>!m.isOverview);
+    const total = teachable.reduce((s,m)=>s+m.quiz.length,0);
+    const done = teachable.reduce((s,m)=>s+state.quizProgress[m.id].answered.filter(a=>a!==null).length,0);
+    localStorage.setItem('vfd_progress_electricidad-basica', JSON.stringify({ done, total }));
+  }catch(e){ console.warn('No se pudo sincronizar el progreso con el portal:', e); }
+}
+function resetAllProgress(){
+  MODULES.forEach(m=>{
+    if(!m.quiz) return;
+    state.quizProgress[m.id].answered = new Array(m.quiz.length).fill(null);
+    state.quizIndex[m.id] = 0;
+  });
+  saveProgress();
+  render();
+}
+loadProgress();
+syncPortalProgress();
+
+/* ============================================================
+   TEMA
+   ============================================================ */
+function applyTheme(){
+  const saved = localStorage.getItem(THEME_KEY);
+  if(saved === 'light'){ document.documentElement.classList.add('light-theme'); }
+  else { document.documentElement.classList.remove('light-theme'); }
+}
+applyTheme();
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  const isLight = document.documentElement.classList.toggle('light-theme');
+  localStorage.setItem(THEME_KEY, isLight ? 'light' : 'dark');
+});
+
+/* ============================================================
+   ANIMACIÓN DE ENTRADA
+   ============================================================ */
+function animateIn(container){
+  const items = container.querySelectorAll('.modhead, .card, .fig, .ovwcard, .qcard, .barwrap, .flash');
+  items.forEach((el,i)=>{ el.classList.add('reveal'); el.style.transitionDelay = Math.min(i*70,560)+'ms'; });
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ items.forEach(el=>el.classList.add('in')); }));
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+function ledStateFor(m){
+  if(m.isOverview) return '';
+  const p = state.quizProgress[m.id];
+  if(!p) return '';
+  const answeredCount = p.answered.filter(a=>a!==null).length;
+  if(answeredCount===0) return '';
+  if(answeredCount < m.quiz.length) return 'partial';
+  return 'done';
+}
+let sidebarAnimated = false;
+function renderSidebar(){
+  const ul = document.getElementById('navlist');
+  ul.innerHTML = '';
+  MODULES.forEach((m,i)=>{
+    const li = document.createElement('li');
+    li.className = 'navitem' + (state.currentId===m.id ? ' active' : '');
+    if(!sidebarAnimated){ li.style.animation = `slideInLeft .45s cubic-bezier(.2,.7,.3,1) ${i*35}ms both`; }
+    const ledClass = ledStateFor(m);
+    li.innerHTML = `
+      ${m.isOverview ? '<span class="led"></span>' : `<span class="led ${ledClass}"></span>`}
+      <span class="num">${m.isOverview ? '★' : String(i).padStart(2,'0')}</span>
+      <span class="label">${m.short}</span>
+    `;
+    li.onclick = ()=>{ state.currentId = m.id; state.view = 'learn'; render(); window.scrollTo(0,0); };
+    ul.appendChild(li);
+  });
+  sidebarAnimated = true;
+}
+
+/* ============================================================
+   OVERVIEW
+   ============================================================ */
+function renderOverview(){
+  const teachable = MODULES.filter(m=>!m.isOverview);
+  const totalQ = teachable.reduce((s,m)=>s+m.quiz.length,0);
+  const answeredQ = teachable.reduce((s,m)=>s+state.quizProgress[m.id].answered.filter(a=>a!==null).length,0);
+  const pct = totalQ ? Math.round(answeredQ/totalQ*100) : 0;
+
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="modhead">
+      <p class="eyebrow">Capacitación · Electricidad industrial básica</p>
+      <h2>Biblioteca de módulos</h2>
+      <p class="sub">Navega libremente entre los 7 módulos. Cada uno tiene su contenido y su quiz — el progreso se guarda automáticamente en este navegador.</p>
+    </div>
+    <div class="barwrap"><div class="barfill" style="width:${pct}%"></div></div>
+    <p style="font-family:var(--mono); font-size:11.5px; color:var(--text-dim); margin:8px 0 24px 0;">${answeredQ} / ${totalQ} preguntas respondidas · ${pct}%</p>
+    ${pct===100 ? `
+    <div class="card" style="border-color:var(--emerald); background:var(--emerald-dim);">
+      <h3 style="color:var(--emerald); margin-top:0;">🏆 Capacitación completa</h3>
+      <p style="margin-bottom:0;">Completaste el quiz de los 7 módulos de Electricidad industrial básica. Ya tenés la base eléctrica para avanzar a "Puesta en marcha" y a las capacitaciones específicas de marca del portal.</p>
+    </div>` : ''}
+    <div class="ovwgrid">
+      ${teachable.map((m,i)=>{
+        const p = state.quizProgress[m.id];
+        const answered = p.answered.filter(a=>a!==null).length;
+        const correct = p.answered.reduce((s,a)=> s + (a===true?1:0), 0);
+        let status = 'sin iniciar';
+        if(answered>0 && answered<m.quiz.length) status = `en curso · ${answered}/${m.quiz.length}`;
+        if(answered===m.quiz.length) status = `completo · ${correct}/${m.quiz.length} correctas`;
+        const startBadge = m.id==='corriente-ac-dc' ? `<span style="font-family:var(--mono); font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--emerald); border:1px solid var(--emerald); border-radius:4px; padding:2px 6px; margin-left:8px;">Empieza aquí</span>` : '';
+        return `<div class="ovwcard" data-id="${m.id}">
+          <div class="top"><span class="t-title">${String(i).padStart(2,'0')} · ${m.title}${startBadge}</span><span class="led ${ledStateFor(m)}"></span></div>
+          <div class="t-sub">${m.sub}</div>
+          <div class="t-status" style="margin-top:10px;">${status}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="resetrow">
+      <button class="btn ghost" id="resetAllBtn">Borrar todo el progreso guardado</button>
+    </div>
+  `;
+  const resetBtn = document.getElementById('resetAllBtn');
+  if(resetBtn){
+    resetBtn.onclick = ()=>{
+      if(confirm('¿Borrar el progreso guardado de todos los módulos? Esta acción no se puede deshacer.')){
+        resetAllProgress();
+      }
+    };
+  }
+  main.querySelectorAll('.ovwcard').forEach(el=>{
+    el.onclick = ()=>{ state.currentId = el.dataset.id; state.view = 'learn'; render(); window.scrollTo(0,0); };
+  });
+  animateIn(main);
+}
+
+/* ============================================================
+   MÓDULO (learn / quiz)
+   ============================================================ */
+function renderModule(m){
+  const main = document.getElementById('main');
+  const hasCards = !!m.flashcards;
+  main.innerHTML = `
+    <div class="modhead">
+      <p class="eyebrow">${m.eyebrow}</p>
+      <h2>${m.title}</h2>
+      <p class="sub">${m.sub}</p>
+    </div>
+    <div class="tabs no-print">
+      <div class="tab ${state.view==='learn'?'active':''}" data-v="learn">Aprender</div>
+      <div class="tab ${state.view==='quiz'?'active':''}" data-v="quiz">Quiz (${m.quiz.length})</div>
+      <div style="margin-left:auto; align-self:center;"><button class="btn ghost" id="printBtn" style="font-size:10.5px; padding:6px 12px;">🖨️ Imprimir esta unidad</button></div>
+    </div>
+    <div id="modbody"></div>
+  `;
+  main.querySelectorAll('.tab').forEach(t=>{ t.onclick = ()=>{ state.view = t.dataset.v; render(); }; });
+  const printBtn = document.getElementById('printBtn');
+  if(printBtn) printBtn.onclick = ()=> window.print();
+  const body = document.getElementById('modbody');
+  if(state.view==='learn'){
+    body.innerHTML = m.content;
+    if(hasCards) renderFlashcards(m);
+  } else {
+    renderQuiz(m, body);
+  }
+  animateIn(main);
+}
+
+function renderFlashcards(m){
+  const grid = document.getElementById('flashgrid');
+  if(!grid) return;
+  grid.innerHTML = m.flashcards.map((f)=>`
+    <div class="flash" tabindex="0" role="button" aria-label="Tarjeta ${f.acr}, presiona Enter o Espacio para revelar">
+      <div class="flash-inner">
+        <div class="flash-face flash-front"><div class="acr">${f.acr}</div><div class="hint">toca para revelar</div></div>
+        <div class="flash-face flash-back"><div class="full">${f.full}</div><div class="desc">${f.desc}</div></div>
+      </div>
+    </div>
+  `).join('');
+  grid.querySelectorAll('.flash').forEach(el=>{
+    el.onclick = ()=> el.classList.toggle('flipped');
+    el.onkeydown = (e)=>{
+      if(e.key==='Enter' || e.key===' ' || e.key==='Spacebar'){
+        e.preventDefault();
+        el.classList.toggle('flipped');
+      }
+    };
+  });
+}
+
+/* ---------- Quiz engine ---------- */
+function renderQuiz(m, body){
+  const progress = state.quizProgress[m.id];
+  const total = m.quiz.length;
+  const answeredAll = progress.answered.every(a=>a!==null);
+
+  if(answeredAll){
+    const correct = progress.answered.filter(a=>a===true).length;
+    const missed = m.quiz.map((q,qi)=>({q,qi})).filter(x=>progress.answered[x.qi]===false);
+    body.innerHTML = `
+      <div class="qcard">
+        <div class="quizresult">
+          <div class="score">${correct}/${total}</div>
+          <div class="label">respuestas correctas en este módulo</div>
+          <button class="btn ghost" id="retryBtn">Reintentar quiz</button>
+        </div>
+        ${missed.length ? `
+        <div style="text-align:left; margin-top:10px;">
+          <h3 style="color:var(--red);">Preguntas a repasar (${missed.length})</h3>
+          ${missed.map(x=>`
+            <div class="note warn" style="margin:10px 0;">
+              <strong>${x.q.q}</strong><br>
+              Respuesta correcta: ${x.q.options[x.q.answer]}<br>
+              ${x.q.explain}
+            </div>
+          `).join('')}
+        </div>` : ''}
+      </div>
+    `;
+    document.getElementById('retryBtn').onclick = ()=>{
+      progress.answered = new Array(total).fill(null);
+      state.quizIndex[m.id] = 0;
+      saveProgress();
+      render();
+    };
+    return;
+  }
+
+  let idx = state.quizIndex[m.id];
+  if(progress.answered[idx]!==null){
+    idx = progress.answered.findIndex(a=>a===null);
+    state.quizIndex[m.id] = idx;
+  }
+  const q = m.quiz[idx];
+  body.innerHTML = `
+    <div class="qcounter">Pregunta ${idx+1} de ${total}</div>
+    <div class="qcard">
+      <p class="qtext">${q.q}</p>
+      <div id="optlist">
+        ${q.options.map((o,oi)=>`<div class="opt" data-oi="${oi}"><span class="bullet">${String.fromCharCode(65+oi)}</span><span>${o}</span></div>`).join('')}
+      </div>
+      <div class="explain" id="explainBox">${q.explain}</div>
+      <div class="qnav">
+        <span style="font-family:var(--mono); font-size:11px; color:var(--text-dim);">selecciona una opción</span>
+        <button class="btn" id="nextBtn" disabled>Siguiente</button>
+      </div>
+    </div>
+  `;
+  let picked = false;
+  document.querySelectorAll('#optlist .opt').forEach(el=>{
+    el.onclick = ()=>{
+      if(picked) return;
+      picked = true;
+      const oi = parseInt(el.dataset.oi);
+      const isCorrect = oi===q.answer;
+      progress.answered[idx] = isCorrect;
+      saveProgress();
+      document.querySelectorAll('#optlist .opt').forEach(o2=>{
+        const oi2 = parseInt(o2.dataset.oi);
+        if(oi2===q.answer) o2.classList.add('correct');
+        else if(oi2===oi) o2.classList.add('wrong');
+      });
+      document.getElementById('explainBox').classList.add('show');
+      const nb = document.getElementById('nextBtn');
+      nb.disabled = false;
+      nb.onclick = ()=>{
+        state.quizIndex[m.id] = idx+1 < total ? idx+1 : idx;
+        render();
+      };
+      renderSidebar();
+    };
+  });
+}
+
+/* ============================================================
+   RENDER PRINCIPAL
+   ============================================================ */
+function render(){
+  renderSidebar();
+  const m = MODULES.find(mm=>mm.id===state.currentId);
+  if(m.isOverview) renderOverview();
+  else renderModule(m);
+}
+
+render();
+</script>
+</body>
+</html>
