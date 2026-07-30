@@ -100,6 +100,7 @@
 
   .fig{margin:14px 0 6px 0; text-align:center;}
   .fig img{width:100%; max-width:460px; display:block; margin:0 auto; border-radius:6px; border:1px solid var(--line); background:#f5f3ee;}
+  .fig.wide img{max-width:820px;}
   .fig figcaption{font-family:var(--mono); font-size:10.5px; color:var(--text-dim); margin-top:6px;}
 
   .placeholder{border:1px dashed var(--line); border-radius:8px; padding:16px; text-align:center; font-size:12px; color:var(--text-dim); margin:12px 0;}
@@ -199,6 +200,10 @@ const PLACEHOLDER = (txt) => `<div class="placeholder">🖼️ [Marcador de imag
 const NOTE = (txt) => `<div class="note warn">⚠️ ${txt}</div>`;
 const INFO = (txt) => `<div class="note">💡 ${txt}</div>`;
 const H3 = (txt) => `<h3><span style="width:6px;height:6px;border-radius:50%;background:var(--sky);display:inline-block;"></span>${txt}</h3>`;
+const IMG = (src, caption, wide) => `<figure class="fig${wide ? ' wide' : ''}">
+  <img src="imagenes/${src}" alt="${caption}" loading="lazy">
+  <figcaption>${caption}</figcaption>
+</figure>`;
 
 /* ============================================================
    MÓDULOS
@@ -231,7 +236,7 @@ const MODULES = [
 
       ${INFO("A lo largo de este curso vas a ver términos como \"macro de aplicación\" o \"control vectorial\" que cada fabricante nombra distinto — acá se explican de forma genérica; los detalles específicos de cada marca se profundizan en las capacitaciones dedicadas del sitio.")}
 
-      ${PLACEHOLDER("Comparación lado a lado: motor conectado directo a red a velocidad fija vs. motor controlado por un VFD a velocidad variable")}
+      ${IMG("modulo 1.png", "Comparación lado a lado: motor conectado directo a red a velocidad fija (90% de consumo) vs. motor controlado por un VFD a velocidad variable (45% de consumo)", true)}
     </div>
   `,
   quiz:[
@@ -261,7 +266,7 @@ const MODULES = [
 
       ${INFO("Filtros opcionales (du/dt, senoidales) pueden agregarse a la salida del inversor para reducir el estrés dieléctrico en el motor y en cables largos — un concepto a tener en cuenta en instalaciones con distancias grandes entre el VFD y el motor, aunque el detalle de cuándo son necesarios depende de cada instalación y fabricante.")}
 
-      ${PLACEHOLDER("Diagrama de bloques: Red AC → Rectificador → Bus DC → Inversor (IGBT) → Motor, mostrando la onda senoidal de entrada y la señal PWM de salida")}
+      ${IMG("modulo 2.png", "Diagrama de bloques: Red AC → Rectificador → Bus DC → Inversor (IGBT) → Motor, mostrando la onda senoidal de entrada y la señal PWM de salida", true)}
     </div>
   `,
   quiz:[
@@ -291,7 +296,7 @@ const MODULES = [
       ${H3("Reducción de desgaste mecánico")}
       <p>Al eliminar arranques bruscos y permitir operar a la velocidad justa necesaria, se reduce el estrés mecánico en acoples, rodamientos y correas, extendiendo su vida útil.</p>
 
-      ${PLACEHOLDER("Gráfico potencia vs. velocidad mostrando la curva cúbica típica de cargas de par cuadrático (bombas/ventiladores)")}
+      ${IMG("modulo 3.png", "Los cuatro beneficios clave: ahorro energético por ley de afinidad, arranque suave sin picos de corriente, control de proceso en tiempo real y reducción de desgaste mecánico", true)}
     </div>
   `,
   quiz:[
@@ -357,6 +362,8 @@ const MODULES = [
 
       ${H3("Control PID integrado")}
       <p>Muchos VFD incluyen un lazo <strong>PID</strong> integrado que permite regular directamente presión, caudal o temperatura sin necesidad de un controlador externo dedicado — el propio variador ajusta su velocidad para mantener la variable de proceso en el punto deseado.</p>
+
+      ${IMG("modulo 5.png", "Macros de aplicación (bomba, ventilador, transportador, control PID), fuentes de referencia de velocidad y esquema de control PID integrado con retroalimentación de presión", true)}
 
       ${NOTE("Los nombres exactos de las macros y su forma de configuración varían de un fabricante a otro. Ese nivel de detalle específico se cubre en las capacitaciones de marca de este sitio — revisá las secciones dedicadas a cada fabricante en el <a href=\"../../index.html#cursos\" style=\"color:var(--sky);\">portal de capacitaciones</a> para ver la implementación concreta de cada uno.")}
     </div>
@@ -430,7 +437,7 @@ const MODULES = [
       ${H3("Riesgo adicional: arranque inesperado")}
       <p>Un VFD puede estar configurado para recibir su orden de marcha desde un control remoto o automático (PLC, fieldbus, temporizador). Por eso, siempre hay que verificar el modo de control activo antes de tocar el motor o su acople mecánico — un arranque remoto inesperado con alguien en contacto con el eje o el acople es un riesgo real.</p>
 
-      ${PLACEHOLDER("Pictograma de advertencia de energía residual, típico en la puerta de gabinetes de VFD")}
+      ${IMG("modulo 7.png", "Pictogramas de advertencia de energía residual del bus DC, típicos en la puerta de gabinetes de VFD, con los pasos de verificación antes de manipular el equipo", true)}
     </div>
   `,
   quiz:[
