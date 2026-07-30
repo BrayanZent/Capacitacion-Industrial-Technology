@@ -1,0 +1,780 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnóstico y fallas comunes · Capacitación Interactiva</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0f1620;
+    --panel: #16202c;
+    --panel-raised: #1e2a38;
+    --line: #2b3a4a;
+    --text: #e6edf5;
+    --text-dim: #8fa0b3;
+    --sky: #38bdf8;
+    --sky-dim: #163244;
+    --emerald: #34d399;
+    --emerald-dim: #14332a;
+    --red: #f87171;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+  :root.light-theme{
+    --bg: #f3f6fa;
+    --panel: #ffffff;
+    --panel-raised: #eef2f7;
+    --line: #d7e0ea;
+    --text: #1b2530;
+    --text-dim: #5c6b7d;
+    --sky-dim: #e0f2fe;
+    --emerald-dim: #d4f5e4;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  ::selection{background:var(--sky-dim);color:var(--text);}
+
+  @keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+  @keyframes slideInLeft{ from{opacity:0; transform:translateX(-14px);} to{opacity:1; transform:translateX(0);} }
+  @keyframes logoIn{ from{opacity:0; transform:scale(.9);} to{opacity:1; transform:scale(1);} }
+  .reveal{opacity:0; transform:translateY(18px); transition:opacity .55s cubic-bezier(.2,.7,.3,1), transform .55s cubic-bezier(.2,.7,.3,1);}
+  .reveal.in{opacity:1; transform:translateY(0);}
+
+  .app{display:flex; min-height:100vh;}
+  .sidebar{
+    width:280px; flex-shrink:0; background:var(--panel);
+    border-right:1px solid var(--line);
+    padding:22px 16px; position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .brand{padding:4px 8px 20px 8px; border-bottom:1px solid var(--line); margin-bottom:16px;}
+  .brand-logo{width:100%; max-width:170px; display:block; margin:0 0 14px 0; background:#fff; border-radius:6px; padding:8px 10px; animation:logoIn .8s cubic-bezier(.2,.8,.3,1);}
+  .brand .tag{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--emerald); text-transform:uppercase;}
+  .brand h1{font-size:18px; margin:6px 0 2px 0; line-height:1.25;}
+  .brand p{font-size:12px; color:var(--text-dim); margin:0;}
+
+  .navlist{list-style:none; margin:0; padding:0;}
+  .navitem{display:flex; align-items:center; gap:10px; padding:10px 10px; border-radius:6px; cursor:pointer; margin-bottom:2px; border:1px solid transparent; transition:background .2s ease, transform .2s ease;}
+  .navitem:hover{background:var(--panel-raised); transform:translateX(2px);}
+  .navitem.active{background:var(--panel-raised); border-color:var(--line);}
+  .led{width:9px; height:9px; border-radius:50%; flex-shrink:0; background:#3a4048; box-shadow:inset 0 0 0 1px rgba(0,0,0,.4);}
+  .led.done{background:var(--emerald); box-shadow:0 0 6px rgba(52,211,153,.7);}
+  .led.partial{background:var(--sky); box-shadow:0 0 6px rgba(56,189,248,.6);}
+  .navitem .num{font-family:var(--mono); font-size:11px; color:var(--text-dim); width:18px;}
+  .navitem .label{font-size:13.5px;}
+  .navitem.active .label{color:var(--sky);}
+
+  .sidebar-foot{margin-top:18px; padding-top:14px; border-top:1px solid var(--line); font-family:var(--mono); font-size:11px; color:var(--text-dim);}
+  .themebtn{margin-top:10px; width:100%; font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.04em; background:transparent; color:var(--text-dim); border:1px solid var(--line); padding:8px 10px; border-radius:6px; cursor:pointer;}
+  .themebtn:hover{color:var(--text); border-color:var(--sky);}
+
+  .main{flex:1; padding:36px 44px; max-width:920px; animation:fadeIn .5s ease;}
+  @media (max-width: 860px){ .app{flex-direction:column;} .sidebar{width:100%; height:auto; position:relative; border-right:none; border-bottom:1px solid var(--line);} .main{padding:24px;} }
+
+  .modhead{margin-bottom:8px;}
+  .modhead .eyebrow{font-family:var(--mono); font-size:11.5px; color:var(--sky); letter-spacing:.1em; text-transform:uppercase; margin:0 0 6px 0;}
+  .modhead h2{font-size:26px; margin:0 0 6px 0; line-height:1.2;}
+  .modhead .sub{color:var(--text-dim); font-size:14px; max-width:62ch; margin:0;}
+
+  .tabs{display:flex; gap:6px; margin:20px 0 22px 0; border-bottom:1px solid var(--line);}
+  .tab{font-family:var(--mono); font-size:12.5px; letter-spacing:.03em; padding:9px 14px; cursor:pointer; color:var(--text-dim); border-bottom:2px solid transparent; text-transform:uppercase;}
+  .tab:hover{color:var(--text);}
+  .tab.active{color:var(--sky); border-bottom-color:var(--sky);}
+
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:20px 22px; margin-bottom:14px; transition:transform .25s ease, border-color .25s ease;}
+  .card:hover{transform:translateY(-2px); border-color:var(--sky);}
+  .card h3{margin:18px 0 8px 0; font-size:14.5px; color:var(--sky); display:flex; align-items:center; gap:8px;}
+  .card h3:first-child{margin-top:0;}
+  .card p{margin:0 0 10px 0; font-size:14px; line-height:1.65;}
+  .card ul, .card ol{margin:8px 0 12px 0; padding-left:18px;}
+  .card li{font-size:13.5px; line-height:1.7; margin-bottom:5px;}
+
+  .note{margin:12px 0; padding:11px 13px; background:rgba(56,189,248,.07); border-left:3px solid var(--sky); font-size:12.5px; color:var(--text-dim); border-radius:0 5px 5px 0;}
+  .note.warn{background:rgba(248,113,113,.08); border-left-color:var(--red);}
+
+  table.tech{width:100%; border-collapse:collapse; font-family:var(--mono); font-size:12px; margin:6px 0 14px 0;}
+  table.tech th, table.tech td{padding:7px 9px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top;}
+  table.tech th{color:var(--sky); font-weight:600; background:var(--panel-raised);}
+  table.tech td{color:var(--text-dim);}
+
+  .fig{margin:14px 0 6px 0; text-align:center;}
+  .fig img{width:100%; max-width:460px; display:block; margin:0 auto; border-radius:6px; border:1px solid var(--line); background:#f5f3ee;}
+  .fig.wide img{max-width:820px;}
+  .fig figcaption{font-family:var(--mono); font-size:10.5px; color:var(--text-dim); margin-top:6px;}
+
+  .placeholder{border:1px dashed var(--line); border-radius:8px; padding:16px; text-align:center; font-size:12px; color:var(--text-dim); margin:12px 0;}
+
+  .cardsgrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:14px; margin-top:6px;}
+  .flash{perspective:1000px; height:130px; cursor:pointer;}
+  .flash-inner{position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d;}
+  .flash.flipped .flash-inner{transform:rotateY(180deg);}
+  .flash-face{position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--line); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:12px;}
+  .flash-front{background:var(--panel-raised);}
+  .flash-front .acr{font-family:var(--mono); font-size:19px; color:var(--sky); font-weight:600;}
+  .flash-front .hint{font-size:10px; color:var(--text-dim); margin-top:8px; text-transform:uppercase; letter-spacing:.05em;}
+  .flash-back{background:var(--sky-dim); transform:rotateY(180deg);}
+  .flash-back .full{font-size:12px; font-weight:600; margin-bottom:5px;}
+  .flash-back .desc{font-size:11px; color:var(--text-dim); line-height:1.4;}
+
+  .ovwgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; margin-top:10px;}
+  .ovwcard{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px 18px; cursor:pointer; transition:transform .2s ease, border-color .2s ease;}
+  .ovwcard:hover{border-color:var(--sky); transform:translateY(-3px);}
+  .ovwcard .top{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .ovwcard .t-title{font-size:13.5px; font-weight:600;}
+  .ovwcard .t-sub{font-size:12px; color:var(--text-dim); line-height:1.4;}
+  .ovwcard .t-status{font-family:var(--mono); font-size:10.5px; text-transform:uppercase; color:var(--text-dim);}
+
+  .barwrap{height:5px; background:var(--panel-raised); border-radius:3px; overflow:hidden; margin-top:16px;}
+  .barfill{height:100%; background:linear-gradient(90deg, var(--sky), var(--emerald)); transition:width .4s;}
+
+  .qcounter{font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-bottom:10px;}
+  .qcard{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:22px;}
+  .qtext{font-size:15.5px; margin:0 0 18px 0; line-height:1.5;}
+  .opt{display:flex; align-items:center; gap:10px; padding:11px 14px; border:1px solid var(--line); border-radius:6px; margin-bottom:9px; cursor:pointer; font-size:13.5px; background:var(--panel-raised); transition:transform .15s ease, border-color .15s ease;}
+  .opt:hover{border-color:var(--sky); transform:translateX(3px);}
+  .opt.correct{border-color:var(--emerald); background:rgba(52,211,153,.1);}
+  .opt.wrong{border-color:var(--red); background:rgba(248,113,113,.1);}
+  .opt .bullet{width:18px; height:18px; border-radius:50%; border:1px solid var(--text-dim); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:10px; color:var(--text-dim);}
+  .opt.correct .bullet{border-color:var(--emerald); color:var(--emerald);}
+  .opt.wrong .bullet{border-color:var(--red); color:var(--red);}
+
+  .explain{margin-top:14px; padding:12px 14px; border-radius:6px; font-size:13px; line-height:1.55; background:var(--panel-raised); border:1px solid var(--line); display:none;}
+  .explain.show{display:block;}
+
+  .qnav{display:flex; justify-content:space-between; align-items:center; margin-top:20px;}
+  .btn{font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.04em; background:var(--sky); color:#04222f; border:none; padding:10px 18px; border-radius:5px; cursor:pointer; font-weight:600; transition:transform .15s ease, background .2s ease;}
+  .btn:hover{background:#ffbb4d; transform:translateY(-1px);}
+  .btn.ghost{background:transparent; color:var(--text-dim); border:1px solid var(--line);}
+  .btn.ghost:hover{color:var(--text); border-color:var(--sky);}
+  .btn:disabled{opacity:.35; cursor:not-allowed;}
+
+  .quizresult{text-align:center; padding:40px 20px;}
+  .quizresult .score{font-family:var(--mono); font-size:50px; color:var(--sky); margin-bottom:6px;}
+  .quizresult .label{color:var(--text-dim); font-size:12.5px; margin-bottom:22px;}
+
+  .resetrow{margin-top:26px; padding-top:16px; border-top:1px solid var(--line);}
+  ::-webkit-scrollbar{width:10px;}
+  ::-webkit-scrollbar-thumb{background:#4a3f2c; border-radius:6px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  .flash:focus-visible{outline:2px solid var(--sky); outline-offset:2px;}
+
+  @media print{
+    .sidebar, .no-print, .themebtn, .resetrow{display:none !important;}
+    body{background:#fff; color:#111;}
+    .main{max-width:100%; padding:0;}
+    .card{border:1px solid #999; break-inside:avoid; box-shadow:none;}
+    table.tech th, table.tech td{color:#111; border-bottom:1px solid #999;}
+    table.tech th{background:#eee;}
+    .fig img{max-width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <nav class="sidebar">
+    <div class="brand">
+      <img class="brand-logo" src="../../assets/logo-industrial-technology.png" alt="Logo de la empresa">
+      <div class="tag">Fundamentos · Sin marca</div>
+      <h1>Diagnóstico y fallas comunes</h1>
+      <p>Cómo razonar un diagnóstico de VFD paso a paso, antes de aprender los códigos específicos de cada marca.</p>
+    </div>
+    <ul class="navlist" id="navlist"></ul>
+    <div class="sidebar-foot">
+      Cuarta y última unidad de nivelación · progreso guardado en este navegador
+      <button class="themebtn" id="themeToggle">🌓 Cambiar tema</button>
+      <a href="../../index.html" class="themebtn" style="display:block; text-align:center; text-decoration:none; margin-top:8px;">← Todas las capacitaciones</a>
+      <a href="puesta-en-marcha.html" class="themebtn" style="display:block; text-align:center; text-decoration:none; margin-top:8px;">← Puesta en marcha</a>
+    </div>
+  </nav>
+
+  <main class="main" id="main"></main>
+</div>
+
+<script>
+/* ============================================================
+   HELPERS DE CONTENIDO
+   ============================================================ */
+const PLACEHOLDER = (txt) => `<div class="placeholder">🖼️ [Marcador de imagen: ${txt}]</div>`;
+const NOTE = (txt) => `<div class="note warn">⚠️ ${txt}</div>`;
+const INFO = (txt) => `<div class="note">💡 ${txt}</div>`;
+const H3 = (txt) => `<h3><span style="width:6px;height:6px;border-radius:50%;background:var(--sky);display:inline-block;"></span>${txt}</h3>`;
+const IMG = (src, caption, source, wide) => `<figure class="fig${wide ? ' wide' : ''}">
+  <img src="imagenes/${src}" alt="${caption}" loading="lazy">
+  <figcaption>${caption}${source ? ` — <span style="font-style:italic">${source}</span>` : ''}</figcaption>
+</figure>`;
+
+/* ============================================================
+   MÓDULOS
+   ============================================================ */
+const MODULES = [
+{ id:'overview', title:'Panel general', short:'Inicio', isOverview:true },
+
+{
+  id:'pensar-el-diagnostico', title:'Cómo pensar un diagnóstico de VFD', short:'Cómo pensar el diagnóstico',
+  eyebrow:'Módulo 01 · Diagnóstico', sub:'Síntoma vs. causa raíz, por qué resetear sin investigar no resuelve nada, y el orden lógico para diagnosticar cualquier falla.',
+  content:`
+    <div class="card">
+      <p>Diagnosticar un VFD no es memorizar códigos de falla — es un proceso de razonamiento que se aplica igual sin importar la marca del equipo. Este módulo da el método general; los módulos siguientes lo aplican a las familias de falla más comunes.</p>
+
+      ${H3("Síntoma vs. causa raíz")}
+      <p>El VFD reporta un <strong>síntoma</strong>: una condición que detectó y ante la cual se protegió (por ejemplo, "sobrecorriente" o "sobretemperatura"). Ese síntoma casi nunca es la <strong>causa raíz</strong> real del problema — es el efecto visible de algo que está pasando en la instalación, la carga mecánica, el cableado o el ambiente. Confundir el síntoma con la causa es el error de diagnóstico más común.</p>
+
+      ${H3("Por qué resetear sin investigar es un error")}
+      <p>Es tentador simplemente resetear la falla y volver a arrancar — muchas veces el equipo arranca de nuevo sin problema aparente. Pero si no se investigó qué generó la falla, la causa raíz sigue presente y el VFD va a volver a protegerse en cuanto se repitan las condiciones que la originaron. Cada reseteo sin investigación es una oportunidad perdida de evitar una parada de planta futura, y en algunos casos (fallas de tierra, por ejemplo) puede significar seguir operando con un riesgo eléctrico real sin resolver.</p>
+      ${NOTE("Resetear una falla no es diagnosticar. Es aceptable como paso operativo para restablecer producción si la situación lo exige, pero siempre debe ir acompañado de una investigación de la causa — antes o inmediatamente después del reset.")}
+
+      ${H3("Orden lógico de diagnóstico: de lo simple/externo a lo complejo/interno")}
+      <p>Un diagnóstico eficiente sigue un orden: primero se descarta lo simple y externo al VFD, y recién después se profundiza en lo interno y complejo.</p>
+      <ol>
+        <li><strong>Lo externo y simple primero:</strong> alimentación de red, conexiones flojas, temperatura ambiente, ventilación, estado de la carga mecánica.</li>
+        <li><strong>Lo que cambió recientemente:</strong> ¿se modificó algún parámetro, se cambió el motor, se intervino la instalación?</li>
+        <li><strong>Lo interno y complejo al final:</strong> componentes internos del VFD (bus DC, IGBTs, tarjetas de control) — esto último normalmente requiere personal técnico especializado y, en muchos casos, contacto con el fabricante o su soporte.</li>
+      </ol>
+      ${INFO("Ir directo a sospechar del VFD como \"culpable\" sin antes descartar la instalación y la carga es la causa más frecuente de diagnósticos largos y de cambiar piezas que no eran el problema real.")}
+
+      ${PLACEHOLDER("Diagrama de flujo de diagnóstico: síntoma reportado → verificar lo externo/simple → verificar cambios recientes → recién ahí investigar lo interno del VFD")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué es el 'síntoma' que reporta un VFD ante una falla?", options:["La causa raíz exacta del problema","La condición que detectó y ante la cual se protegió, no necesariamente la causa real","Un dato irrelevante que se puede ignorar","Siempre un problema del propio VFD"], answer:1, explain:"El síntoma es el efecto visible que el VFD detectó y ante el cual se protegió; casi nunca es la causa raíz real del problema." },
+    { q:"¿Por qué resetear una falla sin investigar la causa es un error de diagnóstico?", options:["Porque el VFD se daña al resetear","Porque la causa raíz sigue presente y la falla probablemente se repita al volver las mismas condiciones","Porque el reset borra el historial de fallas automáticamente","No es un error, siempre es la mejor práctica"], answer:1, explain:"Si no se investigó qué generó la falla, la causa raíz sigue ahí y el VFD volverá a protegerse en cuanto se repitan las condiciones que la originaron." },
+    { q:"Según el orden lógico de diagnóstico propuesto, ¿qué debería verificarse primero?", options:["Los componentes internos del VFD como el bus DC o los IGBTs","Lo externo y simple: alimentación, conexiones, temperatura ambiente, ventilación y carga mecánica","Directamente contactar al fabricante","Cambiar el VFD completo"], answer:1, explain:"El orden lógico propone descartar primero lo externo y simple al VFD, y recién después profundizar en lo interno y complejo." },
+    { q:"¿Cuál es la causa más frecuente de diagnósticos largos según el módulo?", options:["Revisar demasiado la instalación antes de sospechar del VFD","Ir directo a sospechar del VFD como culpable sin antes descartar la instalación y la carga","Consultar el historial de fallas","Usar el orden lógico de diagnóstico"], answer:1, explain:"Ir directo a sospechar del VFD sin descartar antes la instalación y la carga mecánica es la causa más frecuente de diagnósticos largos y reemplazos innecesarios de piezas." },
+    { q:"¿Es aceptable resetear una falla como paso operativo?", options:["Nunca, bajo ninguna circunstancia","Sí, si la situación lo exige, pero siempre acompañado de una investigación de la causa antes o después del reset","Sí, y no hace falta investigar nunca la causa","Solo si el VFD lo permite mediante software"], answer:1, explain:"Resetear puede ser aceptable como paso operativo para restablecer producción, pero siempre debe acompañarse de una investigación de la causa raíz." }
+  ]
+},
+
+{
+  id:'sobrecorriente', title:'Fallas de sobrecorriente y sobrecarga', short:'Sobrecorriente',
+  eyebrow:'Módulo 02 · Diagnóstico', sub:'Qué detecta esta familia de fallas, causas típicas genéricas y qué verificar primero.',
+  content:`
+    <div class="card">
+      ${H3("Qué es una falla de sobrecorriente / sobrecarga")}
+      <p>El VFD mide constantemente la corriente que entrega al motor y se protege cuando esa corriente supera un límite — ya sea de forma instantánea (sobrecorriente) o sostenida en el tiempo (sobrecarga térmica). Es una de las protecciones más comunes en cualquier variador, sin importar la marca.</p>
+
+      ${H3("Causas típicas genéricas")}
+      <table class="tech">
+        <tr><th>Causa</th><th>Por qué genera sobrecorriente/sobrecarga</th></tr>
+        <tr><td>Motor sobredimensionado para el VFD</td><td>El VFD no tiene capacidad de corriente suficiente para el motor conectado; se protege al primer arranque o ante cualquier variación de carga.</td></tr>
+        <tr><td>Carga mecánica trabada o excesiva</td><td>Un rodamiento agarrotado, un elemento mecánico atascado o una carga por encima del diseño exigen más torque (y más corriente) del que el motor puede entregar de forma sostenida.</td></tr>
+        <tr><td>Rampa de aceleración demasiado agresiva</td><td>Pedirle al motor que acelere una inercia grande en muy poco tiempo demanda picos de corriente elevados.</td></tr>
+        <tr><td>Cortocircuito de salida (cable o motor)</td><td>Un cortocircuito entre fases de salida o en el bobinado del motor genera una sobrecorriente instantánea y severa.</td></tr>
+      </table>
+
+      ${H3("Qué verificar primero")}
+      <ol>
+        <li>Que los datos de placa del motor coincidan con lo configurado en el VFD (corriente nominal, potencia).</li>
+        <li>Que el eje del motor y la carga mecánica giren libremente sin el VFD conectado (girar a mano si es seguro y posible, con el equipo bloqueado).</li>
+        <li>El tiempo de rampa de aceleración configurado, comparado contra la inercia real de la carga.</li>
+        <li>Continuidad y aislamiento del cable y del motor, para descartar un cortocircuito de salida, antes de sospechar del VFD.</li>
+      </ol>
+      ${INFO("Una sobrecorriente que aparece siempre al mismo punto de la rampa de arranque suele apuntar a la rampa o a la carga mecánica; una sobrecorriente aleatoria o intermitente suele apuntar más a un problema de cableado, conexión floja o aislamiento.")}
+
+      ${PLACEHOLDER("Infografía con las cuatro causas típicas de sobrecorriente/sobrecarga: motor sobredimensionado, carga trabada, rampa agresiva, cortocircuito de salida")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué mide y protege el VFD en una falla de sobrecorriente/sobrecarga?", options:["La temperatura ambiente","La corriente entregada al motor, instantánea o sostenida en el tiempo","La tensión del bus DC","La frecuencia de conmutación de los IGBT"], answer:1, explain:"El VFD mide la corriente que entrega al motor y se protege cuando supera un límite, ya sea de forma instantánea (sobrecorriente) o sostenida (sobrecarga térmica)." },
+    { q:"¿Cuál de estas es una causa típica genérica de sobrecorriente mencionada en el módulo?", options:["Una rampa de aceleración demasiado lenta","Carga mecánica trabada o excesiva","Un exceso de ventilación en el gabinete","Un filtro de aire nuevo"], answer:1, explain:"Una carga mecánica trabada o excesiva exige más torque y corriente de la que el motor puede entregar de forma sostenida." },
+    { q:"¿Por qué una rampa de aceleración demasiado agresiva puede generar sobrecorriente?", options:["Porque reduce la tensión de red","Porque pedirle al motor acelerar una inercia grande en poco tiempo demanda picos de corriente elevados","Porque apaga el ventilador interno del VFD","Porque desconecta el bus DC"], answer:1, explain:"Acelerar una inercia grande en muy poco tiempo demanda picos de corriente elevados, lo que puede disparar una protección de sobrecorriente." },
+    { q:"¿Qué se recomienda verificar primero ante una sobrecorriente, según el módulo?", options:["Cambiar el VFD directamente","Que los datos de placa del motor coincidan con lo configurado en el VFD, entre otras verificaciones simples","Aumentar la frecuencia de conmutación","Reducir el tiempo de rampa a cero"], answer:1, explain:"Entre las primeras verificaciones está comparar los datos de placa del motor contra lo configurado en el VFD, además de revisar la carga mecánica y el cableado." },
+    { q:"Según el módulo, ¿qué patrón de sobrecorriente suele apuntar más a un problema de cableado o conexión floja?", options:["Una sobrecorriente que siempre aparece en el mismo punto de la rampa","Una sobrecorriente aleatoria o intermitente","Una sobrecorriente que nunca se repite","No hay ningún patrón que ayude a diferenciar causas"], answer:1, explain:"Una sobrecorriente aleatoria o intermitente suele apuntar más a un problema de cableado, conexión floja o aislamiento que a la rampa o la carga mecánica." }
+  ]
+},
+
+{
+  id:'bus-dc', title:'Fallas de sobretensión y subtensión del bus DC', short:'Bus DC (sobre/subtensión)',
+  eyebrow:'Módulo 03 · Diagnóstico', sub:'Sobretensión típica por frenado, subtensión típica por caída de red o fase faltante.',
+  content:`
+    <div class="card">
+      <p>El bus DC interno del VFD debe mantenerse dentro de un rango de tensión para que el equipo opere de forma segura. Dos fallas típicas de esta familia son la sobretensión y la subtensión del bus DC.</p>
+
+      ${H3("Sobretensión del bus DC")}
+      <p>Ocurre cuando la tensión del bus DC sube por encima del límite admitido. La causa típica más genérica es un <strong>frenado o desaceleración demasiado rápida</strong>: al frenar, el motor se comporta momentáneamente como generador y devuelve energía al bus DC; si esa energía no tiene adónde ir (por ejemplo, no hay una resistencia de frenado instalada, o la rampa de desaceleración es más rápida de lo que la carga y su inercia permiten disipar), la tensión del bus DC sube y el VFD se protege.</p>
+
+      ${H3("Subtensión del bus DC")}
+      <p>Ocurre cuando la tensión del bus DC cae por debajo del límite admitido. Las causas típicas más genéricas son una <strong>caída de tensión de la red eléctrica</strong> (sag momentáneo, sobrecarga de la red, arranque simultáneo de otras cargas grandes) o una <strong>fase faltante</strong> en la alimentación de entrada del VFD.</p>
+
+      <table class="tech">
+        <tr><th>Falla</th><th>Causa típica genérica</th><th>Qué revisar primero</th></tr>
+        <tr><td>Sobretensión de bus DC</td><td>Frenado/desaceleración rápida sin resistencia de frenado adecuada</td><td>Tiempo de rampa de desaceleración vs. inercia de la carga; presencia y estado de la resistencia de frenado</td></tr>
+        <tr><td>Subtensión de bus DC</td><td>Caída de tensión de red o fase de entrada faltante</td><td>Tensión y las tres fases de la alimentación de entrada, con instrumento de medición</td></tr>
+      </table>
+
+      ${NOTE("El bus DC almacena energía en condensadores y puede mantener tensión peligrosa incluso después de desconectar la red — ese riesgo de energía residual ya se cubrió en detalle en el módulo de seguridad eléctrica de la capacitación 'Electricidad industrial básica'; acá solo se lo menciona como recordatorio antes de manipular el equipo para diagnosticar estas fallas.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuál es la causa típica genérica de sobretensión del bus DC mencionada en el módulo?", options:["Una fase de entrada faltante","Frenado o desaceleración demasiado rápida sin manera de disipar la energía devuelta por el motor","Un filtro de aire sucio","Un motor sobredimensionado"], answer:1, explain:"Al frenar rápido, el motor devuelve energía al bus DC; si no hay resistencia de frenado adecuada o la rampa es muy rápida para la inercia de la carga, la tensión del bus DC sube." },
+    { q:"¿Cuál es la causa típica genérica de subtensión del bus DC mencionada en el módulo?", options:["Una rampa de aceleración muy lenta","Caída de tensión de la red eléctrica o una fase de entrada faltante","Exceso de ventilación","Un cortocircuito de salida"], answer:1, explain:"La subtensión del bus DC típicamente se origina en una caída de tensión de red o en una fase faltante en la alimentación de entrada del VFD." },
+    { q:"Ante una sospecha de sobretensión de bus DC por frenado, ¿qué debería revisarse primero según la tabla del módulo?", options:["Las tres fases de la alimentación de entrada","El tiempo de rampa de desaceleración frente a la inercia de la carga, y la presencia/estado de la resistencia de frenado","El historial de temperatura ambiente","El grado de protección IP del gabinete"], answer:1, explain:"Para sobretensión de bus DC por frenado, se revisa el tiempo de rampa de desaceleración contra la inercia de la carga, y la resistencia de frenado." },
+    { q:"¿Por qué el motor puede devolver energía al bus DC durante un frenado rápido?", options:["Porque el motor se comporta momentáneamente como generador","Porque el rectificador se apaga durante el frenado","Porque el VFD invierte automáticamente las fases de red","Porque la carga se desconecta del motor"], answer:0, explain:"Durante un frenado, el motor se comporta momentáneamente como generador y devuelve energía eléctrica hacia el bus DC." },
+    { q:"¿Qué recordatorio de seguridad hace este módulo respecto al bus DC?", options:["Que nunca almacena energía peligrosa","Que puede mantener tensión peligrosa incluso después de desconectar la red, tema ya cubierto en detalle en otra capacitación de la serie","Que solo es peligroso si el VFD está encendido","Que no requiere ninguna precaución adicional"], answer:1, explain:"El módulo recuerda el riesgo de energía residual del bus DC, remitiendo al detalle ya cubierto en el módulo de seguridad eléctrica de 'Electricidad industrial básica'." }
+  ]
+},
+
+{
+  id:'sobretemperatura', title:'Fallas de sobretemperatura: VFD vs. motor', short:'Sobretemperatura',
+  eyebrow:'Módulo 04 · Diagnóstico', sub:'Causas típicas de sobretemperatura del propio VFD frente a las causas típicas de sobretemperatura del motor.',
+  content:`
+    <div class="card">
+      <p>La sobretemperatura es otra familia de fallas frecuente, y es importante distinguir si lo que se está sobrecalentando es el <strong>VFD</strong> o el <strong>motor</strong> — las causas típicas son distintas.</p>
+
+      ${H3("Sobretemperatura del VFD")}
+      <ul>
+        <li><strong>Ventilación obstruida:</strong> rejillas de entrada/salida de aire bloqueadas por polvo, objetos o mala instalación (espacio insuficiente alrededor del gabinete).</li>
+        <li><strong>Temperatura ambiente excesiva:</strong> el VFD instalado en un recinto o sala con temperatura por encima de lo que su diseño admite.</li>
+        <li><strong>Filtros de aire sucios:</strong> en gabinetes con filtro de entrada de aire, la acumulación de polvo reduce el flujo de aire de enfriamiento.</li>
+        <li><strong>Ventilador interno fallado:</strong> el ventilador de enfriamiento del propio VFD dejó de girar o gira más lento de lo normal.</li>
+      </ul>
+
+      ${H3("Sobretemperatura del motor")}
+      <ul>
+        <li><strong>Sobrecarga sostenida:</strong> el motor trabajando por encima de su capacidad térmica de forma prolongada, no necesariamente al punto de disparar una sobrecorriente instantánea.</li>
+        <li><strong>Mala ventilación del motor:</strong> ventilador propio del motor obstruido, dañado, o motor operando a baja velocidad de forma prolongada sin ventilación forzada auxiliar en aplicaciones que la requieren.</li>
+      </ul>
+
+      ${H3("Cómo diferenciarlas al diagnosticar")}
+      <p>El primer paso es identificar cuál de los dos equipos está reportando la temperatura elevada. Si es el VFD, revisar primero el entorno de instalación (ventilación, temperatura de sala, filtros) antes de sospechar de un componente interno fallado. Si es el motor, revisar primero el punto de operación real (¿está sobrecargado?, ¿opera mucho tiempo a baja velocidad?) antes de asumir un problema del VFD.</p>
+
+      ${INFO("Una sobretemperatura de VFD que aparece siempre en las horas de más calor ambiente o en época estival suele apuntar directamente a temperatura de sala o ventilación, más que a una falla de componente.")}
+
+      ${PLACEHOLDER("Comparativa lado a lado: causas típicas de sobretemperatura del VFD (ventilación, ambiente, filtros, ventilador interno) vs. causas típicas de sobretemperatura del motor (sobrecarga, mala ventilación)")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Cuál de estas es una causa típica de sobretemperatura del VFD (no del motor)?", options:["Sobrecarga sostenida del motor","Ventilación obstruida del gabinete del VFD","Mala ventilación propia del motor","Motor operando a baja velocidad de forma prolongada"], answer:1, explain:"La ventilación obstruida del gabinete es una causa típica de sobretemperatura del propio VFD, junto con temperatura ambiente excesiva, filtros sucios y ventilador interno fallado." },
+    { q:"¿Cuál de estas es una causa típica de sobretemperatura del motor (no del VFD)?", options:["Filtros de aire del gabinete sucios","Ventilador interno del VFD fallado","Sobrecarga sostenida del motor","Temperatura ambiente excesiva en la sala del VFD"], answer:2, explain:"La sobrecarga sostenida es una causa típica de sobretemperatura del motor, junto con la mala ventilación propia del motor." },
+    { q:"Ante una sobretemperatura reportada por el VFD, ¿qué se recomienda revisar primero?", options:["Reemplazar directamente un componente interno","El entorno de instalación: ventilación, temperatura de sala y filtros, antes de sospechar de un componente interno","El torque de los terminales del motor","El historial de arranques del motor"], answer:1, explain:"El módulo recomienda revisar primero el entorno de instalación del VFD (ventilación, temperatura de sala, filtros) antes de sospechar de un componente interno fallado." },
+    { q:"¿Qué patrón de sobretemperatura del VFD suele apuntar a temperatura de sala o ventilación más que a un componente fallado?", options:["Una sobretemperatura que aparece solo de noche en invierno","Una sobretemperatura que aparece siempre en las horas de más calor ambiente o en época estival","Una sobretemperatura que aparece apenas se enciende el equipo en frío","No hay ningún patrón útil"], answer:1, explain:"Una sobretemperatura que se repite en las horas o épocas de más calor ambiente suele apuntar a temperatura de sala o ventilación, más que a una falla de componente." },
+    { q:"¿Qué se recomienda revisar primero ante una sobretemperatura del motor?", options:["El punto de operación real del motor: si está sobrecargado o si opera mucho tiempo a baja velocidad","El ventilador interno del VFD únicamente","La resistencia de frenado","La configuración del bus DC"], answer:0, explain:"Ante sobretemperatura del motor, se recomienda revisar primero el punto de operación real (sobrecarga, operación prolongada a baja velocidad) antes de asumir un problema del VFD." }
+  ]
+},
+
+{
+  id:'fallas-de-tierra', title:'Fallas de tierra / fuga a tierra', short:'Fallas de tierra',
+  eyebrow:'Módulo 05 · Diagnóstico', sub:'Qué detecta esta falla, causas típicas genéricas y por qué nunca debe resetearse sin investigar.',
+  content:`
+    <div class="card">
+      ${H3("Qué detecta una falla de tierra / fuga")}
+      <p>Esta protección detecta que parte de la corriente que sale del VFD hacia el motor no está regresando por el camino esperado — es decir, se está fugando hacia tierra por un camino no previsto (aislamiento dañado, humedad, etc.) en lugar de circular únicamente entre las fases del motor.</p>
+
+      ${H3("Causas típicas genéricas")}
+      <ul>
+        <li><strong>Aislamiento de cable dañado:</strong> el cable de potencia entre el VFD y el motor tiene el aislamiento cortado, pinchado o degradado, permitiendo fuga de corriente hacia tierra.</li>
+        <li><strong>Humedad:</strong> agua o condensación dentro de una caja de conexiones, un motor o un tramo de cableado reduce la resistencia de aislamiento y genera fuga.</li>
+        <li><strong>Motor con aislamiento degradado:</strong> el bobinado del motor perdió aislamiento por edad, contaminación o daño térmico acumulado, permitiendo fuga hacia la carcasa (tierra) del motor.</li>
+      </ul>
+
+      ${NOTE("Una falla de tierra nunca debe resetearse e ignorarse sin investigar la causa. A diferencia de otras protecciones que son principalmente de proceso o de equipo, una falla de tierra señala un riesgo eléctrico real de fuga de corriente — insistir en reponer el equipo sin encontrar y corregir la causa puede exponer a las personas a un riesgo de choque eléctrico.")}
+
+      ${H3("Qué verificar")}
+      <ol>
+        <li>Medición de resistencia de aislamiento del cableado de salida y del motor (con el equipo desenergizado y bloqueado, usando el instrumento adecuado para esa medición).</li>
+        <li>Inspección visual de cajas de conexión y prensacables en busca de ingreso de humedad.</li>
+        <li>Estado físico del cable en todo su recorrido, buscando daños mecánicos visibles.</li>
+      </ol>
+
+      ${PLACEHOLDER("Esquema simplificado de una fuga a tierra: corriente que debería circular entre fases del motor y en cambio se fuga hacia la carcasa/tierra por un punto de aislamiento dañado")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué detecta una falla de tierra / fuga en un VFD?", options:["Que la tensión del bus DC subió demasiado","Que parte de la corriente de salida se está fugando hacia tierra en lugar de circular solo entre las fases del motor","Que el ventilador interno dejó de girar","Que la rampa de aceleración es demasiado rápida"], answer:1, explain:"La falla de tierra detecta que parte de la corriente que sale hacia el motor no regresa por el camino esperado, sino que se fuga hacia tierra por un camino no previsto." },
+    { q:"¿Cuál de estas es una causa típica genérica de falla de tierra mencionada en el módulo?", options:["Una rampa de desaceleración muy rápida","Aislamiento de cable dañado","Un filtro de aire sucio","Un motor sobredimensionado para el VFD"], answer:1, explain:"El aislamiento de cable dañado es una causa típica de falla de tierra, junto con la humedad y el aislamiento degradado del motor." },
+    { q:"¿Por qué la humedad puede generar una falla de tierra?", options:["Porque aumenta la temperatura del motor","Porque reduce la resistencia de aislamiento dentro de cajas de conexión, motores o cableado, generando fuga","Porque afecta la tensión de la red eléctrica","Porque acelera el ventilador interno del VFD"], answer:1, explain:"El agua o la condensación reducen la resistencia de aislamiento y facilitan una fuga de corriente hacia tierra." },
+    { q:"¿Por qué el módulo insiste en que una falla de tierra nunca debe resetearse sin investigar?", options:["Porque el reset daña el VFD de forma permanente","Porque señala un riesgo eléctrico real de fuga de corriente que puede exponer a las personas a un choque eléctrico","Porque siempre implica reemplazar el motor completo","Porque no tiene relación con la seguridad de las personas"], answer:1, explain:"A diferencia de otras protecciones, la falla de tierra señala un riesgo eléctrico real; ignorarla sin corregir la causa puede exponer a las personas a un riesgo de choque eléctrico." },
+    { q:"¿Qué medición se recomienda para investigar una falla de tierra, según el módulo?", options:["Medición de resistencia de aislamiento del cableado de salida y del motor, con el equipo desenergizado y bloqueado","Medición de la frecuencia de conmutación del inversor","Medición del torque nominal del motor","Medición del grado de protección IP del gabinete"], answer:0, explain:"Se recomienda medir la resistencia de aislamiento del cableado y del motor, con el equipo desenergizado y bloqueado, usando el instrumento adecuado." }
+  ]
+},
+
+{
+  id:'historial-de-fallas', title:'Historial de fallas y checklist de primera respuesta', short:'Historial de fallas',
+  eyebrow:'Módulo 06 · Diagnóstico', sub:'Qué información aporta el historial de fallas del VFD y un checklist genérico de primera respuesta.',
+  content:`
+    <div class="card">
+      ${H3("Qué información valiosa da el historial de fallas")}
+      <p>Prácticamente todo VFD guarda un registro de las últimas fallas ocurridas. Antes de tocar nada, revisar ese historial es uno de los pasos de diagnóstico más rentables, porque suele incluir:</p>
+      <ul>
+        <li><strong>Marca de tiempo:</strong> cuándo ocurrió exactamente la falla — útil para cruzar con otros eventos de planta (por ejemplo, un corte de red, el arranque de otro equipo grande, un cambio de turno).</li>
+        <li><strong>Valores de proceso al momento de la falla:</strong> muchos VFD guardan una "foto" de variables como corriente, tensión del bus DC o temperatura justo en el instante de la falla, lo cual ayuda a distinguir, por ejemplo, si una sobrecorriente ocurrió en el arranque o en régimen estable.</li>
+        <li><strong>Frecuencia de repetición:</strong> si el mismo código aparece muchas veces en poco tiempo, es una señal fuerte de que la causa raíz sigue sin resolverse.</li>
+      </ul>
+
+      ${H3("Checklist genérico de primera respuesta")}
+      <ol>
+        <li><strong>Anotar el código exacto</strong> de la falla, tal como lo muestra el equipo (no solo "se paró" o "dio error").</li>
+        <li><strong>Revisar el historial de fallas</strong> del VFD, buscando repeticiones y valores de proceso asociados.</li>
+        <li><strong>Verificar lo obvio</strong>: alimentación eléctrica, conexiones (terminales flojos), temperatura ambiente del recinto.</li>
+        <li><strong>Recién después, escalar</strong> a un diagnóstico más profundo o a soporte técnico especializado si lo anterior no resolvió o no explicó la falla.</li>
+      </ol>
+      ${INFO("Este checklist es deliberadamente genérico: el detalle exacto de cómo leer el historial de fallas y qué códigos numéricos corresponden a qué evento cambia de un fabricante a otro. Ese nivel de detalle se cubre en las capacitaciones específicas de marca de este sitio.")}
+
+      ${PLACEHOLDER("Captura ilustrativa de un panel de VFD mostrando un listado de historial de fallas con código, marca de tiempo y valores de proceso asociados")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué información típica guarda el historial de fallas de un VFD, según el módulo?", options:["Solo el nombre del técnico que lo instaló","Marca de tiempo y valores de proceso al momento de la falla, entre otra información","Únicamente el color del código de error","El manual completo del fabricante"], answer:1, explain:"El historial de fallas típicamente guarda marca de tiempo y una 'foto' de valores de proceso (corriente, tensión de bus DC, temperatura) al momento de la falla." },
+    { q:"¿Qué señal da que el mismo código de falla aparezca muchas veces en poco tiempo?", options:["Que el equipo está funcionando perfectamente","Una señal fuerte de que la causa raíz sigue sin resolverse","Que hay que aumentar la velocidad del motor","Que el historial de fallas está dañado"], answer:1, explain:"La repetición frecuente del mismo código en poco tiempo es una señal fuerte de que la causa raíz de la falla no se resolvió." },
+    { q:"Según el checklist de primera respuesta, ¿qué debe hacerse primero ante una falla?", options:["Escalar directamente a soporte técnico especializado","Anotar el código exacto de la falla tal como lo muestra el equipo","Cambiar el motor","Aumentar el tiempo de rampa al máximo"], answer:1, explain:"El primer paso del checklist es anotar el código exacto de la falla, no una descripción vaga como 'se paró'." },
+    { q:"¿Qué se recomienda verificar como parte de 'lo obvio' en el checklist de primera respuesta?", options:["El diseño interno de los IGBTs del inversor","Alimentación eléctrica, conexiones y temperatura ambiente del recinto","El código fuente del firmware del VFD","La curva de eficiencia energética del motor"], answer:1, explain:"El checklist indica verificar lo obvio: alimentación eléctrica, conexiones (terminales flojos) y temperatura ambiente, antes de escalar." },
+    { q:"¿Por qué el checklist de este módulo se describe como 'deliberadamente genérico'?", options:["Porque no sirve para ningún fabricante en particular","Porque el detalle exacto de cómo leer el historial y los códigos numéricos varía por fabricante, y eso se cubre en las capacitaciones de marca","Porque todavía no existe ningún VFD con historial de fallas","Porque el historial de fallas no es confiable"], answer:1, explain:"El módulo aclara que el detalle exacto de lectura del historial y los códigos numéricos cambia según el fabricante, y ese nivel se profundiza en las capacitaciones de marca del sitio." }
+  ]
+},
+
+{
+  id:'mantenimiento-preventivo', title:'Mantenimiento preventivo para evitar fallas recurrentes', short:'Mantenimiento preventivo',
+  eyebrow:'Módulo 07 · Diagnóstico', sub:'Buenas prácticas genéricas para reducir la probabilidad de que las fallas de los módulos anteriores vuelvan a ocurrir.',
+  content:`
+    <div class="card">
+      <p>Gran parte de las fallas vistas en este curso son evitables o al menos menos frecuentes con un programa de mantenimiento preventivo básico. Estas son prácticas genéricas, aplicables a cualquier marca de VFD.</p>
+
+      ${H3("Limpieza de filtros y ventilación")}
+      <p>Limpiar o reemplazar periódicamente los filtros de aire del gabinete y despejar las rejillas de ventilación reduce directamente el riesgo de sobretemperatura del VFD — la causa más fácilmente prevenible de esa familia de fallas.</p>
+
+      ${H3("Ajuste de terminales (torque)")}
+      <p>Verificar periódicamente que los terminales de potencia y de control mantengan el torque de apriete especificado. Un terminal flojo genera calentamiento localizado, puede producir arcos, y con el tiempo puede derivar en una falla de tierra o en lecturas erráticas.</p>
+
+      ${H3("Medición periódica de aislamiento")}
+      <p>Medir la resistencia de aislamiento del cableado y del motor de forma periódica (no solo cuando ya ocurrió una falla de tierra) permite detectar un aislamiento en degradación antes de que se convierta en una falla real.</p>
+
+      ${H3("Revisión de condensadores del bus DC en equipos de muchos años")}
+      <p>Los condensadores del bus DC tienen una vida útil finita y se degradan con el tiempo, especialmente en ambientes calurosos. En VFDs con varios años de servicio, una inspección o reemplazo preventivo de estos condensadores según la recomendación del fabricante reduce el riesgo de fallas relacionadas con el bus DC.</p>
+
+      ${NOTE("El detalle específico de cada una de estas prácticas — intervalos recomendados, procedimientos exactos, herramientas de diagnóstico propias de cada marca — se profundiza en las capacitaciones específicas de marca de este sitio. Este módulo cierra la nivelación genérica: a partir de acá, las siguientes capacitaciones aplican estos conceptos a un fabricante concreto.")}
+    </div>
+  `,
+  quiz:[
+    { q:"¿Qué falla de las vistas en este curso se reduce directamente con la limpieza de filtros y ventilación?", options:["La falla de tierra","La sobretemperatura del VFD","La subtensión del bus DC","El cortocircuito de salida"], answer:1, explain:"Limpiar filtros y despejar rejillas de ventilación reduce directamente el riesgo de sobretemperatura del VFD, su causa más fácilmente prevenible." },
+    { q:"¿Qué consecuencia puede tener un terminal flojo según el módulo?", options:["Ninguna, no afecta al equipo","Calentamiento localizado, posibles arcos, y con el tiempo puede derivar en falla de tierra o lecturas erráticas","Aumenta automáticamente la eficiencia energética","Mejora la ventilación del gabinete"], answer:1, explain:"Un terminal flojo genera calentamiento localizado, puede producir arcos y derivar con el tiempo en una falla de tierra o lecturas erráticas." },
+    { q:"¿Qué permite detectar la medición periódica de resistencia de aislamiento?", options:["La velocidad máxima del motor","Un aislamiento en degradación antes de que se convierta en una falla de tierra real","La eficiencia energética del VFD","El torque nominal del motor"], answer:1, explain:"Medir la resistencia de aislamiento de forma periódica, no solo tras una falla, permite detectar degradación antes de que derive en una falla de tierra real." },
+    { q:"¿Por qué se recomienda revisar los condensadores del bus DC en equipos de muchos años de servicio?", options:["Porque nunca se degradan","Porque tienen vida útil finita y se degradan con el tiempo, especialmente en ambientes calurosos, aumentando el riesgo de fallas de bus DC","Porque siempre hay que reemplazarlos cada mes sin excepción","Porque afectan directamente la velocidad máxima del motor"], answer:1, explain:"Los condensadores del bus DC tienen vida útil finita y se degradan con el tiempo, en especial en ambientes calurosos; revisarlos reduce el riesgo de fallas relacionadas con el bus DC." },
+    { q:"¿Qué mensaje de cierre da este módulo (y esta capacitación) respecto al detalle específico de cada práctica de mantenimiento?", options:["Que no existe ningún detalle adicional que aprender","Que el detalle específico de intervalos y procedimientos se profundiza en las capacitaciones de marca del sitio","Que cada práctica es idéntica en todos los fabricantes sin excepción","Que el mantenimiento preventivo no tiene relación con las fallas vistas en el curso"], answer:1, explain:"El módulo cierra indicando que el detalle específico de cada práctica se profundiza en las capacitaciones específicas de marca, ya que este curso es la nivelación genérica previa." }
+  ]
+}
+];
+
+/* ============================================================
+   ESTADO + PERSISTENCIA (localStorage)
+   ============================================================ */
+const STORAGE_KEY = 'diagnostico_fallas_training_progress_v1';
+const THEME_KEY = 'capacitacion-theme';
+
+const state = {
+  currentId: 'overview',
+  view: 'learn',
+  quizProgress: {},
+  quizIndex: {},
+};
+MODULES.forEach(m=>{
+  if(m.quiz){ state.quizProgress[m.id] = { answered: new Array(m.quiz.length).fill(null) }; state.quizIndex[m.id] = 0; }
+});
+
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const saved = JSON.parse(raw);
+    MODULES.forEach(m=>{
+      if(!m.quiz) return;
+      const savedAnswers = saved && saved[m.id];
+      if(Array.isArray(savedAnswers) && savedAnswers.length === m.quiz.length){
+        state.quizProgress[m.id].answered = savedAnswers;
+      }
+    });
+  }catch(e){ console.warn('No se pudo cargar el progreso guardado:', e); }
+}
+function saveProgress(){
+  try{
+    const data = {};
+    MODULES.forEach(m=>{ if(m.quiz) data[m.id] = state.quizProgress[m.id].answered; });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }catch(e){ console.warn('No se pudo guardar el progreso:', e); }
+  syncPortalProgress();
+}
+function syncPortalProgress(){
+  try{
+    const teachable = MODULES.filter(m=>!m.isOverview);
+    const total = teachable.reduce((s,m)=>s+m.quiz.length,0);
+    const done = teachable.reduce((s,m)=>s+state.quizProgress[m.id].answered.filter(a=>a!==null).length,0);
+    localStorage.setItem('vfd_progress_diagnostico-fallas', JSON.stringify({ done, total }));
+  }catch(e){ console.warn('No se pudo sincronizar el progreso con el portal:', e); }
+}
+function resetAllProgress(){
+  MODULES.forEach(m=>{
+    if(!m.quiz) return;
+    state.quizProgress[m.id].answered = new Array(m.quiz.length).fill(null);
+    state.quizIndex[m.id] = 0;
+  });
+  saveProgress();
+  render();
+}
+loadProgress();
+syncPortalProgress();
+
+/* ============================================================
+   TEMA
+   ============================================================ */
+function applyTheme(){
+  const saved = localStorage.getItem(THEME_KEY);
+  if(saved === 'light'){ document.documentElement.classList.add('light-theme'); }
+  else { document.documentElement.classList.remove('light-theme'); }
+}
+applyTheme();
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  const isLight = document.documentElement.classList.toggle('light-theme');
+  localStorage.setItem(THEME_KEY, isLight ? 'light' : 'dark');
+});
+
+/* ============================================================
+   ANIMACIÓN DE ENTRADA
+   ============================================================ */
+function animateIn(container){
+  const items = container.querySelectorAll('.modhead, .card, .fig, .ovwcard, .qcard, .barwrap, .flash');
+  items.forEach((el,i)=>{ el.classList.add('reveal'); el.style.transitionDelay = Math.min(i*70,560)+'ms'; });
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ items.forEach(el=>el.classList.add('in')); }));
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+function ledStateFor(m){
+  if(m.isOverview) return '';
+  const p = state.quizProgress[m.id];
+  if(!p) return '';
+  const answeredCount = p.answered.filter(a=>a!==null).length;
+  if(answeredCount===0) return '';
+  if(answeredCount < m.quiz.length) return 'partial';
+  return 'done';
+}
+let sidebarAnimated = false;
+function renderSidebar(){
+  const ul = document.getElementById('navlist');
+  ul.innerHTML = '';
+  MODULES.forEach((m,i)=>{
+    const li = document.createElement('li');
+    li.className = 'navitem' + (state.currentId===m.id ? ' active' : '');
+    if(!sidebarAnimated){ li.style.animation = `slideInLeft .45s cubic-bezier(.2,.7,.3,1) ${i*35}ms both`; }
+    const ledClass = ledStateFor(m);
+    li.innerHTML = `
+      ${m.isOverview ? '<span class="led"></span>' : `<span class="led ${ledClass}"></span>`}
+      <span class="num">${m.isOverview ? '★' : String(i).padStart(2,'0')}</span>
+      <span class="label">${m.short}</span>
+    `;
+    li.onclick = ()=>{ state.currentId = m.id; state.view = 'learn'; render(); window.scrollTo(0,0); };
+    ul.appendChild(li);
+  });
+  sidebarAnimated = true;
+}
+
+/* ============================================================
+   OVERVIEW
+   ============================================================ */
+function renderOverview(){
+  const teachable = MODULES.filter(m=>!m.isOverview);
+  const totalQ = teachable.reduce((s,m)=>s+m.quiz.length,0);
+  const answeredQ = teachable.reduce((s,m)=>s+state.quizProgress[m.id].answered.filter(a=>a!==null).length,0);
+  const pct = totalQ ? Math.round(answeredQ/totalQ*100) : 0;
+
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="modhead">
+      <p class="eyebrow">Capacitación · Diagnóstico</p>
+      <h2>Diagnóstico y fallas comunes</h2>
+      <p class="sub">Navega libremente entre los 7 módulos. Cada uno tiene su contenido y su quiz — el progreso se guarda automáticamente en este navegador.</p>
+    </div>
+    <div class="barwrap"><div class="barfill" style="width:${pct}%"></div></div>
+    <p style="font-family:var(--mono); font-size:11.5px; color:var(--text-dim); margin:8px 0 24px 0;">${answeredQ} / ${totalQ} preguntas respondidas · ${pct}%</p>
+    ${pct===100 ? `
+    <div class="card" style="border-color:var(--emerald); background:var(--emerald-dim);">
+      <h3 style="color:var(--emerald); margin-top:0;">🏆 Capacitación completa</h3>
+      <p style="margin-bottom:0;">Completaste el quiz de los 7 módulos de Diagnóstico y fallas comunes. Con esto cerrás la nivelación genérica — ya tenés la base para avanzar a las capacitaciones específicas de marca del portal.</p>
+    </div>` : ''}
+    <div class="ovwgrid">
+      ${teachable.map((m,i)=>{
+        const p = state.quizProgress[m.id];
+        const answered = p.answered.filter(a=>a!==null).length;
+        const correct = p.answered.reduce((s,a)=> s + (a===true?1:0), 0);
+        let status = 'sin iniciar';
+        if(answered>0 && answered<m.quiz.length) status = `en curso · ${answered}/${m.quiz.length}`;
+        if(answered===m.quiz.length) status = `completo · ${correct}/${m.quiz.length} correctas`;
+        const startBadge = m.id==='pensar-el-diagnostico' ? `<span style="font-family:var(--mono); font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--emerald); border:1px solid var(--emerald); border-radius:4px; padding:2px 6px; margin-left:8px;">Empieza aquí</span>` : '';
+        return `<div class="ovwcard" data-id="${m.id}">
+          <div class="top"><span class="t-title">${String(i).padStart(2,'0')} · ${m.title}${startBadge}</span><span class="led ${ledStateFor(m)}"></span></div>
+          <div class="t-sub">${m.sub}</div>
+          <div class="t-status" style="margin-top:10px;">${status}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="resetrow">
+      <button class="btn ghost" id="resetAllBtn">Borrar todo el progreso guardado</button>
+    </div>
+  `;
+  const resetBtn = document.getElementById('resetAllBtn');
+  if(resetBtn){
+    resetBtn.onclick = ()=>{
+      if(confirm('¿Borrar el progreso guardado de todos los módulos? Esta acción no se puede deshacer.')){
+        resetAllProgress();
+      }
+    };
+  }
+  main.querySelectorAll('.ovwcard').forEach(el=>{
+    el.onclick = ()=>{ state.currentId = el.dataset.id; state.view = 'learn'; render(); window.scrollTo(0,0); };
+  });
+  animateIn(main);
+}
+
+/* ============================================================
+   MÓDULO (learn / quiz)
+   ============================================================ */
+function renderModule(m){
+  const main = document.getElementById('main');
+  const hasCards = !!m.flashcards;
+  main.innerHTML = `
+    <div class="modhead">
+      <p class="eyebrow">${m.eyebrow}</p>
+      <h2>${m.title}</h2>
+      <p class="sub">${m.sub}</p>
+    </div>
+    <div class="tabs no-print">
+      <div class="tab ${state.view==='learn'?'active':''}" data-v="learn">Aprender</div>
+      <div class="tab ${state.view==='quiz'?'active':''}" data-v="quiz">Quiz (${m.quiz.length})</div>
+      <div style="margin-left:auto; align-self:center;"><button class="btn ghost" id="printBtn" style="font-size:10.5px; padding:6px 12px;">🖨️ Imprimir esta unidad</button></div>
+    </div>
+    <div id="modbody"></div>
+  `;
+  main.querySelectorAll('.tab').forEach(t=>{ t.onclick = ()=>{ state.view = t.dataset.v; render(); }; });
+  const printBtn = document.getElementById('printBtn');
+  if(printBtn) printBtn.onclick = ()=> window.print();
+  const body = document.getElementById('modbody');
+  if(state.view==='learn'){
+    body.innerHTML = m.content;
+    if(hasCards) renderFlashcards(m);
+  } else {
+    renderQuiz(m, body);
+  }
+  animateIn(main);
+}
+
+function renderFlashcards(m){
+  const grid = document.getElementById('flashgrid');
+  if(!grid) return;
+  grid.innerHTML = m.flashcards.map((f)=>`
+    <div class="flash" tabindex="0" role="button" aria-label="Tarjeta ${f.acr}, presiona Enter o Espacio para revelar">
+      <div class="flash-inner">
+        <div class="flash-face flash-front"><div class="acr">${f.acr}</div><div class="hint">toca para revelar</div></div>
+        <div class="flash-face flash-back"><div class="full">${f.full}</div><div class="desc">${f.desc}</div></div>
+      </div>
+    </div>
+  `).join('');
+  grid.querySelectorAll('.flash').forEach(el=>{
+    el.onclick = ()=> el.classList.toggle('flipped');
+    el.onkeydown = (e)=>{
+      if(e.key==='Enter' || e.key===' ' || e.key==='Spacebar'){
+        e.preventDefault();
+        el.classList.toggle('flipped');
+      }
+    };
+  });
+}
+
+/* ---------- Quiz engine ---------- */
+function renderQuiz(m, body){
+  const progress = state.quizProgress[m.id];
+  const total = m.quiz.length;
+  const answeredAll = progress.answered.every(a=>a!==null);
+
+  if(answeredAll){
+    const correct = progress.answered.filter(a=>a===true).length;
+    const missed = m.quiz.map((q,qi)=>({q,qi})).filter(x=>progress.answered[x.qi]===false);
+    body.innerHTML = `
+      <div class="qcard">
+        <div class="quizresult">
+          <div class="score">${correct}/${total}</div>
+          <div class="label">respuestas correctas en este módulo</div>
+          <button class="btn ghost" id="retryBtn">Reintentar quiz</button>
+        </div>
+        ${missed.length ? `
+        <div style="text-align:left; margin-top:10px;">
+          <h3 style="color:var(--red);">Preguntas a repasar (${missed.length})</h3>
+          ${missed.map(x=>`
+            <div class="note warn" style="margin:10px 0;">
+              <strong>${x.q.q}</strong><br>
+              Respuesta correcta: ${x.q.options[x.q.answer]}<br>
+              ${x.q.explain}
+            </div>
+          `).join('')}
+        </div>` : ''}
+      </div>
+    `;
+    document.getElementById('retryBtn').onclick = ()=>{
+      progress.answered = new Array(total).fill(null);
+      state.quizIndex[m.id] = 0;
+      saveProgress();
+      render();
+    };
+    return;
+  }
+
+  let idx = state.quizIndex[m.id];
+  if(progress.answered[idx]!==null){
+    idx = progress.answered.findIndex(a=>a===null);
+    state.quizIndex[m.id] = idx;
+  }
+  const q = m.quiz[idx];
+  body.innerHTML = `
+    <div class="qcounter">Pregunta ${idx+1} de ${total}</div>
+    <div class="qcard">
+      <p class="qtext">${q.q}</p>
+      <div id="optlist">
+        ${q.options.map((o,oi)=>`<div class="opt" data-oi="${oi}"><span class="bullet">${String.fromCharCode(65+oi)}</span><span>${o}</span></div>`).join('')}
+      </div>
+      <div class="explain" id="explainBox">${q.explain}</div>
+      <div class="qnav">
+        <span style="font-family:var(--mono); font-size:11px; color:var(--text-dim);">selecciona una opción</span>
+        <button class="btn" id="nextBtn" disabled>Siguiente</button>
+      </div>
+    </div>
+  `;
+  let picked = false;
+  document.querySelectorAll('#optlist .opt').forEach(el=>{
+    el.onclick = ()=>{
+      if(picked) return;
+      picked = true;
+      const oi = parseInt(el.dataset.oi);
+      const isCorrect = oi===q.answer;
+      progress.answered[idx] = isCorrect;
+      saveProgress();
+      document.querySelectorAll('#optlist .opt').forEach(o2=>{
+        const oi2 = parseInt(o2.dataset.oi);
+        if(oi2===q.answer) o2.classList.add('correct');
+        else if(oi2===oi) o2.classList.add('wrong');
+      });
+      document.getElementById('explainBox').classList.add('show');
+      const nb = document.getElementById('nextBtn');
+      nb.disabled = false;
+      nb.onclick = ()=>{
+        state.quizIndex[m.id] = idx+1 < total ? idx+1 : idx;
+        render();
+      };
+      renderSidebar();
+    };
+  });
+}
+
+/* ============================================================
+   RENDER PRINCIPAL
+   ============================================================ */
+function render(){
+  renderSidebar();
+  const m = MODULES.find(mm=>mm.id===state.currentId);
+  if(m.isOverview) renderOverview();
+  else renderModule(m);
+}
+
+render();
+</script>
+</body>
+</html>
