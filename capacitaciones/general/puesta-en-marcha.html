@@ -228,7 +228,7 @@ const MODULES = [
       <p>Antes de energizar, se debe verificar con un multímetro que la conexión a tierra del gabinete del VFD y del motor tiene continuidad efectiva hacia la barra de tierra de la instalación. Una tierra deficiente no solo es un riesgo de seguridad personal: también degrada la efectividad de los filtros EMC del variador y puede generar corrientes de fuga elevadas.</p>
 
       ${H3("Ventilación y espacio libre alrededor del gabinete")}
-      <p>Todo VFD disipa calor durante su operación y necesita flujo de aire libre para no derretear por sobretemperatura. Antes de energizar hay que confirmar:</p>
+      <p>Todo VFD disipa calor durante su operación y necesita flujo de aire libre para no sobrecalentarse y disparar su protección térmica (o dañarse) por acumulación de calor. Antes de energizar hay que confirmar:</p>
       <ul>
         <li>Que se respetan las distancias mínimas de espacio libre indicadas por el fabricante arriba, abajo y a los costados del equipo (varían según el tamaño y la potencia del variador).</li>
         <li>Que las rejillas o ventiladores de refrigeración no están obstruidos por otros equipos, cableado o suciedad.</li>
@@ -262,7 +262,7 @@ const MODULES = [
         <li><strong>Corriente nominal:</strong> la corriente que el motor consume operando a plena carga, a tensión y frecuencia nominal.</li>
         <li><strong>Frecuencia nominal:</strong> la frecuencia de red para la que está diseñado el motor (ej. 50Hz, 60Hz).</li>
         <li><strong>Velocidad nominal (RPM):</strong> la velocidad de giro del eje a plena carga, a la frecuencia nominal.</li>
-        <li><strong>Cos φ (factor de potencia):</strong> indica qué proporción de la corriente consumida contribuye a potencia real versus potencia reactiva.</li>
+        <li><strong>Cos φ (factor de potencia):</strong> relación entre la potencia activa (kW) que realmente hace trabajo y la potencia aparente (kVA) total consumida por el motor.</li>
       </ul>
 
       ${H3("Mapeo genérico: dato de placa → parámetro del VFD")}
