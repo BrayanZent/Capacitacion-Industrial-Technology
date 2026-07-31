@@ -16,6 +16,13 @@
     body{margin:0;}
     a{color:inherit;}
   </style>
+  <script
+    async
+    crossorigin="anonymous"
+    data-clerk-publishable-key="pk_test_YWNjZXB0ZWQtaW1wYWxhLTE0LmNsZXJrLmFjY291bnRzLmRldiQ"
+    src="https://accepted-impala-14.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
+    type="text/javascript"
+  ></script>
 </helmet>
 
 <div style="{{ pageStyle }}">
@@ -33,6 +40,7 @@
       <button onClick="{{ toggleTheme }}" style="{{ themeSwitchStyle }}" aria-label="Cambiar tema">
         <span style="{{ themeKnobStyle }}"></span>
       </button>
+      <button onClick="{{ onAuthClick }}" style="{{ authButtonStyle }}">{{ authLabel }}</button>
     </nav>
   </header>
 
@@ -111,7 +119,10 @@
 class Component extends DCLogic {
   state = {
     theme: this.props.defaultTheme || 'dark',
-    progress: {}
+    progress: {},
+    authReady: false,
+    isSignedIn: false,
+    userFirstName: ''
   };
 
   componentDidMount() {
@@ -126,6 +137,37 @@ class Component extends DCLogic {
       }
     });
     this.setState({ progress });
+    this.initAuth();
+  }
+
+  initAuth() {
+    const applyUser = (user) => {
+      this.setState({
+        authReady: true,
+        isSignedIn: !!user,
+        userFirstName: user ? (user.firstName || 'Cuenta') : ''
+      });
+    };
+    const waitForClerk = () => {
+      if (window.Clerk) {
+        window.Clerk.load().then(() => {
+          applyUser(window.Clerk.user);
+          window.Clerk.addListener(({ user }) => applyUser(user));
+        });
+      } else {
+        setTimeout(waitForClerk, 100);
+      }
+    };
+    waitForClerk();
+  }
+
+  handleAuthClick() {
+    if (!window.Clerk) return;
+    if (this.state.isSignedIn) {
+      window.Clerk.openUserProfile();
+    } else {
+      window.Clerk.openSignIn();
+    }
   }
 
   palette(theme) {
@@ -209,13 +251,19 @@ class Component extends DCLogic {
       courses: allCourses.filter(c => c.brand === name)
     }));
 
+    const authButtonStyle = `font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; color:${isLight ? '#ffffff' : '#0a0e13'}; background:${v.accent}; border:none; padding:9px 16px; border-radius:5px; cursor:pointer; opacity:${this.state.authReady ? 1 : 0.5};`;
+    const authLabel = this.state.isSignedIn ? `👤 ${this.state.userFirstName}` : 'Iniciar sesión';
+
     return {
       vars: v,
       pageStyle, headerStyle, navLinkStyle, themeSwitchStyle, themeKnobStyle,
       heroStyle, heroGridBg, pageLogoWatermarkStyle, ctaStyle, footerStyle,
       brandSections,
       year: new Date().getFullYear(),
-      toggleTheme: () => this.setState(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' }))
+      toggleTheme: () => this.setState(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
+      authButtonStyle,
+      authLabel,
+      onAuthClick: () => this.handleAuthClick()
     };
   }
 }
