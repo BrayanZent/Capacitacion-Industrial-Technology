@@ -1,8 +1,8 @@
-# Centro de Capacitación — Industrial Technology
+# VFD Academy — Centro de Capacitación
 
-Portal de capacitaciones técnicas interactivas, publicado como sitio estático en GitHub Pages. Sin build step, sin backend: cada página es HTML/CSS/JS autocontenido.
+Portal de capacitaciones técnicas interactivas, publicado como sitio estático. Sin build step, sin backend: cada página es HTML/CSS/JS autocontenido.
 
-🔗 **Sitio publicado:** https://brayanzent.github.io/Capacitacion-Vacon-NXP-Industrial-Technology/
+🔗 **Sitio publicado:** https://capacitaciones-vdf.vercel.app/ (también espejado en GitHub Pages: https://brayanzent.github.io/Capacitacion-Industrial-Technology/)
 
 ## Estructura del proyecto
 
@@ -10,7 +10,7 @@ Portal de capacitaciones técnicas interactivas, publicado como sitio estático 
 /index.html                              ← portal (landing) con el catálogo de capacitaciones
 /support.js                              ← runtime del portal (carga React desde CDN al vuelo)
 /assets/
-  └── logo-industrial-technology.png     ← logo compartido (portal + todas las capacitaciones)
+  └── logo-industrial-technology.png     ← logo de un cliente B2B de ejemplo (no se usa en el sitio propio, reservado para un tenant de marca blanca)
 /capacitaciones/
   └── vacon-nxp/
       ├── index.html                     ← capacitación VACON NXP (12 módulos, quiz, flashcards)
