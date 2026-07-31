@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Suscripción — VFD Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script
+  async
+  crossorigin="anonymous"
+  data-clerk-publishable-key="pk_test_YWNjZXB0ZWQtaW1wYWxhLTE0LmNsZXJrLmFjY291bnRzLmRldiQ"
+  src="https://accepted-impala-14.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
+  type="text/javascript"
+></script>
+<style>
+  :root{
+    --bg:#0a0e13; --panel:#131a22; --panel-raised:#1a232d; --line:#28323c;
+    --text:#eef2f6; --text-dim:#8b97a3; --accent:#e8912b;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family:'Inter',sans-serif;}
+  .wrap{max-width:520px; margin:0 auto; padding:80px 24px; text-align:center;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1{font-size:32px; margin:0 0 14px 0; font-weight:800;}
+  p{color:var(--text-dim); font-size:15px; line-height:1.6;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:32px; margin-top:32px;}
+  .price{font-size:40px; font-weight:800; margin:10px 0 4px 0;}
+  .price span{font-size:15px; color:var(--text-dim); font-weight:500;}
+  .trial{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--accent); letter-spacing:.04em; margin-bottom:22px;}
+  button{width:100%; font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; color:#0a0e13; background:var(--accent); border:none; padding:14px; border-radius:6px; cursor:pointer; margin-top:6px;}
+  button:disabled{opacity:.6; cursor:default;}
+  .msg{margin-top:16px; font-size:13px; color:var(--text-dim);}
+  .back{display:inline-block; margin-top:28px; font-size:13px; color:var(--text-dim); text-decoration:none;}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="eyebrow">VFD Academy</div>
+    <h1 id="title">Suscribite para continuar</h1>
+    <p id="subtitle">Accedé a las 10 capacitaciones completas de marca y fundamentos avanzados.</p>
+
+    <div class="card">
+      <div class="price">$8.000 <span>CLP / mes</span></div>
+      <div class="trial">✦ Primeros 30 días gratis — después se cobra automático, cancelás cuando quieras</div>
+      <button id="actionBtn" disabled>Cargando…</button>
+      <div class="msg" id="msg"></div>
+    </div>
+
+    <a class="back" href="/index.html">← Volver al portal</a>
+  </div>
+
+  <script>
+    var params = new URLSearchParams(window.location.search);
+    var volver = params.get('volver');
+    var resultado = params.get('resultado');
+    var btn = document.getElementById('actionBtn');
+    var msg = document.getElementById('msg');
+
+    if (resultado === 'cancelado') {
+      msg.textContent = 'Pago cancelado. Podés intentarlo de nuevo cuando quieras.';
+    }
+
+    function setButton(label, onClick, enabled) {
+      btn.textContent = label;
+      btn.disabled = !enabled;
+      btn.onclick = onClick;
+    }
+
+    function startCheckout() {
+      setButton('Redirigiendo…', null, false);
+      window.Clerk.session.getToken().then(function (token) {
+        return fetch('/api/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+      }).then(function (r) { return r.json(); }).then(function (data) {
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          msg.textContent = 'No se pudo iniciar el pago. Intentá de nuevo.';
+          setButton('Suscribirme', startCheckout, true);
+        }
+      }).catch(function () {
+        msg.textContent = 'No se pudo iniciar el pago. Intentá de nuevo.';
+        setButton('Suscribirme', startCheckout, true);
+      });
+    }
+
+    function render() {
+      var user = window.Clerk.user;
+      if (!user) {
+        setButton('Iniciar sesión para continuar', function () { window.Clerk.openSignIn(); }, true);
+        return;
+      }
+      var status = user.publicMetadata && user.publicMetadata.subscriptionStatus;
+      if (status === 'active') {
+        document.getElementById('title').textContent = 'Ya tenés acceso';
+        document.getElementById('subtitle').textContent = 'Tu suscripción está activa.';
+        if (volver) {
+          setButton('Volver a la capacitación', function () { window.location.href = volver; }, true);
+        } else {
+          setButton('Ir al portal', function () { window.location.href = '/index.html'; }, true);
+        }
+        return;
+      }
+      setButton('Suscribirme', startCheckout, true);
+    }
+
+    function waitForClerk() {
+      if (window.Clerk) {
+        window.Clerk.load().then(function () {
+          render();
+          window.Clerk.addListener(render);
+        });
+      } else {
+        setTimeout(waitForClerk, 100);
+      }
+    }
+    waitForClerk();
+  </script>
+</body>
+</html>
