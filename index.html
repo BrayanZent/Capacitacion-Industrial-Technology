@@ -202,6 +202,21 @@ class Component extends DCLogic {
         }).then(() => {
           applyUser(window.Clerk.user);
           window.Clerk.addListener(({ user }) => applyUser(user));
+          let wasHidden = false;
+          let reloadedOnce = false;
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
+              wasHidden = true;
+              return;
+            }
+            if (document.visibilityState !== 'visible' || !wasHidden || !window.Clerk) return;
+            if (window.Clerk.user && window.Clerk.user.reload) {
+              window.Clerk.user.reload().then(() => applyUser(window.Clerk.user));
+            } else if (!this.state.isSignedIn && !reloadedOnce) {
+              reloadedOnce = true;
+              window.location.reload();
+            }
+          });
         });
       } else if (waitAttempts < 150) {
         waitAttempts++;
