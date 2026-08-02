@@ -21,51 +21,131 @@
   *{box-sizing:border-box;}
   body{margin:0; background:var(--bg); color:var(--text); font-family:'Inter',sans-serif;}
   .wrap{max-width:440px; margin:0 auto; padding:80px 24px; text-align:center;}
+  .wrap.wide{max-width:960px; padding:56px 24px;}
   .eyebrow{font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
   h1{font-size:26px; margin:0 0 24px 0; font-weight:800;}
+  .wrap.wide h1{text-align:left;}
+  .wrap.wide .eyebrow{text-align:left;}
   .card{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:28px; text-align:left;}
+  .card + .card{margin-top:24px;}
   label{display:block; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); margin-bottom:8px;}
   input{width:100%; background:#0f1620; border:1px solid var(--line); color:var(--text); font-size:14px; padding:12px; border-radius:6px; margin-bottom:16px;}
-  button{width:100%; font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; color:#0a0e13; background:var(--accent); border:none; padding:14px; border-radius:6px; cursor:pointer;}
+  button{font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; color:#0a0e13; background:var(--accent); border:none; padding:14px; border-radius:6px; cursor:pointer;}
+  button.wide{width:100%;}
   button:disabled{opacity:.6; cursor:default;}
   .msg{margin-top:16px; font-size:13px;}
   .msg.ok{color:var(--emerald);}
   .msg.err{color:var(--red);}
+  .section-title{font-family:'IBM Plex Mono',monospace; font-size:13px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); margin:0 0 16px 0;}
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th{text-align:left; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); padding:10px 12px; border-bottom:1px solid var(--line);}
+  td{padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  .badge{display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; padding:4px 10px; border-radius:999px;}
+  .badge.active{background:rgba(52,211,153,.14); color:var(--emerald);}
+  .badge.expired{background:rgba(248,113,113,.14); color:var(--red);}
+  .badge.inactive{background:rgba(139,151,163,.14); color:var(--text-dim);}
+  .row-actions{display:flex; gap:8px; flex-wrap:wrap;}
+  .row-actions button{padding:8px 10px; font-size:11px;}
+  .row-actions button.secondary{background:transparent; border:1px solid var(--line); color:var(--text);}
+  .row-actions button.danger{background:transparent; border:1px solid var(--red); color:var(--red);}
+  .empty, .loading{color:var(--text-dim); font-size:13px; padding:8px 0;}
+  .table-wrap{overflow-x:auto;}
+  .row-msg{font-size:12px; margin-top:4px;}
+  .row-msg.ok{color:var(--emerald);}
+  .row-msg.err{color:var(--red);}
 </style>
 </head>
 <body>
-  <div class="wrap">
+  <div class="wrap" id="wrap">
     <div class="eyebrow">VDF Academy · Panel interno</div>
     <h1 id="title">Cargando…</h1>
     <div class="card" id="card"></div>
   </div>
 
   <script>
+    var wrap = document.getElementById('wrap');
     var card = document.getElementById('card');
     var title = document.getElementById('title');
 
     function renderDenied() {
+      wrap.className = 'wrap';
       title.textContent = 'Acceso restringido';
-      card.innerHTML = '<p style="color:var(--text-dim); font-size:14px; margin:0 0 16px 0;">Esta página es solo para administración interna. Iniciaste sesión con una cuenta distinta.</p><button id="signOutBtn">Cerrar sesión</button>';
+      card.innerHTML = '<p style="color:var(--text-dim); font-size:14px; margin:0 0 16px 0;">Esta página es solo para administración interna. Iniciaste sesión con una cuenta distinta.</p><button class="wide" id="signOutBtn">Cerrar sesión</button>';
       document.getElementById('signOutBtn').onclick = function () { window.Clerk.signOut(); };
     }
 
     function renderLoginPrompt() {
+      wrap.className = 'wrap';
       title.textContent = 'Iniciá sesión';
-      card.innerHTML = '<button id="loginBtn">Iniciar sesión</button>';
+      card.innerHTML = '<button class="wide" id="loginBtn">Iniciar sesión</button>';
       document.getElementById('loginBtn').onclick = function () { window.Clerk.openSignIn(); };
     }
 
+    function fmtDate(ms) {
+      if (!ms) { return '—'; }
+      try {
+        return new Date(ms).toLocaleDateString('es-CL', { year: 'numeric', month: 'short', day: 'numeric' });
+      } catch (e) {
+        return '—';
+      }
+    }
+
+    function statusBadge(u) {
+      var now = Date.now();
+      if (u.subscriptionStatus === 'active' && u.subscriptionExpiresAt && u.subscriptionExpiresAt > now) {
+        return '<span class="badge active">Activo</span>';
+      }
+      if (u.subscriptionStatus === 'active') {
+        return '<span class="badge expired">Vencido</span>';
+      }
+      return '<span class="badge inactive">Sin activar</span>';
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
     function renderForm() {
-      title.textContent = 'Activar acceso';
+      wrap.className = 'wrap wide';
+      title.textContent = 'Panel de administración';
+
       card.innerHTML =
+        '<div class="section-title">Activar por email</div>' +
         '<label for="email">Email del usuario</label>' +
         '<input type="email" id="email" placeholder="persona@ejemplo.com">' +
         '<button id="activateBtn">Activar 30 días</button>' +
         '<div class="msg" id="msg"></div>';
 
+      var extraCards = wrap.querySelectorAll('.card');
+      for (var i = 1; i < extraCards.length; i++) { extraCards[i].remove(); }
+
+      var listCardWrap = document.createElement('div');
+      listCardWrap.className = 'card';
+      listCardWrap.innerHTML =
+        '<div class="section-title">Usuarios</div>' +
+        '<div id="listArea" class="loading">Cargando usuarios…</div>';
+      wrap.appendChild(listCardWrap);
+
       var btn = document.getElementById('activateBtn');
       var msg = document.getElementById('msg');
+
+      function callManageUser(email, action) {
+        return window.Clerk.session.getToken().then(function (token) {
+          return fetch('/api/admin-manage-user', {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + token,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: email, action: action })
+          });
+        }).then(function (r) {
+          return r.json().then(function (data) { return { status: r.status, data: data }; });
+        });
+      }
 
       btn.onclick = function () {
         var email = document.getElementById('email').value.trim();
@@ -75,35 +155,126 @@
         msg.textContent = '';
         msg.className = 'msg';
 
-        window.Clerk.session.getToken().then(function (token) {
-          return fetch('/api/activate-subscription', {
-            method: 'POST',
-            headers: {
-              'Authorization': 'Bearer ' + token,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email: email })
-          });
-        }).then(function (r) { return r.json().then(function (data) { return { status: r.status, data: data }; }); })
-          .then(function (result) {
-            btn.disabled = false;
-            btn.textContent = 'Activar 30 días';
-            if (result.status === 200) {
-              var until = new Date(result.data.expiresAt).toLocaleDateString('es-CL');
-              msg.textContent = '✓ Acceso activado hasta el ' + until + '.';
-              msg.className = 'msg ok';
-              document.getElementById('email').value = '';
-            } else {
-              msg.textContent = result.data.error || 'No se pudo activar.';
-              msg.className = 'msg err';
-            }
-          }).catch(function () {
-            btn.disabled = false;
-            btn.textContent = 'Activar 30 días';
-            msg.textContent = 'Error de conexión. Intentá de nuevo.';
+        callManageUser(email, 'activate').then(function (result) {
+          btn.disabled = false;
+          btn.textContent = 'Activar 30 días';
+          if (result.status === 200) {
+            var until = fmtDate(result.data.subscriptionExpiresAt);
+            msg.textContent = '✓ Acceso activado hasta el ' + until + '.';
+            msg.className = 'msg ok';
+            document.getElementById('email').value = '';
+            loadUsers();
+          } else {
+            msg.textContent = result.data.error || 'No se pudo activar.';
             msg.className = 'msg err';
-          });
+          }
+        }).catch(function () {
+          btn.disabled = false;
+          btn.textContent = 'Activar 30 días';
+          msg.textContent = 'Error de conexión. Intentá de nuevo.';
+          msg.className = 'msg err';
+        });
       };
+
+      function actionLabel(action) {
+        if (action === 'activate') { return 'Activar'; }
+        if (action === 'extend') { return 'Extender +30 días'; }
+        return 'Revocar';
+      }
+
+      function renderUsers(users) {
+        var listArea = document.getElementById('listArea');
+        if (!users || users.length === 0) {
+          listArea.className = 'empty';
+          listArea.textContent = 'Todavía no hay usuarios registrados.';
+          return;
+        }
+
+        var html = '<div class="table-wrap"><table><thead><tr>' +
+          '<th>Email</th><th>Estado</th><th>Vence</th><th>Último acceso</th><th>Acciones</th>' +
+          '</tr></thead><tbody>';
+
+        users.forEach(function (u, idx) {
+          html += '<tr data-idx="' + idx + '">' +
+            '<td>' + escapeHtml(u.email || '—') + '</td>' +
+            '<td>' + statusBadge(u) + '</td>' +
+            '<td>' + fmtDate(u.subscriptionExpiresAt) + '</td>' +
+            '<td>' + (u.lastSignInAt ? fmtDate(u.lastSignInAt) : 'Nunca') + '</td>' +
+            '<td>' +
+              '<div class="row-actions">' +
+                '<button class="row-btn" data-action="activate" data-idx="' + idx + '">Activar</button>' +
+                '<button class="row-btn secondary" data-action="extend" data-idx="' + idx + '">Extender +30 días</button>' +
+                '<button class="row-btn danger" data-action="revoke" data-idx="' + idx + '">Revocar</button>' +
+              '</div>' +
+              '<div class="row-msg" id="rowmsg-' + idx + '"></div>' +
+            '</td>' +
+          '</tr>';
+        });
+
+        html += '</tbody></table></div>';
+        listArea.className = '';
+        listArea.innerHTML = html;
+
+        var rowButtons = listArea.querySelectorAll('.row-btn');
+        rowButtons.forEach(function (rb) {
+          rb.onclick = function () {
+            var idx = rb.getAttribute('data-idx');
+            var action = rb.getAttribute('data-action');
+            var u = users[idx];
+            var rowMsg = document.getElementById('rowmsg-' + idx);
+            var siblingButtons = rb.parentElement.querySelectorAll('button');
+            siblingButtons.forEach(function (b) { b.disabled = true; });
+            var originalText = rb.textContent;
+            rb.textContent = actionLabel(action) + '…';
+            rowMsg.textContent = '';
+            rowMsg.className = 'row-msg';
+
+            callManageUser(u.email, action).then(function (result) {
+              siblingButtons.forEach(function (b) { b.disabled = false; });
+              rb.textContent = originalText;
+              if (result.status === 200) {
+                rowMsg.textContent = '✓ Listo.';
+                rowMsg.className = 'row-msg ok';
+                loadUsers();
+              } else {
+                rowMsg.textContent = result.data.error || 'No se pudo completar la acción.';
+                rowMsg.className = 'row-msg err';
+              }
+            }).catch(function () {
+              siblingButtons.forEach(function (b) { b.disabled = false; });
+              rb.textContent = originalText;
+              rowMsg.textContent = 'Error de conexión.';
+              rowMsg.className = 'row-msg err';
+            });
+          };
+        });
+      }
+
+      function loadUsers() {
+        var listArea = document.getElementById('listArea');
+        listArea.className = 'loading';
+        listArea.textContent = 'Cargando usuarios…';
+
+        window.Clerk.session.getToken().then(function (token) {
+          return fetch('/api/admin-list-users', {
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+        }).then(function (r) {
+          return r.json().then(function (data) { return { status: r.status, data: data }; });
+        }).then(function (result) {
+          if (result.status === 200) {
+            renderUsers(result.data.users || []);
+          } else {
+            listArea.className = 'empty';
+            listArea.textContent = result.data.error || 'No se pudo cargar la lista de usuarios.';
+          }
+        }).catch(function () {
+          listArea.className = 'empty';
+          listArea.textContent = 'Error de conexión al cargar usuarios.';
+        });
+      }
+
+      loadUsers();
     }
 
     var ADMIN_EMAILS = ['vdf.academy26@gmail.com'];

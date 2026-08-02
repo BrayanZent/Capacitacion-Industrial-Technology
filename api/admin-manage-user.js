@@ -7,6 +7,7 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '')
   .filter(Boolean);
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+const VALID_ACTIONS = ['activate', 'extend', 'revoke'];
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -45,8 +46,14 @@ module.exports = async (req, res) => {
   }
 
   const targetEmail = (req.body && req.body.email || '').trim().toLowerCase();
+  const action = (req.body && req.body.action || '').trim();
+
   if (!targetEmail) {
-    res.status(400).json({ error: 'Falta el email del usuario a activar' });
+    res.status(400).json({ error: 'Falta el email del usuario' });
+    return;
+  }
+  if (!VALID_ACTIONS.includes(action)) {
+    res.status(400).json({ error: 'Acción inválida' });
     return;
   }
 
@@ -59,18 +66,35 @@ module.exports = async (req, res) => {
     }
 
     const targetUser = users[0];
-    const expiresAt = Date.now() + THIRTY_DAYS_MS;
+    const existingMeta = targetUser.publicMetadata || {};
+
+    let subscriptionStatus;
+    let subscriptionExpiresAt = existingMeta.subscriptionExpiresAt || null;
+
+    if (action === 'activate') {
+      subscriptionStatus = 'active';
+      subscriptionExpiresAt = Date.now() + THIRTY_DAYS_MS;
+    } else if (action === 'extend') {
+      subscriptionStatus = 'active';
+      const currentExpiresAt = existingMeta.subscriptionExpiresAt || 0;
+      const base = (currentExpiresAt && currentExpiresAt > Date.now()) ? currentExpiresAt : Date.now();
+      subscriptionExpiresAt = base + THIRTY_DAYS_MS;
+    } else if (action === 'revoke') {
+      subscriptionStatus = 'inactive';
+      // subscriptionExpiresAt se deja como está
+    }
 
     await clerkClient.users.updateUserMetadata(targetUser.id, {
       publicMetadata: {
-        subscriptionStatus: 'active',
-        subscriptionExpiresAt: expiresAt
+        ...existingMeta,
+        subscriptionStatus: subscriptionStatus,
+        subscriptionExpiresAt: subscriptionExpiresAt
       }
     });
 
-    res.status(200).json({ ok: true, expiresAt });
+    res.status(200).json({ ok: true, subscriptionStatus, subscriptionExpiresAt });
   } catch (err) {
-    console.error('Error activando suscripción:', err);
-    res.status(500).json({ error: 'Error interno activando la suscripción' });
+    console.error('Error administrando usuario:', err);
+    res.status(500).json({ error: 'Error interno administrando el usuario' });
   }
 };
