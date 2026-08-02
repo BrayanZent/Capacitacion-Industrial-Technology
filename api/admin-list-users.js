@@ -1,4 +1,4 @@
-const { createClerkClient } = require('@clerk/backend');
+const { createClerkClient, verifyToken } = require('@clerk/backend');
 
 const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '')
@@ -21,9 +21,10 @@ module.exports = async (req, res) => {
 
   let callerId;
   try {
-    const verified = await clerkClient.verifyToken(token);
+    const verified = await verifyToken(token, { secretKey: process.env.CLERK_SECRET_KEY });
     callerId = verified.sub;
   } catch (err) {
+    console.error('Error verificando token:', err);
     res.status(401).json({ error: 'Sesión inválida' });
     return;
   }
