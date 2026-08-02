@@ -48,12 +48,7 @@ module.exports = async (req, res) => {
 
   const callerEmail = getPrimaryEmail(caller);
   if (!ADMIN_EMAILS.includes(callerEmail)) {
-    res.status(403).json({
-      error: 'No autorizado',
-      debugCallerEmail: callerEmail,
-      debugAdminEmailsCount: ADMIN_EMAILS.length,
-      debugAdminEmailsRaw: process.env.ADMIN_EMAILS || null
-    });
+    res.status(403).json({ error: 'No autorizado' });
     return;
   }
 
