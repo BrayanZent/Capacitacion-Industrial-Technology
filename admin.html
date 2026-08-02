@@ -46,7 +46,8 @@
 
     function renderDenied() {
       title.textContent = 'Acceso restringido';
-      card.innerHTML = '<p style="color:var(--text-dim); font-size:14px; margin:0;">Esta página es solo para administración interna.</p>';
+      card.innerHTML = '<p style="color:var(--text-dim); font-size:14px; margin:0 0 16px 0;">Esta página es solo para administración interna. Iniciaste sesión con una cuenta distinta.</p><button id="signOutBtn">Cerrar sesión</button>';
+      document.getElementById('signOutBtn').onclick = function () { window.Clerk.signOut(); };
     }
 
     function renderLoginPrompt() {
