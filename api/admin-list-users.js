@@ -6,6 +6,12 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '')
   .map((e) => e.trim().toLowerCase())
   .filter(Boolean);
 
+function getPrimaryEmail(user) {
+  const list = user.emailAddresses || [];
+  const primary = list.find((e) => e.id === user.primaryEmailAddressId) || list[0];
+  return primary ? (primary.emailAddress || '').toLowerCase() : '';
+}
+
 module.exports = async (req, res) => {
   if (req.method !== 'GET') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -37,7 +43,7 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const callerEmail = (caller.primaryEmailAddress && caller.primaryEmailAddress.emailAddress || '').toLowerCase();
+  const callerEmail = getPrimaryEmail(caller);
   if (!ADMIN_EMAILS.includes(callerEmail)) {
     res.status(403).json({ error: 'No autorizado' });
     return;
@@ -48,7 +54,7 @@ module.exports = async (req, res) => {
     const users = list.data || list;
 
     const mapped = (users || []).map((u) => {
-      const email = (u.primaryEmailAddress && u.primaryEmailAddress.emailAddress) || '';
+      const email = getPrimaryEmail(u);
       const meta = u.publicMetadata || {};
       return {
         id: u.id,

@@ -9,6 +9,12 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '')
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 const VALID_ACTIONS = ['activate', 'extend', 'revoke'];
 
+function getPrimaryEmail(user) {
+  const list = user.emailAddresses || [];
+  const primary = list.find((e) => e.id === user.primaryEmailAddressId) || list[0];
+  return primary ? (primary.emailAddress || '').toLowerCase() : '';
+}
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -40,7 +46,7 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const callerEmail = (caller.primaryEmailAddress && caller.primaryEmailAddress.emailAddress || '').toLowerCase();
+  const callerEmail = getPrimaryEmail(caller);
   if (!ADMIN_EMAILS.includes(callerEmail)) {
     res.status(403).json({ error: 'No autorizado' });
     return;
