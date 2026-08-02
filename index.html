@@ -28,7 +28,7 @@
 <div style="{{ pageStyle }}">
   <header style="{{ headerStyle }}; position:relative; z-index:2;">
     <div style="display:flex; align-items:center; gap:14px;">
-      <div style="font-family:'IBM Plex Mono',monospace; font-weight:800; font-size:16px; letter-spacing:.04em; color:{{ vars.accent }};">⚡ VFD ACADEMY</div>
+      <div style="font-family:'IBM Plex Mono',monospace; font-weight:800; font-size:16px; letter-spacing:.04em; color:{{ vars.accent }};">⚡ VDF ACADEMY</div>
       <div style="width:1px; height:28px; background:{{ vars.line }};"></div>
       <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:{{ vars.accent }};">Centro de Capacitación Técnica</div>
     </div>
@@ -53,7 +53,7 @@
   <section id="hero" style="{{ heroStyle }}; position:relative; z-index:2;">
     <div style="{{ heroGridBg }}"></div>
     <div style="position:relative; max-width:760px; margin:0 auto; padding:0 40px; text-align:center;">
-      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:{{ vars.accent }}; margin-bottom:18px;">VFD Academy · Capacitación Técnica</div>
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:{{ vars.accent }}; margin-bottom:18px;">VDF Academy · Capacitación Técnica</div>
       <h1 style="font-size:44px; line-height:1.15; margin:0 0 18px 0; font-weight:800; color:{{ vars.text }}; letter-spacing:-.01em;">Centro exclusivo de<br>Capacitación Técnica</h1>
       <p style="font-size:17px; line-height:1.6; color:{{ vars.textDim }}; margin:0 auto 32px auto; max-width:56ch;">Este sitio reúne únicamente capacitaciones técnicas sobre variadores de frecuencia industriales — módulos, evaluaciones y fichas de estudio organizados por marca, para técnicos e ingenieros de mantenimiento.</p>
       <a href="#cursos" style="{{ ctaStyle }}">Ver capacitaciones disponibles ↓</a>
@@ -104,7 +104,7 @@
   <footer id="contacto" style="{{ footerStyle }}; position:relative; z-index:2;">
     <div style="max-width:1180px; margin:0 auto; padding:44px 40px; display:flex; flex-wrap:wrap; gap:40px; justify-content:space-between; align-items:flex-start;">
       <div style="display:flex; align-items:center; gap:12px;">
-        <div style="font-family:'IBM Plex Mono',monospace; font-weight:800; font-size:14px; letter-spacing:.04em; color:{{ vars.accent }};">⚡ VFD ACADEMY</div>
+        <div style="font-family:'IBM Plex Mono',monospace; font-weight:800; font-size:14px; letter-spacing:.04em; color:{{ vars.accent }};">⚡ VDF ACADEMY</div>
         <div style="font-size:12.5px; color:{{ vars.textDim }}; line-height:1.5;">Centro de Capacitación Técnica</div>
       </div>
 
@@ -115,7 +115,7 @@
         <div>[correo@tudominio.com]</div>
       </div>
 
-      <div style="font-size:12px; color:{{ vars.textDim }};">© {{ year }} VFD Academy. Todos los derechos reservados.</div>
+      <div style="font-size:12px; color:{{ vars.textDim }};">© {{ year }} VDF Academy. Todos los derechos reservados.</div>
     </div>
   </footer>
 </div>
@@ -215,10 +215,10 @@ class Component extends DCLogic {
 
   courseDefs() {
     return [
-      { id: 'introduccion-vfd', title: 'Introducción a Variadores de Frecuencia (VFD)', brand: 'General', model: 'Fundamentos para no especialistas', desc: 'Entendé en minutos qué es un variador de frecuencia, cómo funciona y por qué las plantas industriales lo usan para ahorrar energía y controlar motores con precisión — sin necesitar conocimientos previos de electrónica.', href: 'capacitaciones/general/introduccion-vfd.html', locked: false },
-      { id: 'electricidad-basica', title: 'Electricidad Industrial Básica para No Electricistas', brand: 'General', model: 'Fundamentos eléctricos previos al VFD', desc: 'Corriente AC/DC, sistemas trifásicos, fundamentos del motor de inducción, puesta a tierra, uso del multímetro y lectura de placa de motor — la base eléctrica antes de tocar un variador.', href: 'capacitaciones/general/electricidad-basica.html', locked: false },
+      { id: 'introduccion-vfd', title: 'Introducción a Variadores de Frecuencia (VDF)', brand: 'General', model: 'Fundamentos para no especialistas', desc: 'Entendé en minutos qué es un variador de frecuencia, cómo funciona y por qué las plantas industriales lo usan para ahorrar energía y controlar motores con precisión — sin necesitar conocimientos previos de electrónica.', href: 'capacitaciones/general/introduccion-vfd.html', locked: false },
+      { id: 'electricidad-basica', title: 'Electricidad Industrial Básica para No Electricistas', brand: 'General', model: 'Fundamentos eléctricos previos al VDF', desc: 'Corriente AC/DC, sistemas trifásicos, fundamentos del motor de inducción, puesta a tierra, uso del multímetro y lectura de placa de motor — la base eléctrica antes de tocar un variador.', href: 'capacitaciones/general/electricidad-basica.html', locked: false },
       { id: 'puesta-en-marcha', title: 'Puesta en Marcha y Parametrización Genérica', brand: 'General', model: 'Procedimiento común a cualquier marca', desc: 'Inspección de instalación, de la placa del motor a los parámetros básicos, pruebas en vacío y con carga, y documentación de la puesta en marcha — el procedimiento genérico antes de ver el detalle de cada marca.', href: 'capacitaciones/general/puesta-en-marcha.html', locked: false },
-      { id: 'diagnostico-fallas', title: 'Diagnóstico y Fallas Comunes', brand: 'General', model: 'Metodología y causas típicas genéricas', desc: 'Cómo razonar un diagnóstico de VFD, causas típicas de sobrecorriente, fallas de bus DC, sobretemperatura y tierra, y buenas prácticas de mantenimiento preventivo — antes de los códigos específicos de cada marca.', href: 'capacitaciones/general/diagnostico-fallas.html', locked: false },
+      { id: 'diagnostico-fallas', title: 'Diagnóstico y Fallas Comunes', brand: 'General', model: 'Metodología y causas típicas genéricas', desc: 'Cómo razonar un diagnóstico de VDF, causas típicas de sobrecorriente, fallas de bus DC, sobretemperatura y tierra, y buenas prácticas de mantenimiento preventivo — antes de los códigos específicos de cada marca.', href: 'capacitaciones/general/diagnostico-fallas.html', locked: false },
       { id: 'vacon-nxp', title: 'VACON NXP', brand: 'VACON', model: 'Hardware · Comisionamiento · Diagnóstico', desc: 'Arquitectura de hardware, puesta en marcha y diagnóstico de fallas del variador VACON NXP.', href: 'capacitaciones/vacon/vacon-nxp.html', locked: false },
       { id: 'vacon-nxp-aplicaciones', title: 'VACON NXP — Parametrización y Aplicaciones', brand: 'VACON', model: 'Parámetros · Macros de aplicación', desc: 'Configuración de parámetros y macros de aplicación del VACON NXP para distintos procesos industriales.', href: 'capacitaciones/vacon/vacon-nxp-aplicaciones.html', locked: false },
       { id: 'vacon-nxc', title: 'VACON NXC', brand: 'VACON', model: 'Convertidor regenerativo AFE', desc: 'Fundamentos, filtro LCL, precarga y diagnóstico de fallas del convertidor regenerativo Active Front End VACON NXC.', href: 'capacitaciones/vacon/vacon-nxc.html', locked: false },

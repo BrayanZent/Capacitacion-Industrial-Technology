@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Introducción a VFD · Capacitación Interactiva</title>
+<title>Introducción a VDF · Capacitación Interactiva</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -176,9 +176,9 @@
 <div class="app">
   <nav class="sidebar">
     <div class="brand">
-      <div class="brand-logo">⚡ VFD ACADEMY</div>
+      <div class="brand-logo">⚡ VDF ACADEMY</div>
       <div class="tag">Fundamentos · Sin marca</div>
-      <h1>Introducción a VFD</h1>
+      <h1>Introducción a VDF</h1>
       <p>Qué es un variador de frecuencia, cómo funciona y por qué las plantas industriales lo usan — sin conocimientos previos.</p>
     </div>
     <ul class="navlist" id="navlist"></ul>
@@ -212,14 +212,15 @@ const MODULES = [
 { id:'overview', title:'Panel general', short:'Inicio', isOverview:true },
 
 {
-  id:'que-es-vfd', title:'¿Qué es un VFD y para qué sirve?', short:'¿Qué es un VFD?',
+  id:'que-es-vfd', title:'¿Qué es un VDF y para qué sirve?', short:'¿Qué es un VDF?',
   eyebrow:'Módulo 01 · Fundamentos', sub:'Definición, analogía del acelerador, aplicaciones típicas y diferencia con un arrancador suave.',
   content:`
     <div class="card">
-      <p>Un <strong>VFD</strong> (Variable Frequency Drive — variador de velocidad o inversor de frecuencia) es un equipo electrónico que controla la <strong>velocidad y el torque</strong> de un motor eléctrico variando la frecuencia y el voltaje que le entrega, en lugar de conectarlo directamente a la red eléctrica a su velocidad fija de diseño.</p>
+      <p>Un <strong>VDF</strong> (Variador De Frecuencia — variador de velocidad o inversor de frecuencia) es un equipo electrónico que controla la <strong>velocidad y el torque</strong> de un motor eléctrico variando la frecuencia y el voltaje que le entrega, en lugar de conectarlo directamente a la red eléctrica a su velocidad fija de diseño.</p>
+      ${INFO("En inglés a este equipo se lo conoce como VFD (Variable Frequency Drive) — vas a encontrar esa sigla en manuales, software y capacitaciones específicas de marca. Este sitio usa VDF como término en español, ambas siglas se refieren exactamente al mismo equipo.")}
 
       ${H3("La analogía del acelerador")}
-      <p>Pensá en un VFD como el "acelerador" del motor. Un arranque directo a red es como encender un auto sin acelerador gradual: el motor pasa de detenido a su velocidad máxima casi instantáneamente. Un VFD, en cambio, lleva al motor de forma suave y controlada exactamente a la velocidad que el proceso necesita en cada momento — ni más, ni menos.</p>
+      <p>Pensá en un VDF como el "acelerador" del motor. Un arranque directo a red es como encender un auto sin acelerador gradual: el motor pasa de detenido a su velocidad máxima casi instantáneamente. Un VDF, en cambio, lleva al motor de forma suave y controlada exactamente a la velocidad que el proceso necesita en cada momento — ni más, ni menos.</p>
 
       ${H3("Aplicaciones típicas")}
       <ul>
@@ -231,20 +232,20 @@ const MODULES = [
         <li>Grúas</li>
       </ul>
 
-      ${H3("VFD vs. arrancador suave (soft starter)")}
-      <p>Es una confusión común, pero cumplen roles distintos: un <strong>arrancador suave</strong> solo controla la rampa de arranque y de parada del motor — una vez arrancado, el motor queda funcionando a la velocidad fija de la red. Un <strong>VFD</strong> controla la velocidad de forma continua durante <em>toda</em> la operación, no solo al arrancar, permitiendo ajustarla en cualquier momento según lo requiera el proceso.</p>
+      ${H3("VDF vs. arrancador suave (soft starter)")}
+      <p>Es una confusión común, pero cumplen roles distintos: un <strong>arrancador suave</strong> solo controla la rampa de arranque y de parada del motor — una vez arrancado, el motor queda funcionando a la velocidad fija de la red. Un <strong>VDF</strong> controla la velocidad de forma continua durante <em>toda</em> la operación, no solo al arrancar, permitiendo ajustarla en cualquier momento según lo requiera el proceso.</p>
 
       ${INFO("A lo largo de este curso vas a ver términos como \"macro de aplicación\" o \"control vectorial\" que cada fabricante nombra distinto — acá se explican de forma genérica; los detalles específicos de cada marca se profundizan en las capacitaciones dedicadas del sitio.")}
 
-      ${IMG("modulo 1.png", "Comparación lado a lado: motor conectado directo a red a velocidad fija (90% de consumo) vs. motor controlado por un VFD a velocidad variable (45% de consumo)", true)}
+      ${IMG("modulo 1.png", "Comparación lado a lado: motor conectado directo a red a velocidad fija (90% de consumo) vs. motor controlado por un VDF a velocidad variable (45% de consumo)", true)}
     </div>
   `,
   quiz:[
-    { q:"¿Qué controla principalmente un VFD en un motor eléctrico?", options:["Solo el sentido de giro","La velocidad y el torque, variando frecuencia y voltaje entregados","Solo la temperatura del motor","El color del gabinete"], answer:1, explain:"Un VFD controla velocidad y torque del motor variando la frecuencia y el voltaje que le entrega, en vez de conectarlo directo a red a velocidad fija." },
-    { q:"¿Cuál es la analogía usada para explicar la función del VFD?", options:["El freno de mano","El acelerador del motor","El limpiaparabrisas","La bocina"], answer:1, explain:"El VFD funciona como un acelerador: lleva al motor suavemente a la velocidad que el proceso necesita, en vez de un encendido/apagado a máxima velocidad." },
-    { q:"¿Cuál de estas NO es una aplicación típica mencionada para VFD?", options:["Bombas","Cintas transportadoras","Grúas","Refrigeradores domésticos"], answer:3, explain:"Las aplicaciones típicas mencionadas son bombas, ventiladores, compresores, cintas transportadoras, extrusoras y grúas — no electrodomésticos." },
-    { q:"¿Cuál es la diferencia clave entre un VFD y un arrancador suave?", options:["No hay diferencia, son lo mismo","El arrancador suave solo controla arranque/parada; el VFD controla la velocidad de forma continua durante toda la operación","El arrancador suave es más caro","El VFD solo sirve para detener motores"], answer:1, explain:"El arrancador suave gestiona únicamente la rampa de arranque y parada; el VFD mantiene control continuo de velocidad durante toda la operación." },
-    { q:"Una vez arrancado con un arrancador suave, ¿a qué velocidad queda funcionando el motor?", options:["A la velocidad fija que impone la red eléctrica","A una velocidad variable ajustable en todo momento","Se detiene automáticamente","A la mitad de su velocidad nominal siempre"], answer:0, explain:"Con un arrancador suave, una vez completado el arranque, el motor queda funcionando a la velocidad fija de la red — no hay control continuo de velocidad como en un VFD." }
+    { q:"¿Qué controla principalmente un VDF en un motor eléctrico?", options:["Solo el sentido de giro","La velocidad y el torque, variando frecuencia y voltaje entregados","Solo la temperatura del motor","El color del gabinete"], answer:1, explain:"Un VDF controla velocidad y torque del motor variando la frecuencia y el voltaje que le entrega, en vez de conectarlo directo a red a velocidad fija." },
+    { q:"¿Cuál es la analogía usada para explicar la función del VDF?", options:["El freno de mano","El acelerador del motor","El limpiaparabrisas","La bocina"], answer:1, explain:"El VDF funciona como un acelerador: lleva al motor suavemente a la velocidad que el proceso necesita, en vez de un encendido/apagado a máxima velocidad." },
+    { q:"¿Cuál de estas NO es una aplicación típica mencionada para VDF?", options:["Bombas","Cintas transportadoras","Grúas","Refrigeradores domésticos"], answer:3, explain:"Las aplicaciones típicas mencionadas son bombas, ventiladores, compresores, cintas transportadoras, extrusoras y grúas — no electrodomésticos." },
+    { q:"¿Cuál es la diferencia clave entre un VDF y un arrancador suave?", options:["No hay diferencia, son lo mismo","El arrancador suave solo controla arranque/parada; el VDF controla la velocidad de forma continua durante toda la operación","El arrancador suave es más caro","El VDF solo sirve para detener motores"], answer:1, explain:"El arrancador suave gestiona únicamente la rampa de arranque y parada; el VDF mantiene control continuo de velocidad durante toda la operación." },
+    { q:"Una vez arrancado con un arrancador suave, ¿a qué velocidad queda funcionando el motor?", options:["A la velocidad fija que impone la red eléctrica","A una velocidad variable ajustable en todo momento","Se detiene automáticamente","A la mitad de su velocidad nominal siempre"], answer:0, explain:"Con un arrancador suave, una vez completado el arranque, el motor queda funcionando a la velocidad fija de la red — no hay control continuo de velocidad como en un VDF." }
   ]
 },
 
@@ -253,7 +254,7 @@ const MODULES = [
   eyebrow:'Módulo 02 · Fundamentos', sub:'Rectificador, bus DC e inversor — las tres etapas que reconstruyen una onda de frecuencia variable.',
   content:`
     <div class="card">
-      <p>Internamente, un VFD se organiza en tres etapas principales conectadas en cascada:</p>
+      <p>Internamente, un VDF se organiza en tres etapas principales conectadas en cascada:</p>
 
       ${H3("1. Rectificador — AC de red a DC")}
       <p>Convierte la corriente alterna (AC) de la red eléctrica en corriente continua (DC), típicamente mediante un puente de diodos o tiristores.</p>
@@ -264,22 +265,22 @@ const MODULES = [
       ${H3("3. Inversor — DC a AC de frecuencia y voltaje variable")}
       <p>Semiconductores de potencia (IGBTs) reconstruyen una salida de corriente alterna con frecuencia y voltaje variables, usando una técnica llamada <strong>PWM (Pulse Width Modulation, modulación por ancho de pulso)</strong>: una conmutación muy rápida de pulsos DC de ancho variable que, promediados en el tiempo, simulan una onda senoidal de frecuencia ajustable.</p>
 
-      ${INFO("Filtros opcionales (du/dt, senoidales) pueden agregarse a la salida del inversor para reducir el estrés dieléctrico en el motor y en cables largos — un concepto a tener en cuenta en instalaciones con distancias grandes entre el VFD y el motor, aunque el detalle de cuándo son necesarios depende de cada instalación y fabricante.")}
+      ${INFO("Filtros opcionales (du/dt, senoidales) pueden agregarse a la salida del inversor para reducir el estrés dieléctrico en el motor y en cables largos — un concepto a tener en cuenta en instalaciones con distancias grandes entre el VDF y el motor, aunque el detalle de cuándo son necesarios depende de cada instalación y fabricante.")}
 
       ${IMG("modulo 2.png", "Diagrama de bloques: Red AC → Rectificador → Bus DC → Inversor (IGBT) → Motor, mostrando la onda senoidal de entrada y la señal PWM de salida", true)}
     </div>
   `,
   quiz:[
-    { q:"¿Cuáles son las tres etapas principales de un VFD, en orden?", options:["Inversor → Bus DC → Rectificador","Rectificador → Bus DC → Inversor","Motor → Rectificador → Inversor","Bus DC → Rectificador → Motor"], answer:1, explain:"La energía fluye: rectificador (AC a DC) → bus DC (almacena/filtra) → inversor (DC a AC variable)." },
+    { q:"¿Cuáles son las tres etapas principales de un VDF, en orden?", options:["Inversor → Bus DC → Rectificador","Rectificador → Bus DC → Inversor","Motor → Rectificador → Inversor","Bus DC → Rectificador → Motor"], answer:1, explain:"La energía fluye: rectificador (AC a DC) → bus DC (almacena/filtra) → inversor (DC a AC variable)." },
     { q:"¿Qué función cumple el rectificador?", options:["Convierte AC de red en DC","Convierte DC en AC","Almacena energía en condensadores","Mide la velocidad del motor"], answer:0, explain:"El rectificador convierte la corriente alterna de la red en corriente continua, típicamente con diodos o tiristores." },
     { q:"¿Qué es el PWM (Pulse Width Modulation)?", options:["Un tipo de motor","Una conmutación rápida de pulsos DC de ancho variable que simula una onda senoidal de frecuencia ajustable","Un protocolo de comunicación digital","El nombre de la etapa rectificadora"], answer:1, explain:"PWM es la técnica de conmutación rápida con pulsos de ancho variable que el inversor usa para reconstruir una onda de frecuencia y voltaje variable." },
     { q:"En instalaciones grandes, ¿qué puede compartirse entre múltiples inversores?", options:["El motor","El bus DC","El rectificador de otro variador distinto","El panel de control únicamente"], answer:1, explain:"El bus DC puede compartirse entre varios inversores, permitiendo que múltiples motores tomen energía de una misma reserva DC común." },
-    { q:"¿Para qué se usan los filtros opcionales du/dt o senoidales mencionados en este módulo?", options:["Para aumentar la velocidad máxima del motor","Para reducir el estrés dieléctrico en el motor y en cables largos","Para reemplazar al rectificador","Para eliminar el bus DC"], answer:1, explain:"Estos filtros opcionales reducen el estrés dieléctrico que la conmutación PWM puede generar en el motor y en cables largos entre el VFD y el motor." }
+    { q:"¿Para qué se usan los filtros opcionales du/dt o senoidales mencionados en este módulo?", options:["Para aumentar la velocidad máxima del motor","Para reducir el estrés dieléctrico en el motor y en cables largos","Para reemplazar al rectificador","Para eliminar el bus DC"], answer:1, explain:"Estos filtros opcionales reducen el estrés dieléctrico que la conmutación PWM puede generar en el motor y en cables largos entre el VDF y el motor." }
   ]
 },
 
 {
-  id:'beneficios', title:'Por qué usar un VFD: beneficios', short:'Beneficios',
+  id:'beneficios', title:'Por qué usar un VDF: beneficios', short:'Beneficios',
   eyebrow:'Módulo 03 · Fundamentos', sub:'Ahorro energético, arranque suave, control de proceso y reducción de desgaste mecánico.',
   content:`
     <div class="card">
@@ -288,7 +289,7 @@ const MODULES = [
       ${NOTE("Esta cifra (~50% de ahorro al reducir 20% la velocidad) es un rango típico ilustrativo de la ley de afinidad; el ahorro real varía según la aplicación, el punto de operación y la curva específica del sistema — no debe tomarse como una garantía numérica universal.")}
 
       ${H3("Arranque suave")}
-      <p>Un arranque directo a red puede generar picos de corriente de arranque de <strong>6 a 8 veces la corriente nominal</strong> del motor, además de golpes mecánicos bruscos en acoples y estructura. Un VFD reduce ambos efectos llevando al motor a su velocidad de forma gradual.</p>
+      <p>Un arranque directo a red puede generar picos de corriente de arranque de <strong>6 a 8 veces la corriente nominal</strong> del motor, además de golpes mecánicos bruscos en acoples y estructura. Un VDF reduce ambos efectos llevando al motor a su velocidad de forma gradual.</p>
 
       ${H3("Control de proceso")}
       <p>Permite ajustar velocidad, presión o caudal en tiempo real según las necesidades reales del proceso, en vez de operar siempre a máxima capacidad.</p>
@@ -303,8 +304,8 @@ const MODULES = [
     { q:"Según la ley de afinidad (ley del cubo), ¿a qué es proporcional la potencia en cargas de par cuadrático como bombas y ventiladores?", options:["A la velocidad","Al cuadrado de la velocidad","Al cubo de la velocidad","Es independiente de la velocidad"], answer:2, explain:"En cargas de par cuadrático, la potencia consumida es proporcional al cubo de la velocidad — por eso reducciones pequeñas de velocidad generan ahorros energéticos grandes." },
     { q:"¿Qué ahorro energético aproximado puede lograrse al reducir la velocidad un 20% en una carga de par cuadrático, según el rango típico mencionado?", options:["Ninguno","Hasta aproximadamente 50%","Exactamente 20%","100%"], answer:1, explain:"El módulo indica que reducir la velocidad un 20% puede ahorrar hasta aproximadamente un 50% de energía, aclarando que es un rango típico y no una cifra garantizada." },
     { q:"¿Cuántas veces la corriente nominal puede alcanzar el pico de corriente en un arranque directo a red?", options:["1-2 veces","6-8 veces","20-30 veces","No hay pico de corriente"], answer:1, explain:"Un arranque directo puede generar picos de corriente de 6 a 8 veces la corriente nominal del motor." },
-    { q:"¿Qué beneficio aporta el VFD en términos de desgaste mecánico?", options:["Aumenta el desgaste de rodamientos","Reduce el estrés mecánico en acoples, rodamientos y correas al evitar arranques bruscos","No tiene relación con el desgaste mecánico","Solo afecta el desgaste eléctrico, nunca el mecánico"], answer:1, explain:"Al eliminar arranques bruscos y operar a la velocidad justa necesaria, se reduce el estrés mecánico en acoples, rodamientos y correas." },
-    { q:"¿Por qué el módulo aclara que la cifra de ahorro de ~50% es un \"rango típico\" y no una garantía?", options:["Porque es un error tipográfico","Porque el ahorro real varía según la aplicación, el punto de operación y la curva específica del sistema","Porque nunca hay ahorro energético con VFD","Porque solo aplica a motores monofásicos"], answer:1, explain:"El ahorro real depende de la aplicación específica, el punto de operación y la curva del sistema, por lo que la cifra es ilustrativa, no una garantía numérica universal." }
+    { q:"¿Qué beneficio aporta el VDF en términos de desgaste mecánico?", options:["Aumenta el desgaste de rodamientos","Reduce el estrés mecánico en acoples, rodamientos y correas al evitar arranques bruscos","No tiene relación con el desgaste mecánico","Solo afecta el desgaste eléctrico, nunca el mecánico"], answer:1, explain:"Al eliminar arranques bruscos y operar a la velocidad justa necesaria, se reduce el estrés mecánico en acoples, rodamientos y correas." },
+    { q:"¿Por qué el módulo aclara que la cifra de ahorro de ~50% es un \"rango típico\" y no una garantía?", options:["Porque es un error tipográfico","Porque el ahorro real varía según la aplicación, el punto de operación y la curva específica del sistema","Porque nunca hay ahorro energético con VDF","Porque solo aplica a motores monofásicos"], answer:1, explain:"El ahorro real depende de la aplicación específica, el punto de operación y la curva del sistema, por lo que la cifra es ilustrativa, no una garantía numérica universal." }
   ]
 },
 
@@ -321,7 +322,7 @@ const MODULES = [
 
       ${H3("DTC (Direct Torque Control) — ejemplo ilustrativo")}
       <p>El DTC es una variante de control vectorial que controla directamente el torque y el flujo del motor, sin un modulador PWM tradicional intermedio entre el cálculo de control y la conmutación del inversor.</p>
-      ${NOTE("El DTC se menciona acá únicamente como ejemplo ilustrativo de una implementación de control avanzado que existe comercialmente en el mercado de VFD — no es un estándar universal de la industria ni una técnica exclusiva de una sola marca, y este curso no lo atribuye a ningún fabricante específico de los cubiertos en este sitio. Cada fabricante documenta su propia variante de control vectorial/directo con su propio nombre comercial.")}
+      ${NOTE("El DTC se menciona acá únicamente como ejemplo ilustrativo de una implementación de control avanzado que existe comercialmente en el mercado de VDF — no es un estándar universal de la industria ni una técnica exclusiva de una sola marca, y este curso no lo atribuye a ningún fabricante específico de los cubiertos en este sitio. Cada fabricante documenta su propia variante de control vectorial/directo con su propio nombre comercial.")}
 
       ${H3("Comparativa rápida")}
       <table class="tech">
@@ -361,7 +362,7 @@ const MODULES = [
       </ul>
 
       ${H3("Control PID integrado")}
-      <p>Muchos VFD incluyen un lazo <strong>PID</strong> integrado que permite regular directamente presión, caudal o temperatura sin necesidad de un controlador externo dedicado — el propio variador ajusta su velocidad para mantener la variable de proceso en el punto deseado.</p>
+      <p>Muchos VDF incluyen un lazo <strong>PID</strong> integrado que permite regular directamente presión, caudal o temperatura sin necesidad de un controlador externo dedicado — el propio variador ajusta su velocidad para mantener la variable de proceso en el punto deseado.</p>
 
       ${IMG("modulo 5.png", "Macros de aplicación (bomba, ventilador, transportador, control PID), fuentes de referencia de velocidad y esquema de control PID integrado con retroalimentación de presión", true)}
 
@@ -371,7 +372,7 @@ const MODULES = [
   quiz:[
     { q:"¿Qué es una macro de aplicación?", options:["Un tipo de motor especial","Un conjunto preconfigurado de parámetros y asignación de E/S orientado a una aplicación típica","Un cable de comunicación","Un accesorio mecánico del variador"], answer:1, explain:"Una macro de aplicación agrupa parámetros y asignación de entradas/salidas preconfigurados para una aplicación típica, acelerando la puesta en marcha." },
     { q:"¿Cuál de estos NO es un modo de referencia de velocidad mencionado en el módulo?", options:["Potenciómetro/panel local","Señal analógica 4-20mA/0-10V","Comunicación digital (fieldbus)","Control manual por radio frecuencia doméstica"], answer:3, explain:"Los modos mencionados son potenciómetro/panel local, señal analógica, velocidades fijas (multi-step) y comunicación digital (fieldbus)." },
-    { q:"¿Qué permite hacer el control PID integrado de muchos VFD?", options:["Cambiar el sentido de giro del motor","Regular presión, caudal o temperatura sin necesidad de un controlador externo dedicado","Aumentar la frecuencia de conmutación","Sustituir al rectificador"], answer:1, explain:"El PID integrado permite que el propio variador ajuste su velocidad para mantener presión, caudal o temperatura en el punto deseado, sin controlador externo." },
+    { q:"¿Qué permite hacer el control PID integrado de muchos VDF?", options:["Cambiar el sentido de giro del motor","Regular presión, caudal o temperatura sin necesidad de un controlador externo dedicado","Aumentar la frecuencia de conmutación","Sustituir al rectificador"], answer:1, explain:"El PID integrado permite que el propio variador ajuste su velocidad para mantener presión, caudal o temperatura en el punto deseado, sin controlador externo." },
     { q:"¿Qué es el modo \"multi-step\" de referencia de velocidad?", options:["Selección entre un set de velocidades fijas predefinidas mediante entradas digitales","Un tipo de macro de seguridad","Un protocolo de comunicación serial","Un modo exclusivo para motores trifásicos"], answer:0, explain:"Multi-step permite seleccionar entre velocidades fijas predefinidas usando entradas digitales." },
     { q:"Según el módulo, ¿dónde se profundiza en los nombres exactos de macros de cada fabricante?", options:["No se profundiza en ningún lado","En las capacitaciones específicas de marca del sitio","Solo en el manual del usuario final","Los nombres son siempre idénticos entre fabricantes"], answer:1, explain:"El módulo aclara que los nombres exactos de macros varían por fabricante y remite a las capacitaciones específicas de marca del portal." }
   ]
@@ -379,49 +380,49 @@ const MODULES = [
 
 {
   id:'glosario', title:'Vocabulario técnico esencial', short:'Glosario',
-  eyebrow:'Módulo 06 · Fundamentos', sub:'Términos clave que vas a encontrar en cualquier capacitación de VFD, sin importar la marca.',
+  eyebrow:'Módulo 06 · Fundamentos', sub:'Términos clave que vas a encontrar en cualquier capacitación de VDF, sin importar la marca.',
   content:`
     <div class="card">
       <p>Este glosario reúne los términos técnicos esenciales que aparecen recurrentemente al hablar de variadores de frecuencia — conocerlos facilita seguir cualquiera de las capacitaciones específicas de marca de este sitio.</p>
       <table class="tech">
         <tr><th>Término</th><th>Definición</th></tr>
-        <tr><td>VFD / variador de frecuencia</td><td>Equipo que controla velocidad y torque de un motor variando frecuencia y voltaje entregados.</td></tr>
-        <tr><td>IGBT</td><td>Insulated Gate Bipolar Transistor — semiconductor de potencia que forma la etapa inversora del VFD.</td></tr>
+        <tr><td>VDF / variador de frecuencia</td><td>Equipo que controla velocidad y torque de un motor variando frecuencia y voltaje entregados. En inglés se lo conoce como VFD (Variable Frequency Drive).</td></tr>
+        <tr><td>IGBT</td><td>Insulated Gate Bipolar Transistor — semiconductor de potencia que forma la etapa inversora del VDF.</td></tr>
         <tr><td>PWM</td><td>Pulse Width Modulation — conmutación rápida de pulsos DC de ancho variable que simula una onda senoidal de frecuencia ajustable.</td></tr>
         <tr><td>Bus DC</td><td>Etapa intermedia que almacena y filtra la energía en corriente continua entre el rectificador y el inversor.</td></tr>
         <tr><td>Rectificador</td><td>Etapa que convierte la corriente alterna de red en corriente continua.</td></tr>
         <tr><td>Inversor</td><td>Etapa que convierte la corriente continua del bus DC en corriente alterna de frecuencia y voltaje variable.</td></tr>
-        <tr><td>THD</td><td>Total Harmonic Distortion — distorsión armónica total; relevante por la contaminación que un VFD puede introducir en la red eléctrica.</td></tr>
+        <tr><td>THD</td><td>Total Harmonic Distortion — distorsión armónica total; relevante por la contaminación que un VDF puede introducir en la red eléctrica.</td></tr>
         <tr><td>Encoder</td><td>Dispositivo de realimentación de velocidad o posición usado en esquemas de control en lazo cerrado.</td></tr>
         <tr><td>Macro de aplicación</td><td>Conjunto preconfigurado de parámetros y asignación de E/S orientado a una aplicación típica.</td></tr>
         <tr><td>Control escalar (V/Hz)</td><td>Filosofía de control que mantiene una relación fija entre voltaje y frecuencia.</td></tr>
         <tr><td>Control vectorial</td><td>Filosofía de control que calcula y controla por separado flujo y torque de la corriente del motor.</td></tr>
         <tr><td>DTC (Direct Torque Control)</td><td>Variante de control vectorial que controla directamente torque y flujo sin modulador PWM tradicional intermedio.</td></tr>
         <tr><td>Par / torque nominal</td><td>Torque de referencia para el cual el motor está diseñado a operar de forma continua.</td></tr>
-        <tr><td>Rampa de aceleración/desaceleración</td><td>Tiempo programado en que el VFD lleva al motor de una velocidad a otra de forma gradual.</td></tr>
+        <tr><td>Rampa de aceleración/desaceleración</td><td>Tiempo programado en que el VDF lleva al motor de una velocidad a otra de forma gradual.</td></tr>
         <tr><td>Frecuencia de conmutación</td><td>Velocidad (switching frequency) a la que conmutan los IGBT del inversor al generar la señal PWM.</td></tr>
         <tr><td>Grado de protección IP</td><td>Clasificación (Ingress Protection) del nivel de sellado del gabinete frente a polvo y agua.</td></tr>
       </table>
     </div>
   `,
   quiz:[
-    { q:"¿Qué significa la sigla IGBT?", options:["International Grid Bus Terminal","Insulated Gate Bipolar Transistor","Integrated General Board Type","Inverter Generated Bus Trigger"], answer:1, explain:"IGBT significa Insulated Gate Bipolar Transistor, el semiconductor de potencia de la etapa inversora del VFD." },
-    { q:"¿Qué mide el THD (Total Harmonic Distortion)?", options:["La temperatura del motor","La distorsión armónica total, relevante por la contaminación que un VFD introduce en la red","El torque nominal del motor","La velocidad de rotación del eje"], answer:1, explain:"THD es la distorsión armónica total, un indicador de la contaminación eléctrica que un VFD puede introducir en la red." },
-    { q:"¿Para qué se usa un encoder en un VFD?", options:["Para rectificar la corriente","Como realimentación de velocidad o posición en esquemas de control en lazo cerrado","Para almacenar energía en el bus DC","Para filtrar armónicos"], answer:1, explain:"El encoder entrega realimentación de velocidad o posición, usada en esquemas de control en lazo cerrado." },
-    { q:"¿Qué indica el grado de protección IP de un gabinete de VFD?", options:["El nivel de sellado frente a polvo y agua","La potencia nominal del equipo","El tipo de control (escalar o vectorial)","La marca del fabricante"], answer:0, explain:"El grado de protección IP (Ingress Protection) clasifica el nivel de sellado del gabinete frente a polvo y agua." },
-    { q:"¿Qué define la \"rampa de aceleración/desaceleración\"?", options:["La frecuencia de conmutación de los IGBT","El tiempo programado en que el VFD lleva al motor de una velocidad a otra de forma gradual","El torque nominal del motor","La distorsión armónica total"], answer:1, explain:"La rampa de aceleración/desaceleración es el tiempo programado en que el VFD cambia la velocidad del motor de forma gradual." }
+    { q:"¿Qué significa la sigla IGBT?", options:["International Grid Bus Terminal","Insulated Gate Bipolar Transistor","Integrated General Board Type","Inverter Generated Bus Trigger"], answer:1, explain:"IGBT significa Insulated Gate Bipolar Transistor, el semiconductor de potencia de la etapa inversora del VDF." },
+    { q:"¿Qué mide el THD (Total Harmonic Distortion)?", options:["La temperatura del motor","La distorsión armónica total, relevante por la contaminación que un VDF introduce en la red","El torque nominal del motor","La velocidad de rotación del eje"], answer:1, explain:"THD es la distorsión armónica total, un indicador de la contaminación eléctrica que un VDF puede introducir en la red." },
+    { q:"¿Para qué se usa un encoder en un VDF?", options:["Para rectificar la corriente","Como realimentación de velocidad o posición en esquemas de control en lazo cerrado","Para almacenar energía en el bus DC","Para filtrar armónicos"], answer:1, explain:"El encoder entrega realimentación de velocidad o posición, usada en esquemas de control en lazo cerrado." },
+    { q:"¿Qué indica el grado de protección IP de un gabinete de VDF?", options:["El nivel de sellado frente a polvo y agua","La potencia nominal del equipo","El tipo de control (escalar o vectorial)","La marca del fabricante"], answer:0, explain:"El grado de protección IP (Ingress Protection) clasifica el nivel de sellado del gabinete frente a polvo y agua." },
+    { q:"¿Qué define la \"rampa de aceleración/desaceleración\"?", options:["La frecuencia de conmutación de los IGBT","El tiempo programado en que el VDF lleva al motor de una velocidad a otra de forma gradual","El torque nominal del motor","La distorsión armónica total"], answer:1, explain:"La rampa de aceleración/desaceleración es el tiempo programado en que el VDF cambia la velocidad del motor de forma gradual." }
   ]
 },
 
 {
-  id:'seguridad-electrica', title:'Seguridad eléctrica básica al trabajar con VFDs', short:'Seguridad eléctrica',
+  id:'seguridad-electrica', title:'Seguridad eléctrica básica al trabajar con VDF', short:'Seguridad eléctrica',
   eyebrow:'Módulo 07 · Seguridad', sub:'Energía residual del bus DC, EPP, bloqueo/etiquetado (LOTO) y riesgo de arranque inesperado.',
   content:`
     <div class="card">
       ${NOTE("Este módulo tiene contenido de seguridad crítico. Su objetivo es dar una base conceptual general — siempre debe complementarse con el procedimiento de bloqueo/etiquetado y las normas de seguridad eléctrica vigentes en tu planta, y con el manual específico del equipo con el que trabajes.")}
 
       ${H3("Riesgo de energía residual en el bus DC")}
-      <p>El bus DC de un VFD almacena energía en un banco de condensadores. Esa energía <strong>puede mantener voltaje peligroso durante varios minutos</strong> después de desconectar la alimentación de red, aunque el equipo "parezca" apagado. Nunca hay que asumir que un VFD está sin tensión solo porque se cortó el interruptor principal.</p>
+      <p>El bus DC de un VDF almacena energía en un banco de condensadores. Esa energía <strong>puede mantener voltaje peligroso durante varios minutos</strong> después de desconectar la alimentación de red, aunque el equipo "parezca" apagado. Nunca hay que asumir que un VDF está sin tensión solo porque se cortó el interruptor principal.</p>
       ${NOTE("Siempre verificar la ausencia de tensión con un multímetro y respetar el tiempo de descarga indicado por el fabricante del equipo específico antes de manipular cualquier terminal de potencia o abrir el gabinete.")}
 
       ${H3("Equipo de protección personal (EPP) básico")}
@@ -432,19 +433,19 @@ const MODULES = [
       </ul>
 
       ${H3("Bloqueo y etiquetado (LOTO — Lockout/Tagout)")}
-      <p>Antes de cualquier intervención sobre un VFD o su instalación, debe aplicarse el procedimiento de bloqueo y etiquetado de la fuente de energía, siguiendo el protocolo formal de tu planta.</p>
+      <p>Antes de cualquier intervención sobre un VDF o su instalación, debe aplicarse el procedimiento de bloqueo y etiquetado de la fuente de energía, siguiendo el protocolo formal de tu planta.</p>
 
       ${H3("Riesgo adicional: arranque inesperado")}
-      <p>Un VFD puede estar configurado para recibir su orden de marcha desde un control remoto o automático (PLC, fieldbus, temporizador). Por eso, siempre hay que verificar el modo de control activo antes de tocar el motor o su acople mecánico — un arranque remoto inesperado con alguien en contacto con el eje o el acople es un riesgo real.</p>
+      <p>Un VDF puede estar configurado para recibir su orden de marcha desde un control remoto o automático (PLC, fieldbus, temporizador). Por eso, siempre hay que verificar el modo de control activo antes de tocar el motor o su acople mecánico — un arranque remoto inesperado con alguien en contacto con el eje o el acople es un riesgo real.</p>
 
-      ${IMG("modulo 7.png", "Pictogramas de advertencia de energía residual del bus DC, típicos en la puerta de gabinetes de VFD, con los pasos de verificación antes de manipular el equipo", true)}
+      ${IMG("modulo 7.png", "Pictogramas de advertencia de energía residual del bus DC, típicos en la puerta de gabinetes de VDF, con los pasos de verificación antes de manipular el equipo", true)}
     </div>
   `,
   quiz:[
-    { q:"¿Por qué el bus DC de un VFD puede seguir siendo peligroso después de desconectar la red?", options:["Porque el motor sigue girando","Porque el banco de condensadores del bus DC almacena energía que puede mantener voltaje peligroso durante varios minutos","Porque la red nunca se desconecta realmente","No es peligroso una vez desconectada la red"], answer:1, explain:"El banco de condensadores del bus DC almacena energía que puede mantener tensión peligrosa durante varios minutos tras desconectar la red." },
-    { q:"¿Qué se debe hacer antes de manipular terminales de potencia de un VFD, además de esperar el tiempo de descarga del fabricante?", options:["Nada más, alcanza con esperar","Verificar la ausencia de tensión con un multímetro","Golpear el gabinete para descargarlo","Desconectar solo el motor, no la red"], answer:1, explain:"Siempre hay que verificar con un multímetro la ausencia de tensión, sin confiar únicamente en el tiempo de espera." },
-    { q:"¿Qué procedimiento debe aplicarse antes de cualquier intervención sobre un VFD?", options:["Ninguno, se puede intervenir directamente","Bloqueo y etiquetado (LOTO) de la fuente de energía","Solo avisar por radio","Aumentar la velocidad del motor primero"], answer:1, explain:"El procedimiento de bloqueo y etiquetado (LOTO) debe aplicarse siempre antes de cualquier intervención." },
-    { q:"¿Cuál es el riesgo adicional de \"arranque inesperado\" mencionado en este módulo?", options:["Que el VFD explote sin razón","Que el motor arranque por una orden remota o automática mientras alguien está en contacto con el motor o su acople","Que se dañe el bus DC","Que la red eléctrica se sobrecargue"], answer:1, explain:"Un VFD puede recibir orden de marcha remota (PLC, fieldbus, temporizador), por lo que siempre hay que verificar el modo de control antes de tocar el motor o el acople." },
+    { q:"¿Por qué el bus DC de un VDF puede seguir siendo peligroso después de desconectar la red?", options:["Porque el motor sigue girando","Porque el banco de condensadores del bus DC almacena energía que puede mantener voltaje peligroso durante varios minutos","Porque la red nunca se desconecta realmente","No es peligroso una vez desconectada la red"], answer:1, explain:"El banco de condensadores del bus DC almacena energía que puede mantener tensión peligrosa durante varios minutos tras desconectar la red." },
+    { q:"¿Qué se debe hacer antes de manipular terminales de potencia de un VDF, además de esperar el tiempo de descarga del fabricante?", options:["Nada más, alcanza con esperar","Verificar la ausencia de tensión con un multímetro","Golpear el gabinete para descargarlo","Desconectar solo el motor, no la red"], answer:1, explain:"Siempre hay que verificar con un multímetro la ausencia de tensión, sin confiar únicamente en el tiempo de espera." },
+    { q:"¿Qué procedimiento debe aplicarse antes de cualquier intervención sobre un VDF?", options:["Ninguno, se puede intervenir directamente","Bloqueo y etiquetado (LOTO) de la fuente de energía","Solo avisar por radio","Aumentar la velocidad del motor primero"], answer:1, explain:"El procedimiento de bloqueo y etiquetado (LOTO) debe aplicarse siempre antes de cualquier intervención." },
+    { q:"¿Cuál es el riesgo adicional de \"arranque inesperado\" mencionado en este módulo?", options:["Que el VDF explote sin razón","Que el motor arranque por una orden remota o automática mientras alguien está en contacto con el motor o su acople","Que se dañe el bus DC","Que la red eléctrica se sobrecargue"], answer:1, explain:"Un VDF puede recibir orden de marcha remota (PLC, fieldbus, temporizador), por lo que siempre hay que verificar el modo de control antes de tocar el motor o el acople." },
     { q:"¿Cuál de estos elementos de EPP básico se menciona explícitamente en el módulo?", options:["Casco de obra únicamente","Guantes dieléctricos, protección facial y herramientas aisladas","Botas de lluvia","Chaleco reflectivo únicamente"], answer:1, explain:"El módulo menciona guantes dieléctricos, protección facial y herramientas aisladas como EPP básico al trabajar en tableros energizados." }
   ]
 },
@@ -474,12 +475,12 @@ const MODULES = [
       <p>Cada fabricante (VACON, ABB y otros) tiene su propio software de configuración, su propia nomenclatura de parámetros y su propio procedimiento de puesta en marcha. Las capacitaciones específicas de marca de este sitio profundizan en cada uno de esos detalles concretos, una vez que ya tenés esta base conceptual general.</p>
 
       <div class="note" style="margin-top:18px;">
-        💡 ¿Necesitás ayuda con la puesta en marcha o el diagnóstico de un VFD en tu planta? <a href="../../index.html#contacto" style="color:var(--sky); font-weight:600;">Contactame para una consultoría →</a>
+        💡 ¿Necesitás ayuda con la puesta en marcha o el diagnóstico de un VDF en tu planta? <a href="../../index.html#contacto" style="color:var(--sky); font-weight:600;">Contactame para una consultoría →</a>
       </div>
     </div>
   `,
   quiz:[
-    { q:"¿Cuál de estas es una etapa típica de una puesta en marcha profesional de VFD?", options:["Configuración de parámetros básicos usando los datos de placa del motor","Pintar el gabinete","Cambiar el color de la interfaz","Eliminar el bus DC"], answer:0, explain:"La configuración de parámetros básicos con los datos de placa del motor es una etapa típica y esencial de la puesta en marcha." },
+    { q:"¿Cuál de estas es una etapa típica de una puesta en marcha profesional de VDF?", options:["Configuración de parámetros básicos usando los datos de placa del motor","Pintar el gabinete","Cambiar el color de la interfaz","Eliminar el bus DC"], answer:0, explain:"La configuración de parámetros básicos con los datos de placa del motor es una etapa típica y esencial de la puesta en marcha." },
     { q:"¿Qué se prueba antes de conectar la carga real del proceso?", options:["Solo la documentación","Pruebas en vacío, sin carga mecánica conectada","La factura del equipo","El color del motor"], answer:1, explain:"Antes de la prueba con carga real, se realizan pruebas en vacío (sin carga mecánica conectada) para validar el funcionamiento básico." },
     { q:"¿Qué documentación entregable se espera al finalizar una puesta en marcha profesional?", options:["Nada, no se entrega documentación","Listado de parámetros configurados, registro de pruebas y recomendaciones de mantenimiento","Solo una factura","Solo el manual del fabricante sin anotaciones"], answer:1, explain:"Se espera entregar el listado de parámetros configurados, el registro de pruebas realizadas y recomendaciones de mantenimiento." },
     { q:"¿Por qué el módulo remite a las capacitaciones específicas de marca del sitio?", options:["Porque este módulo no es válido","Porque cada fabricante tiene su propio software, nomenclatura de parámetros y procedimiento de puesta en marcha","Porque las marcas específicas no tienen relación con este contenido","Porque no hay más contenido disponible"], answer:1, explain:"Cada fabricante tiene su propio software, nomenclatura de parámetros y procedimiento, por lo que ese detalle se profundiza en las capacitaciones de marca." },
@@ -613,7 +614,7 @@ function renderOverview(){
   const main = document.getElementById('main');
   main.innerHTML = `
     <div class="modhead">
-      <p class="eyebrow">Capacitación · Introducción a VFD</p>
+      <p class="eyebrow">Capacitación · Introducción a VDF</p>
       <h2>Biblioteca de módulos</h2>
       <p class="sub">Navega libremente entre los 8 módulos. Cada uno tiene su contenido y su quiz — el progreso se guarda automáticamente en este navegador.</p>
     </div>
@@ -622,7 +623,7 @@ function renderOverview(){
     ${pct===100 ? `
     <div class="card" style="border-color:var(--emerald); background:var(--emerald-dim);">
       <h3 style="color:var(--emerald); margin-top:0;">🏆 Capacitación completa</h3>
-      <p style="margin-bottom:0;">Completaste el quiz de los 8 módulos de Introducción a VFD. Ya tenés la base para avanzar a las capacitaciones específicas de marca del portal.</p>
+      <p style="margin-bottom:0;">Completaste el quiz de los 8 módulos de Introducción a VDF. Ya tenés la base para avanzar a las capacitaciones específicas de marca del portal.</p>
     </div>` : ''}
     <div class="ovwgrid">
       ${teachable.map((m,i)=>{

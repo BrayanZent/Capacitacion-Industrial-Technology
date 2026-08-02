@@ -184,10 +184,10 @@
 <div class="app">
   <nav class="sidebar">
     <div class="brand">
-      <div class="brand-logo">⚡ VFD ACADEMY</div>
+      <div class="brand-logo">⚡ VDF ACADEMY</div>
       <div class="tag">Fundamentos · Sin marca</div>
       <h1>Puesta en marcha</h1>
-      <p>De la inspección de instalación a los primeros arranques — el procedimiento genérico común a cualquier marca de VFD.</p>
+      <p>De la inspección de instalación a los primeros arranques — el procedimiento genérico común a cualquier marca de VDF.</p>
     </div>
     <ul class="navlist" id="navlist"></ul>
     <div class="sidebar-foot">
@@ -226,24 +226,24 @@ const MODULES = [
   eyebrow:'Módulo 01 · Puesta en marcha', sub:'Separación de cableado, continuidad de tierra y ventilación — el chequeo obligatorio antes de dar tensión.',
   content:`
     <div class="card">
-      <p>Antes de energizar cualquier VFD por primera vez (o después de una intervención mayor de cableado), hay un chequeo visual y de continuidad que debe hacerse siempre. Saltearlo es una de las causas más comunes de fallas tempranas evitables en la puesta en marcha.</p>
+      <p>Antes de energizar cualquier VDF por primera vez (o después de una intervención mayor de cableado), hay un chequeo visual y de continuidad que debe hacerse siempre. Saltearlo es una de las causas más comunes de fallas tempranas evitables en la puesta en marcha.</p>
 
       ${H3("Separación física de cableado de potencia y de control")}
       <p>El cableado de <strong>potencia</strong> (alimentación de red y cable motor) y el cableado de <strong>control</strong> (entradas/salidas digitales, analógicas, comunicación) deben tenderse en bandejas o conductos separados, o al menos mantenerse a una distancia mínima si comparten bandeja.</p>
       <p>La razón es el <strong>ruido eléctrico</strong>: la conmutación PWM del inversor induce interferencia electromagnética en los conductores cercanos. Si el cable de control corre pegado o en paralelo largo al cable motor, esa interferencia puede acoplarse a las señales de control (especialmente señales analógicas de baja magnitud, como 0-10V o 4-20mA) y generar lecturas erráticas, arranques falsos o inestabilidad del lazo de control.</p>
 
       ${H3("Verificación de continuidad de tierra")}
-      <p>Antes de energizar, se debe verificar con un multímetro que la conexión a tierra del gabinete del VFD y del motor tiene continuidad efectiva hacia la barra de tierra de la instalación. Una tierra deficiente no solo es un riesgo de seguridad personal: también degrada la efectividad de los filtros EMC del variador y puede generar corrientes de fuga elevadas.</p>
+      <p>Antes de energizar, se debe verificar con un multímetro que la conexión a tierra del gabinete del VDF y del motor tiene continuidad efectiva hacia la barra de tierra de la instalación. Una tierra deficiente no solo es un riesgo de seguridad personal: también degrada la efectividad de los filtros EMC del variador y puede generar corrientes de fuga elevadas.</p>
 
       ${H3("Ventilación y espacio libre alrededor del gabinete")}
-      <p>Todo VFD disipa calor durante su operación y necesita flujo de aire libre para no sobrecalentarse y disparar su protección térmica (o dañarse) por acumulación de calor. Antes de energizar hay que confirmar:</p>
+      <p>Todo VDF disipa calor durante su operación y necesita flujo de aire libre para no sobrecalentarse y disparar su protección térmica (o dañarse) por acumulación de calor. Antes de energizar hay que confirmar:</p>
       <ul>
         <li>Que se respetan las distancias mínimas de espacio libre indicadas por el fabricante arriba, abajo y a los costados del equipo (varían según el tamaño y la potencia del variador).</li>
         <li>Que las rejillas o ventiladores de refrigeración no están obstruidos por otros equipos, cableado o suciedad.</li>
         <li>Que el grado de protección <strong>IP</strong> del gabinete (nivel de sellado frente a polvo y agua) es coherente con el ambiente de instalación real — un gabinete con ventilación forzada abierta no puede instalarse en un ambiente con polvo conductivo o alta humedad sin la protección adecuada.</li>
       </ul>
 
-      ${NOTE("Recordatorio de seguridad: el bus DC del variador acumula energía residual en sus condensadores y puede mantener tensión peligrosa incluso después de desconectar la red — este riesgo ya se cubrió en detalle en Introducción a VFD. Antes de manipular cualquier terminal de potencia, siempre verificar ausencia de tensión con multímetro y respetar el tiempo de descarga del fabricante.")}
+      ${NOTE("Recordatorio de seguridad: el bus DC del variador acumula energía residual en sus condensadores y puede mantener tensión peligrosa incluso después de desconectar la red — este riesgo ya se cubrió en detalle en Introducción a VDF. Antes de manipular cualquier terminal de potencia, siempre verificar ausencia de tensión con multímetro y respetar el tiempo de descarga del fabricante.")}
 
       ${PLACEHOLDER("Checklist visual de inspección previa a energizar: bandejas separadas de potencia/control, punto de verificación de continuidad de tierra con multímetro, y distancias mínimas de ventilación alrededor del gabinete")}
     </div>
@@ -252,17 +252,17 @@ const MODULES = [
     { q:"¿Por qué debe separarse físicamente el cableado de potencia del cableado de control?", options:["Por estética del tablero","Para evitar que el ruido eléctrico inducido por la conmutación PWM afecte las señales de control","Porque usan distinto voltaje y es obligatorio por norma de color","No hay ninguna razón técnica, es solo una convención"], answer:1, explain:"La conmutación PWM del inversor induce interferencia electromagnética; si el cableado de control corre pegado al de potencia, esa interferencia puede acoplarse y generar lecturas erráticas o inestabilidad del control." },
     { q:"¿Qué tipo de señales de control son especialmente sensibles al ruido acoplado desde el cableado de potencia?", options:["Las señales de comunicación óptica","Las señales analógicas de baja magnitud, como 0-10V o 4-20mA","El cable de alimentación principal","Ninguna señal de control es sensible al ruido"], answer:1, explain:"Las señales analógicas de baja magnitud (0-10V, 4-20mA) son particularmente susceptibles a interferencia inducida por cableado de potencia cercano." },
     { q:"¿Con qué instrumento se verifica la continuidad de tierra antes de energizar?", options:["Con un osciloscopio","Con un multímetro","Con una pinza amperométrica de gancho","No se verifica, se asume que está bien"], answer:1, explain:"La continuidad de la conexión a tierra se verifica con un multímetro antes de energizar el equipo." },
-    { q:"Además del riesgo de seguridad personal, ¿qué otro efecto tiene una tierra deficiente en un VFD?", options:["Ninguno adicional","Degrada la efectividad de los filtros EMC y puede generar corrientes de fuga elevadas","Aumenta la velocidad máxima del motor","Mejora el factor de potencia"], answer:1, explain:"Una tierra deficiente degrada la efectividad de los filtros EMC del variador y puede generar corrientes de fuga elevadas, además del riesgo de seguridad." },
+    { q:"Además del riesgo de seguridad personal, ¿qué otro efecto tiene una tierra deficiente en un VDF?", options:["Ninguno adicional","Degrada la efectividad de los filtros EMC y puede generar corrientes de fuga elevadas","Aumenta la velocidad máxima del motor","Mejora el factor de potencia"], answer:1, explain:"Una tierra deficiente degrada la efectividad de los filtros EMC del variador y puede generar corrientes de fuga elevadas, además del riesgo de seguridad." },
     { q:"¿Qué se debe verificar respecto a la ventilación del gabinete antes de energizar?", options:["Nada, la ventilación no importa en la puesta en marcha","Distancias mínimas de espacio libre, ausencia de obstrucción en rejillas/ventiladores y coherencia del grado IP con el ambiente","Solo que el gabinete tenga pintura anticorrosiva","Que el gabinete esté completamente sellado sin ninguna rejilla"], answer:1, explain:"Hay que confirmar distancias mínimas de espacio libre, que las rejillas o ventiladores no estén obstruidos, y que el grado de protección IP sea coherente con el ambiente de instalación." }
   ]
 },
 
 {
   id:'de-placa-a-parametros', title:'De la placa del motor a los parámetros básicos', short:'De placa a parámetros',
-  eyebrow:'Módulo 02 · Puesta en marcha', sub:'Cómo los datos de la chapa de identificación del motor alimentan el asistente de puesta en marcha de cualquier VFD.',
+  eyebrow:'Módulo 02 · Puesta en marcha', sub:'Cómo los datos de la chapa de identificación del motor alimentan el asistente de puesta en marcha de cualquier VDF.',
   content:`
     <div class="card">
-      <p>Todo motor eléctrico trae una <strong>placa de datos</strong> (chapa de identificación) con los valores para los que fue diseñado. Esos datos son la base de la que se derivan los parámetros básicos que cualquier VFD pide al arrancar su asistente de puesta en marcha, sin importar la marca.</p>
+      <p>Todo motor eléctrico trae una <strong>placa de datos</strong> (chapa de identificación) con los valores para los que fue diseñado. Esos datos son la base de la que se derivan los parámetros básicos que cualquier VDF pide al arrancar su asistente de puesta en marcha, sin importar la marca.</p>
 
       ${H3("Datos típicos de la placa del motor")}
       <ul>
@@ -273,13 +273,13 @@ const MODULES = [
         <li><strong>Cos φ (factor de potencia):</strong> relación entre la potencia activa (kW) que realmente hace trabajo y la potencia aparente (kVA) total consumida por el motor.</li>
       </ul>
 
-      ${H3("Mapeo genérico: dato de placa → parámetro del VFD")}
+      ${H3("Mapeo genérico: dato de placa → parámetro del VDF")}
       <table class="tech">
-        <tr><th>Dato de placa del motor</th><th>Parámetro genérico que pide el VFD</th><th>Para qué lo usa el VFD</th></tr>
+        <tr><th>Dato de placa del motor</th><th>Parámetro genérico que pide el VDF</th><th>Para qué lo usa el VDF</th></tr>
         <tr><td>Tensión nominal</td><td>Tensión nominal de motor</td><td>Referencia del voltaje máximo que el inversor debe entregar al motor</td></tr>
         <tr><td>Corriente nominal</td><td>Corriente nominal de motor</td><td>Base para el modelo térmico interno y la protección de sobrecarga del motor</td></tr>
         <tr><td>Frecuencia nominal</td><td>Frecuencia nominal de motor</td><td>Punto de referencia de la curva V/Hz o del modelo de control vectorial</td></tr>
-        <tr><td>Velocidad nominal (RPM)</td><td>Velocidad nominal de motor</td><td>Permite al VFD calcular el número de polos y el deslizamiento del motor</td></tr>
+        <tr><td>Velocidad nominal (RPM)</td><td>Velocidad nominal de motor</td><td>Permite al VDF calcular el número de polos y el deslizamiento del motor</td></tr>
         <tr><td>Cos φ</td><td>Factor de potencia de motor</td><td>Afinar el modelo interno del motor para mejorar la precisión del control</td></tr>
       </table>
 
@@ -287,36 +287,36 @@ const MODULES = [
 
       ${NOTE("Cargar mal un solo dato de placa (por ejemplo la corriente nominal) puede hacer que el motor se dispare por sobrecarga prematuramente, o que quede sin protección real — siempre transcribir los datos de placa con cuidado y verificarlos dos veces antes de confirmar el asistente de puesta en marcha.")}
 
-      ${PLACEHOLDER("Foto de una placa de identificación típica de motor trifásico con los campos de tensión, corriente, frecuencia, RPM y cos φ señalados, junto a la pantalla de un asistente de puesta en marcha de VFD pidiendo esos mismos datos")}
+      ${PLACEHOLDER("Foto de una placa de identificación típica de motor trifásico con los campos de tensión, corriente, frecuencia, RPM y cos φ señalados, junto a la pantalla de un asistente de puesta en marcha de VDF pidiendo esos mismos datos")}
     </div>
   `,
   quiz:[
-    { q:"¿De dónde se obtienen los valores base para los parámetros que pide el asistente de puesta en marcha de un VFD?", options:["De un catálogo genérico de internet","De la placa de datos (chapa de identificación) del motor","Del color del gabinete del motor","Siempre son los mismos valores por defecto del VFD"], answer:1, explain:"Los datos de placa del motor (tensión, corriente, frecuencia, RPM, cos φ) son la fuente de los parámetros básicos que pide cualquier VFD al arrancar el asistente de puesta en marcha." },
-    { q:"¿Qué representa la \"corriente nominal\" de la placa del motor?", options:["La corriente máxima instantánea que soporta el motor sin dañarse","La corriente que el motor consume operando a plena carga, a tensión y frecuencia nominal","La corriente de arranque del motor","La corriente del bus DC del VFD"], answer:1, explain:"La corriente nominal es la corriente que el motor consume a plena carga, a su tensión y frecuencia nominal de diseño." },
-    { q:"¿Para qué usa el VFD el parámetro de corriente nominal de motor, según la tabla de mapeo?", options:["Para calcular la velocidad máxima","Como base para el modelo térmico interno y la protección de sobrecarga del motor","Para ajustar el color de la pantalla","No se usa para nada en particular"], answer:1, explain:"La corriente nominal es la base para el modelo térmico interno del VFD y su función de protección de sobrecarga del motor." },
-    { q:"Según el módulo, ¿por qué el nombre exacto de cada parámetro de motor puede variar entre marcas de VFD?", options:["Porque no hay ningún estándar conceptual compartido entre fabricantes","Porque cada fabricante nombra sus parámetros de forma distinta, aunque el concepto detrás sea genérico y común","Porque solo algunas marcas piden datos de placa","Porque los datos de placa cambian según el fabricante del VFD"], answer:1, explain:"El mapeo es conceptual y genérico; el nombre exacto de cada parámetro varía por fabricante, y ese detalle se cubre en las capacitaciones específicas de marca." },
-    { q:"¿Qué riesgo menciona el módulo si se carga mal un dato de placa como la corriente nominal?", options:["Ninguno, los datos de placa no afectan la protección","El motor puede dispararse por sobrecarga prematuramente o quedar sin protección real","El VFD deja de encender por completo","Se pierde la garantía del motor automáticamente"], answer:1, explain:"Cargar mal la corriente nominal puede causar disparos por sobrecarga prematuros o dejar al motor sin protección térmica real." }
+    { q:"¿De dónde se obtienen los valores base para los parámetros que pide el asistente de puesta en marcha de un VDF?", options:["De un catálogo genérico de internet","De la placa de datos (chapa de identificación) del motor","Del color del gabinete del motor","Siempre son los mismos valores por defecto del VDF"], answer:1, explain:"Los datos de placa del motor (tensión, corriente, frecuencia, RPM, cos φ) son la fuente de los parámetros básicos que pide cualquier VDF al arrancar el asistente de puesta en marcha." },
+    { q:"¿Qué representa la \"corriente nominal\" de la placa del motor?", options:["La corriente máxima instantánea que soporta el motor sin dañarse","La corriente que el motor consume operando a plena carga, a tensión y frecuencia nominal","La corriente de arranque del motor","La corriente del bus DC del VDF"], answer:1, explain:"La corriente nominal es la corriente que el motor consume a plena carga, a su tensión y frecuencia nominal de diseño." },
+    { q:"¿Para qué usa el VDF el parámetro de corriente nominal de motor, según la tabla de mapeo?", options:["Para calcular la velocidad máxima","Como base para el modelo térmico interno y la protección de sobrecarga del motor","Para ajustar el color de la pantalla","No se usa para nada en particular"], answer:1, explain:"La corriente nominal es la base para el modelo térmico interno del VDF y su función de protección de sobrecarga del motor." },
+    { q:"Según el módulo, ¿por qué el nombre exacto de cada parámetro de motor puede variar entre marcas de VDF?", options:["Porque no hay ningún estándar conceptual compartido entre fabricantes","Porque cada fabricante nombra sus parámetros de forma distinta, aunque el concepto detrás sea genérico y común","Porque solo algunas marcas piden datos de placa","Porque los datos de placa cambian según el fabricante del VDF"], answer:1, explain:"El mapeo es conceptual y genérico; el nombre exacto de cada parámetro varía por fabricante, y ese detalle se cubre en las capacitaciones específicas de marca." },
+    { q:"¿Qué riesgo menciona el módulo si se carga mal un dato de placa como la corriente nominal?", options:["Ninguno, los datos de placa no afectan la protección","El motor puede dispararse por sobrecarga prematuramente o quedar sin protección real","El VDF deja de encender por completo","Se pierde la garantía del motor automáticamente"], answer:1, explain:"Cargar mal la corriente nominal puede causar disparos por sobrecarga prematuros o dejar al motor sin protección térmica real." }
   ]
 },
 
 {
-  id:'parametros-comunes', title:'Parámetros genéricos comunes a cualquier VFD', short:'Parámetros comunes',
+  id:'parametros-comunes', title:'Parámetros genéricos comunes a cualquier VDF', short:'Parámetros comunes',
   eyebrow:'Módulo 03 · Puesta en marcha', sub:'Rampas, límite de corriente, tipo de control y fuente de referencia — el set mínimo que configura cualquier puesta en marcha.',
   content:`
     <div class="card">
-      <p>Más allá de los datos de placa del motor, hay un conjunto de parámetros de comportamiento que aparece en prácticamente cualquier VFD del mercado, independientemente de la marca. Configurarlos correctamente es parte central de cualquier puesta en marcha.</p>
+      <p>Más allá de los datos de placa del motor, hay un conjunto de parámetros de comportamiento que aparece en prácticamente cualquier VDF del mercado, independientemente de la marca. Configurarlos correctamente es parte central de cualquier puesta en marcha.</p>
 
       ${H3("Rampa de aceleración / desaceleración")}
-      <p>Define el tiempo en que el VFD lleva al motor de una velocidad a otra de forma gradual (por ejemplo, de 0 a la velocidad nominal). Una rampa demasiado corta genera picos de corriente y estrés mecánico; una rampa demasiado larga puede no ser aceptable para el proceso o disparar límites de corriente durante la aceleración.</p>
+      <p>Define el tiempo en que el VDF lleva al motor de una velocidad a otra de forma gradual (por ejemplo, de 0 a la velocidad nominal). Una rampa demasiado corta genera picos de corriente y estrés mecánico; una rampa demasiado larga puede no ser aceptable para el proceso o disparar límites de corriente durante la aceleración.</p>
 
       ${H3("Límite de corriente")}
-      <p>Establece el valor máximo de corriente que el VFD permitirá entregar al motor, como protección adicional del motor y del propio variador. Si el proceso exige una aceleración rápida bajo carga alta, el límite de corriente puede terminar "aplanando" la rampa programada — el VFD prioriza no superar ese límite antes que respetar el tiempo de rampa exacto.</p>
+      <p>Establece el valor máximo de corriente que el VDF permitirá entregar al motor, como protección adicional del motor y del propio variador. Si el proceso exige una aceleración rápida bajo carga alta, el límite de corriente puede terminar "aplanando" la rampa programada — el VDF prioriza no superar ese límite antes que respetar el tiempo de rampa exacto.</p>
 
       ${H3("Tipo de control")}
-      <p>Selección entre control escalar (V/Hz) o control vectorial, según lo que exija la aplicación — este concepto ya se desarrolló en detalle en Introducción a VFD (módulo de control escalar vs. vectorial/DTC). En la puesta en marcha, esta selección suele hacerse temprano porque condiciona qué otros parámetros y procedimientos de auto-tuning estarán disponibles.</p>
+      <p>Selección entre control escalar (V/Hz) o control vectorial, según lo que exija la aplicación — este concepto ya se desarrolló en detalle en Introducción a VDF (módulo de control escalar vs. vectorial/DTC). En la puesta en marcha, esta selección suele hacerse temprano porque condiciona qué otros parámetros y procedimientos de auto-tuning estarán disponibles.</p>
 
       ${H3("Fuente de referencia de velocidad")}
-      <p>Define de dónde toma el VFD el valor de velocidad deseada: potenciómetro/panel local, señal analógica, velocidades fijas o comunicación digital — las macros de aplicación que agrupan estas opciones ya se vieron en Introducción a VFD. En la puesta en marcha, se confirma y prueba que la fuente seleccionada efectivamente esté entregando la señal esperada antes de dar por buena la configuración.</p>
+      <p>Define de dónde toma el VDF el valor de velocidad deseada: potenciómetro/panel local, señal analógica, velocidades fijas o comunicación digital — las macros de aplicación que agrupan estas opciones ya se vieron en Introducción a VDF. En la puesta en marcha, se confirma y prueba que la fuente seleccionada efectivamente esté entregando la señal esperada antes de dar por buena la configuración.</p>
 
       ${H3("Resumen de parámetros genéricos comunes")}
       <table class="tech">
@@ -328,13 +328,13 @@ const MODULES = [
         <tr><td>Fuente de referencia de velocidad</td><td>Origen de la orden de velocidad deseada</td><td>El motor no responde, o responde a una fuente distinta de la esperada</td></tr>
       </table>
 
-      ${INFO("Este set de cinco parámetros es un mínimo genérico común a cualquier VFD, no una lista exhaustiva — cada marca agrega parámetros adicionales propios y organiza estos mismos conceptos con su propia nomenclatura y estructura de menús.")}
+      ${INFO("Este set de cinco parámetros es un mínimo genérico común a cualquier VDF, no una lista exhaustiva — cada marca agrega parámetros adicionales propios y organiza estos mismos conceptos con su propia nomenclatura y estructura de menús.")}
     </div>
   `,
   quiz:[
-    { q:"¿Qué define la rampa de aceleración/desaceleración?", options:["El voltaje máximo del bus DC","El tiempo en que el VFD lleva al motor de una velocidad a otra de forma gradual","El número de polos del motor","La frecuencia de conmutación del inversor"], answer:1, explain:"La rampa de aceleración/desaceleración define el tiempo programado en que el VFD cambia la velocidad del motor de forma gradual." },
-    { q:"¿Qué puede pasar si el proceso exige una aceleración rápida bajo carga alta y el límite de corriente está activo?", options:["El VFD ignora el límite de corriente siempre","El VFD puede \"aplanar\" la rampa programada para no superar el límite de corriente","El motor se desconecta permanentemente","No tiene ningún efecto sobre la rampa"], answer:1, explain:"El VFD prioriza no superar el límite de corriente configurado, lo que puede hacer que la rampa real sea más lenta que la programada en esas condiciones." },
-    { q:"¿Dónde se desarrolló en detalle el concepto de control escalar vs. vectorial, según este módulo?", options:["En este mismo módulo por primera vez","Ya se desarrolló en detalle en Introducción a VFD","En el módulo de documentación de puesta en marcha","No se desarrolla en ningún lado del curso"], answer:1, explain:"El módulo indica que el control escalar vs. vectorial ya se cubrió en detalle en la capacitación Introducción a VFD, y aquí solo se referencia en el contexto de la puesta en marcha." },
+    { q:"¿Qué define la rampa de aceleración/desaceleración?", options:["El voltaje máximo del bus DC","El tiempo en que el VDF lleva al motor de una velocidad a otra de forma gradual","El número de polos del motor","La frecuencia de conmutación del inversor"], answer:1, explain:"La rampa de aceleración/desaceleración define el tiempo programado en que el VDF cambia la velocidad del motor de forma gradual." },
+    { q:"¿Qué puede pasar si el proceso exige una aceleración rápida bajo carga alta y el límite de corriente está activo?", options:["El VDF ignora el límite de corriente siempre","El VDF puede \"aplanar\" la rampa programada para no superar el límite de corriente","El motor se desconecta permanentemente","No tiene ningún efecto sobre la rampa"], answer:1, explain:"El VDF prioriza no superar el límite de corriente configurado, lo que puede hacer que la rampa real sea más lenta que la programada en esas condiciones." },
+    { q:"¿Dónde se desarrolló en detalle el concepto de control escalar vs. vectorial, según este módulo?", options:["En este mismo módulo por primera vez","Ya se desarrolló en detalle en Introducción a VDF","En el módulo de documentación de puesta en marcha","No se desarrolla en ningún lado del curso"], answer:1, explain:"El módulo indica que el control escalar vs. vectorial ya se cubrió en detalle en la capacitación Introducción a VDF, y aquí solo se referencia en el contexto de la puesta en marcha." },
     { q:"Según la tabla de resumen, ¿qué riesgo tiene una rampa de desaceleración mal configurada en una carga de mucha inercia?", options:["Sobretensión en el bus DC","Pérdida de la conexión a tierra","Cambio automático de tipo de control","Ninguno, la desaceleración no afecta al bus DC"], answer:0, explain:"Una desaceleración demasiado rápida en una carga con mucha inercia puede generar sobretensión en el bus DC, porque el motor actúa momentáneamente como generador." },
     { q:"¿Qué debe confirmarse durante la puesta en marcha respecto a la fuente de referencia de velocidad?", options:["Nada, se asume que funciona por defecto","Que la fuente seleccionada efectivamente esté entregando la señal esperada","Que el motor tenga el color correcto","Que la tensión de red sea trifásica"], answer:1, explain:"En la puesta en marcha se prueba y confirma que la fuente de referencia seleccionada (potenciómetro, señal analógica, etc.) efectivamente entrega la señal esperada antes de dar por buena la configuración." }
   ]
@@ -345,13 +345,13 @@ const MODULES = [
   eyebrow:'Módulo 04 · Puesta en marcha', sub:'Verificar el motor desacoplado de la carga mecánica antes de arriesgar el proceso real.',
   content:`
     <div class="card">
-      <p>Una <strong>prueba en vacío</strong> consiste en hacer girar el motor con el VFD ya configurado, pero con el motor <strong>mecánicamente desacoplado</strong> de la carga del proceso (sin la bomba, el ventilador, la cinta transportadora, etc. conectados al eje). Es el primer arranque real del sistema y el punto donde conviene detectar errores de configuración, antes de que involucren a la carga.</p>
+      <p>Una <strong>prueba en vacío</strong> consiste en hacer girar el motor con el VDF ya configurado, pero con el motor <strong>mecánicamente desacoplado</strong> de la carga del proceso (sin la bomba, el ventilador, la cinta transportadora, etc. conectados al eje). Es el primer arranque real del sistema y el punto donde conviene detectar errores de configuración, antes de que involucren a la carga.</p>
 
       ${H3("Qué se verifica en una prueba en vacío")}
       <ul>
         <li><strong>Sentido de giro:</strong> confirmar que el eje gira en la dirección esperada según el proceso — si está invertido, suele corregirse cambiando el orden de dos fases en el cable motor o mediante un parámetro de inversión del sentido, según el equipo.</li>
         <li><strong>Ausencia de vibración o ruido anormal:</strong> un motor sano y bien parametrizado debe girar de forma suave, sin ruidos mecánicos, zumbidos eléctricos fuera de lo normal ni vibración perceptible.</li>
-        <li><strong>Llegada a la velocidad de referencia sin fallas:</strong> el motor debe acelerar según la rampa configurada y estabilizarse en la velocidad de referencia solicitada, sin que el VFD dispare ninguna protección en el camino.</li>
+        <li><strong>Llegada a la velocidad de referencia sin fallas:</strong> el motor debe acelerar según la rampa configurada y estabilizarse en la velocidad de referencia solicitada, sin que el VDF dispare ninguna protección en el camino.</li>
       </ul>
 
       ${H3("Por qué se hace sin carga primero")}
@@ -363,11 +363,11 @@ const MODULES = [
     </div>
   `,
   quiz:[
-    { q:"¿Qué caracteriza a una prueba en vacío?", options:["El motor gira con la carga del proceso ya acoplada","El motor gira mecánicamente desacoplado de la carga del proceso","El VFD está apagado durante toda la prueba","Solo se verifica documentación, sin energizar nada"], answer:1, explain:"En una prueba en vacío el motor gira sin estar acoplado mecánicamente a la carga del proceso (bomba, ventilador, cinta, etc.)." },
+    { q:"¿Qué caracteriza a una prueba en vacío?", options:["El motor gira con la carga del proceso ya acoplada","El motor gira mecánicamente desacoplado de la carga del proceso","El VDF está apagado durante toda la prueba","Solo se verifica documentación, sin energizar nada"], answer:1, explain:"En una prueba en vacío el motor gira sin estar acoplado mecánicamente a la carga del proceso (bomba, ventilador, cinta, etc.)." },
     { q:"¿Cuál de estos NO es uno de los puntos que se verifica en una prueba en vacío según el módulo?", options:["Sentido de giro","Ausencia de vibración o ruido anormal","Llegada a la velocidad de referencia sin fallas","El consumo eléctrico total de toda la planta"], answer:3, explain:"Los puntos verificados son sentido de giro, ausencia de vibración/ruido anormal y llegada a la velocidad de referencia sin fallas — no el consumo eléctrico de toda la planta." },
     { q:"¿Cómo suele corregirse un sentido de giro invertido detectado en la prueba en vacío?", options:["Cambiando el orden de dos fases en el cable motor o con un parámetro de inversión, según el equipo","Es imposible de corregir, hay que cambiar el motor","Aumentando la frecuencia de conmutación","Reduciendo la tensión nominal de motor"], answer:0, explain:"El sentido de giro invertido se corrige típicamente cambiando el orden de dos fases del cable motor, o mediante un parámetro de inversión de sentido según el equipo." },
-    { q:"¿Por qué se recomienda hacer la primera prueba sin la carga mecánica acoplada?", options:["Porque así el motor gira más rápido","Porque reduce el riesgo: si hay un error de parametrización, sus efectos se limitan al motor sin comprometer el equipo mecánico del proceso","Porque las normas lo prohíben explícitamente en todos los casos","Porque el VFD no puede arrancar con carga acoplada nunca"], answer:1, explain:"Desacoplar la carga reduce el riesgo de la primera prueba: un error de parametrización afecta solo al motor, sin comprometer el equipo mecánico ni generar una condición insegura en el proceso." },
-    { q:"Según el aviso de este módulo, ¿cuándo recién se debe acoplar la carga mecánica al motor?", options:["Antes de la primera prueba, para ahorrar tiempo","Solo después de confirmar que la prueba en vacío fue exitosa","Nunca, la carga no se acopla en la puesta en marcha","Inmediatamente después de energizar el VFD, sin más verificación"], answer:1, explain:"La carga mecánica debe acoplarse recién después de confirmar sentido de giro correcto, ausencia de vibración/ruido anormal y llegada estable a la velocidad de referencia sin fallas en la prueba en vacío." }
+    { q:"¿Por qué se recomienda hacer la primera prueba sin la carga mecánica acoplada?", options:["Porque así el motor gira más rápido","Porque reduce el riesgo: si hay un error de parametrización, sus efectos se limitan al motor sin comprometer el equipo mecánico del proceso","Porque las normas lo prohíben explícitamente en todos los casos","Porque el VDF no puede arrancar con carga acoplada nunca"], answer:1, explain:"Desacoplar la carga reduce el riesgo de la primera prueba: un error de parametrización afecta solo al motor, sin comprometer el equipo mecánico ni generar una condición insegura en el proceso." },
+    { q:"Según el aviso de este módulo, ¿cuándo recién se debe acoplar la carga mecánica al motor?", options:["Antes de la primera prueba, para ahorrar tiempo","Solo después de confirmar que la prueba en vacío fue exitosa","Nunca, la carga no se acopla en la puesta en marcha","Inmediatamente después de energizar el VDF, sin más verificación"], answer:1, explain:"La carga mecánica debe acoplarse recién después de confirmar sentido de giro correcto, ausencia de vibración/ruido anormal y llegada estable a la velocidad de referencia sin fallas en la prueba en vacío." }
   ]
 },
 
@@ -416,8 +416,8 @@ const MODULES = [
 
       ${H3("Qué documentar")}
       <ul>
-        <li><strong>Parámetros finales configurados:</strong> listado completo (o backup del equipo, si el VFD lo permite) de todos los parámetros con los valores finales con que quedó configurado, no solo los básicos del asistente inicial.</li>
-        <li><strong>Datos de placa usados:</strong> los valores exactos de tensión, corriente, frecuencia, RPM y cos φ del motor que se cargaron en el VFD, con foto o copia de la placa de identificación como respaldo.</li>
+        <li><strong>Parámetros finales configurados:</strong> listado completo (o backup del equipo, si el VDF lo permite) de todos los parámetros con los valores finales con que quedó configurado, no solo los básicos del asistente inicial.</li>
+        <li><strong>Datos de placa usados:</strong> los valores exactos de tensión, corriente, frecuencia, RPM y cos φ del motor que se cargaron en el VDF, con foto o copia de la placa de identificación como respaldo.</li>
         <li><strong>Observaciones de las pruebas:</strong> resultados de la prueba en vacío y de la prueba con carga — sentido de giro, comportamiento observado, cualquier ajuste fino realizado y por qué se hizo.</li>
         <li><strong>Checklist de traspaso a producción/mantenimiento:</strong> confirmación de que el personal que operará y mantendrá el equipo conoce los parámetros clave, sabe interpretar las fallas más comunes y tiene acceso a la documentación completa.</li>
       </ul>
@@ -431,10 +431,10 @@ const MODULES = [
     </div>
   `,
   quiz:[
-    { q:"¿Cuándo se considera terminada una puesta en marcha, según este módulo?", options:["Apenas el motor gira correctamente con carga, sin necesidad de más pasos","Cuando además de las pruebas exitosas queda documentado el trabajo realizado y se traspasa la información a producción/mantenimiento","Nunca se considera terminada formalmente","Solo cuando el fabricante del VFD lo certifica por escrito"], answer:1, explain:"El módulo aclara que además de las pruebas exitosas, hace falta documentar parámetros, datos de placa, observaciones y hacer el traspaso a producción/mantenimiento." },
-    { q:"¿Cuál de estos NO es uno de los cuatro elementos a documentar mencionados en el módulo?", options:["Parámetros finales configurados","Datos de placa usados","Observaciones de las pruebas","El precio de compra del VFD"], answer:3, explain:"Los cuatro elementos mencionados son parámetros finales, datos de placa usados, observaciones de las pruebas y checklist de traspaso — no el precio de compra del equipo." },
-    { q:"¿Qué debe incluir el checklist de traspaso a producción/mantenimiento?", options:["Nada en particular, es solo un trámite","Confirmación de que el personal conoce los parámetros clave, sabe interpretar fallas comunes y tiene acceso a la documentación completa","Solo la firma del proveedor del VFD","El número de serie del motor únicamente"], answer:1, explain:"El checklist de traspaso confirma que el personal de producción/mantenimiento conoce los parámetros clave, sabe interpretar fallas comunes y tiene acceso a la documentación completa." },
-    { q:"¿Qué consecuencia menciona el módulo si no se documenta correctamente la puesta en marcha?", options:["Ninguna consecuencia relevante","Cualquier intervención futura obliga a repetir trabajo de diagnóstico desde cero, sin saber qué se configuró ni por qué","El VFD deja de funcionar automáticamente","Se pierde la garantía del fabricante en todos los casos"], answer:1, explain:"Sin documentación, cualquier intervención futura obliga a repetir el diagnóstico desde cero, sin saber qué se configuró originalmente ni las razones detrás de esa configuración." },
+    { q:"¿Cuándo se considera terminada una puesta en marcha, según este módulo?", options:["Apenas el motor gira correctamente con carga, sin necesidad de más pasos","Cuando además de las pruebas exitosas queda documentado el trabajo realizado y se traspasa la información a producción/mantenimiento","Nunca se considera terminada formalmente","Solo cuando el fabricante del VDF lo certifica por escrito"], answer:1, explain:"El módulo aclara que además de las pruebas exitosas, hace falta documentar parámetros, datos de placa, observaciones y hacer el traspaso a producción/mantenimiento." },
+    { q:"¿Cuál de estos NO es uno de los cuatro elementos a documentar mencionados en el módulo?", options:["Parámetros finales configurados","Datos de placa usados","Observaciones de las pruebas","El precio de compra del VDF"], answer:3, explain:"Los cuatro elementos mencionados son parámetros finales, datos de placa usados, observaciones de las pruebas y checklist de traspaso — no el precio de compra del equipo." },
+    { q:"¿Qué debe incluir el checklist de traspaso a producción/mantenimiento?", options:["Nada en particular, es solo un trámite","Confirmación de que el personal conoce los parámetros clave, sabe interpretar fallas comunes y tiene acceso a la documentación completa","Solo la firma del proveedor del VDF","El número de serie del motor únicamente"], answer:1, explain:"El checklist de traspaso confirma que el personal de producción/mantenimiento conoce los parámetros clave, sabe interpretar fallas comunes y tiene acceso a la documentación completa." },
+    { q:"¿Qué consecuencia menciona el módulo si no se documenta correctamente la puesta en marcha?", options:["Ninguna consecuencia relevante","Cualquier intervención futura obliga a repetir trabajo de diagnóstico desde cero, sin saber qué se configuró ni por qué","El VDF deja de funcionar automáticamente","Se pierde la garantía del fabricante en todos los casos"], answer:1, explain:"Sin documentación, cualquier intervención futura obliga a repetir el diagnóstico desde cero, sin saber qué se configuró originalmente ni las razones detrás de esa configuración." },
     { q:"Según el módulo, ¿el formato exacto del registro de puesta en marcha (planilla, backup digital, informe) es siempre el mismo entre empresas?", options:["Sí, existe un formato único obligatorio en toda la industria","No, varía según la práctica de cada empresa o integrador; lo esencial es que los puntos clave queden cubiertos de forma verificable","No se documenta nunca en ningún formato","Solo se documenta si el cliente lo exige por contrato"], answer:1, explain:"El formato exacto varía según cada empresa o integrador — lo importante es que los cuatro puntos clave (parámetros, datos de placa, observaciones, checklist de traspaso) queden cubiertos de alguna forma verificable." }
   ]
 }

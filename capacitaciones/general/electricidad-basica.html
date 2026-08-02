@@ -184,7 +184,7 @@
 <div class="app">
   <nav class="sidebar">
     <div class="brand">
-      <div class="brand-logo">⚡ VFD ACADEMY</div>
+      <div class="brand-logo">⚡ VDF ACADEMY</div>
       <div class="tag">Fundamentos · Sin marca</div>
       <h1>Electricidad industrial básica</h1>
       <p>Los fundamentos eléctricos que necesitás antes de tocar un variador de frecuencia — sin conocimientos previos de electricidad.</p>
@@ -222,7 +222,7 @@ const MODULES = [
 
 {
   id:'corriente-ac-dc', title:'Corriente continua (DC) vs. corriente alterna (AC)', short:'AC vs. DC',
-  eyebrow:'Módulo 01 · Fundamentos eléctricos', sub:'Qué diferencia hay entre corriente continua y alterna, y por qué un VFD necesita convertir una en la otra.',
+  eyebrow:'Módulo 01 · Fundamentos eléctricos', sub:'Qué diferencia hay entre corriente continua y alterna, y por qué un VDF necesita convertir una en la otra.',
   content:`
     <div class="card">
       <p>Antes de hablar de motores o de variadores, hay que tener clara la diferencia entre los dos tipos básicos de corriente eléctrica: <strong>continua (DC)</strong> y <strong>alterna (AC)</strong>.</p>
@@ -236,12 +236,12 @@ const MODULES = [
       ${H3("¿Por qué la red eléctrica es AC?")}
       <p>La corriente alterna se adoptó como estándar de distribución porque su tensión puede elevarse o reducirse fácilmente con transformadores, lo que permite transportar energía a largas distancias con pérdidas bajas (alta tensión, baja corriente) y luego bajarla a niveles seguros de uso. La corriente continua, en cambio, es mucho más difícil y costosa de transformar de un nivel de tensión a otro.</p>
 
-      ${H3("¿Por qué un VFD usa DC internamente?")}
-      <p>Un variador de frecuencia recibe AC de la red, pero internamente <strong>rectifica</strong> esa AC a DC y la almacena en un banco de condensadores llamado <strong>bus DC</strong>. Desde ese bus DC, una segunda etapa (el inversor) reconstruye una nueva señal AC de frecuencia y voltaje variables para entregarle al motor exactamente la velocidad que el proceso necesita — ese es, justamente, el principio básico que ya viste en el módulo de arquitectura de la capacitación "Introducción a VFD".</p>
+      ${H3("¿Por qué un VDF usa DC internamente?")}
+      <p>Un variador de frecuencia recibe AC de la red, pero internamente <strong>rectifica</strong> esa AC a DC y la almacena en un banco de condensadores llamado <strong>bus DC</strong>. Desde ese bus DC, una segunda etapa (el inversor) reconstruye una nueva señal AC de frecuencia y voltaje variables para entregarle al motor exactamente la velocidad que el proceso necesita — ese es, justamente, el principio básico que ya viste en el módulo de arquitectura de la capacitación "Introducción a VDF".</p>
 
       ${PLACEHOLDER("Dos gráficos lado a lado: forma de onda DC (línea recta constante en el tiempo) vs. forma de onda AC (curva senoidal que sube y baja pasando por cero), con el eje de tiempo marcado en un ciclo completo")}
 
-      ${INFO("Conocimiento general de electricidad, no una cita de un manual puntual: sirve como base común a cualquier fabricante de VFD.")}
+      ${INFO("Conocimiento general de electricidad, no una cita de un manual puntual: sirve como base común a cualquier fabricante de VDF.")}
     </div>
   `,
   quiz:[
@@ -249,7 +249,7 @@ const MODULES = [
     { q:"¿Qué forma de onda tiene la corriente alterna (AC)?", options:["Una línea recta constante","Una onda cuadrada","Una onda senoidal que invierte su sentido periódicamente","No tiene forma definida"], answer:2, explain:"La AC sigue una forma de onda senoidal, invirtiendo periódicamente su sentido entre un máximo positivo y uno negativo." },
     { q:"¿Qué mide la frecuencia de una señal AC y en qué unidad se expresa?", options:["La tensión máxima, en Volts","Cuántas veces por segundo se repite el ciclo, en Hertz (Hz)","La corriente máxima, en Amperes","La potencia, en Watts"], answer:1, explain:"La frecuencia es la cantidad de veces por segundo que se repite el ciclo de la onda AC, medida en Hertz (Hz)." },
     { q:"¿Por qué la red eléctrica de distribución usa AC en lugar de DC?", options:["Porque la AC es más simple de generar y no tiene otra ventaja","Porque la tensión de AC puede elevarse o reducirse fácilmente con transformadores para transportar energía con pérdidas bajas","Porque la AC no requiere cables","Porque los motores solo pueden alimentarse con AC, nunca con DC"], answer:1, explain:"La AC se adoptó como estándar porque su tensión se transforma fácilmente con transformadores, permitiendo transportar energía a largas distancias con pérdidas bajas." },
-    { q:"¿Por qué un VFD convierte la AC de red en DC internamente (bus DC)?", options:["Porque el motor solo puede alimentarse en DC","Para almacenar y filtrar la energía como etapa intermedia, antes de que el inversor reconstruya una nueva AC de frecuencia y voltaje variables para el motor","Porque así se ahorra el uso de un rectificador","Porque la DC es más barata de generar que la AC"], answer:1, explain:"El bus DC es una etapa intermedia de almacenamiento y filtrado; desde ahí el inversor reconstruye una AC de frecuencia y voltaje variables para el motor." }
+    { q:"¿Por qué un VDF convierte la AC de red en DC internamente (bus DC)?", options:["Porque el motor solo puede alimentarse en DC","Para almacenar y filtrar la energía como etapa intermedia, antes de que el inversor reconstruya una nueva AC de frecuencia y voltaje variables para el motor","Porque así se ahorra el uso de un rectificador","Porque la DC es más barata de generar que la AC"], answer:1, explain:"El bus DC es una etapa intermedia de almacenamiento y filtrado; desde ahí el inversor reconstruye una AC de frecuencia y voltaje variables para el motor." }
   ]
 },
 
@@ -292,7 +292,7 @@ const MODULES = [
 
 {
   id:'motor-induccion', title:'El motor de inducción: velocidad síncrona y deslizamiento', short:'Motor de inducción',
-  eyebrow:'Módulo 03 · Fundamentos eléctricos', sub:'Partes básicas del motor, la fórmula de velocidad síncrona y por qué el deslizamiento conecta directamente con el funcionamiento de un VFD.',
+  eyebrow:'Módulo 03 · Fundamentos eléctricos', sub:'Partes básicas del motor, la fórmula de velocidad síncrona y por qué el deslizamiento conecta directamente con el funcionamiento de un VDF.',
   content:`
     <div class="card">
       ${H3("Partes básicas de un motor de inducción")}
@@ -313,8 +313,8 @@ const MODULES = [
       ${H3("Deslizamiento (slip)")}
       <p>En un motor de inducción real, el rotor <strong>nunca llega a girar exactamente</strong> a la velocidad síncrona — siempre gira un poco más lento. Esa diferencia se llama <strong>deslizamiento</strong> (slip), y es necesaria: si el rotor girara exactamente a la misma velocidad que el campo giratorio, no habría movimiento relativo entre ambos y, por lo tanto, no se induciría corriente en el rotor ni se generaría el torque necesario para moverlo. El deslizamiento suele expresarse como porcentaje de la velocidad síncrona (típicamente entre 1% y 5% en motores industriales a plena carga).</p>
 
-      ${H3("La conexión con el VFD")}
-      <p>Mirá de nuevo la fórmula: <strong>n = 120 · f / p</strong>. El número de polos (p) es fijo, propio de la construcción del motor. Pero la frecuencia (f) es justamente la variable que un variador de frecuencia controla. <strong>Por eso cambiar la frecuencia (f) cambia directamente la velocidad del motor</strong> — ese es, en el fondo, el principio físico completo detrás de todo lo que hace un VFD.</p>
+      ${H3("La conexión con el VDF")}
+      <p>Mirá de nuevo la fórmula: <strong>n = 120 · f / p</strong>. El número de polos (p) es fijo, propio de la construcción del motor. Pero la frecuencia (f) es justamente la variable que un variador de frecuencia controla. <strong>Por eso cambiar la frecuencia (f) cambia directamente la velocidad del motor</strong> — ese es, en el fondo, el principio físico completo detrás de todo lo que hace un VDF.</p>
 
       ${PLACEHOLDER("Corte transversal de un motor de inducción mostrando estator, rotor jaula de ardilla y entrehierro, con una flecha indicando el campo magnético giratorio del estator y otra, algo más lenta, indicando el giro real del rotor")}
     </div>
@@ -324,7 +324,7 @@ const MODULES = [
     { q:"¿Por qué se llama 'motor de inducción' al tipo más común (rotor jaula de ardilla)?", options:["Porque el rotor tiene conexión eléctrica directa a la red","Porque la corriente se induce en el rotor por el propio campo giratorio del estator, sin conexión eléctrica directa","Porque solo funciona con corriente continua","Porque induce calor en el estator"], answer:1, explain:"En el rotor jaula de ardilla la corriente se induce por el campo giratorio del estator, sin conexión eléctrica directa externa — de ahí el nombre." },
     { q:"Usando n = 120 · f / p, ¿cuál es la velocidad síncrona de un motor de 4 polos alimentado a 60 Hz?", options:["900 RPM","1200 RPM","1800 RPM","3600 RPM"], answer:2, explain:"n = 120 × 60 / 4 = 1800 RPM, tal como se calcula en el ejemplo del módulo." },
     { q:"¿Por qué es necesario que exista deslizamiento (slip) en un motor de inducción?", options:["Para que el motor consuma más corriente sin razón","Porque si el rotor girara exactamente a la velocidad síncrona no habría movimiento relativo con el campo, y no se induciría corriente ni torque en el rotor","Para reducir el tamaño del motor","No es necesario, es un defecto de fabricación"], answer:1, explain:"Sin deslizamiento no hay movimiento relativo entre rotor y campo giratorio, por lo que no se induciría corriente ni se generaría torque." },
-    { q:"¿Por qué cambiar la frecuencia (f) con un VFD cambia directamente la velocidad del motor?", options:["Porque cambia el número de polos del motor","Porque la frecuencia es una de las variables de la fórmula n = 120·f/p que determina la velocidad síncrona, y el número de polos es fijo","Porque afecta solo al entrehierro","Porque desconecta el rotor del estator"], answer:1, explain:"El número de polos (p) es fijo por construcción; la frecuencia (f) es la variable que el VFD controla, y al aparecer en la fórmula n=120·f/p, cambiarla cambia directamente la velocidad." }
+    { q:"¿Por qué cambiar la frecuencia (f) con un VDF cambia directamente la velocidad del motor?", options:["Porque cambia el número de polos del motor","Porque la frecuencia es una de las variables de la fórmula n = 120·f/p que determina la velocidad síncrona, y el número de polos es fijo","Porque afecta solo al entrehierro","Porque desconecta el rotor del estator"], answer:1, explain:"El número de polos (p) es fijo por construcción; la frecuencia (f) es la variable que el VDF controla, y al aparecer en la fórmula n=120·f/p, cambiarla cambia directamente la velocidad." }
   ]
 },
 
@@ -402,10 +402,10 @@ const MODULES = [
 
 {
   id:'placa-motor', title:'Cómo leer la placa de datos de un motor', short:'Placa de motor',
-  eyebrow:'Módulo 06 · Fundamentos eléctricos', sub:'Los datos de la placa del motor son exactamente lo que después necesitás para parametrizar un VFD correctamente.',
+  eyebrow:'Módulo 06 · Fundamentos eléctricos', sub:'Los datos de la placa del motor son exactamente lo que después necesitás para parametrizar un VDF correctamente.',
   content:`
     <div class="card">
-      <p>La <strong>placa de datos</strong> (nameplate) de un motor eléctrico es una etiqueta metálica adosada a su carcasa con los parámetros de diseño del fabricante. Saber leerla es indispensable antes de conectar cualquier motor a un VFD, porque esos datos son justamente los que después hay que cargar en los parámetros básicos del variador.</p>
+      <p>La <strong>placa de datos</strong> (nameplate) de un motor eléctrico es una etiqueta metálica adosada a su carcasa con los parámetros de diseño del fabricante. Saber leerla es indispensable antes de conectar cualquier motor a un VDF, porque esos datos son justamente los que después hay que cargar en los parámetros básicos del variador.</p>
 
       ${H3("Datos típicos de una placa de motor")}
       <table class="tech">
@@ -419,29 +419,29 @@ const MODULES = [
         <tr><td>Grado de protección IP</td><td>Código (Ingress Protection) que indica el nivel de sellado de la carcasa del motor frente a polvo y agua, por ejemplo IP55.</td></tr>
       </table>
 
-      ${H3("¿Por qué esto importa para un VFD?")}
-      <p>Al poner en marcha un VFD, uno de los primeros pasos siempre es cargar los <strong>datos de placa del motor</strong> en los parámetros básicos del variador (tensión nominal, corriente nominal, frecuencia nominal, velocidad nominal, y a veces cos φ). Con esos datos, el VFD calcula internamente el modelo eléctrico del motor que necesita para controlarlo correctamente — es la base de cualquier puesta en marcha, sin importar la marca del variador.</p>
+      ${H3("¿Por qué esto importa para un VDF?")}
+      <p>Al poner en marcha un VDF, uno de los primeros pasos siempre es cargar los <strong>datos de placa del motor</strong> en los parámetros básicos del variador (tensión nominal, corriente nominal, frecuencia nominal, velocidad nominal, y a veces cos φ). Con esos datos, el VDF calcula internamente el modelo eléctrico del motor que necesita para controlarlo correctamente — es la base de cualquier puesta en marcha, sin importar la marca del variador.</p>
 
-      ${NOTE("Este mismo listado de datos de placa (tensión, corriente, frecuencia, velocidad, cos φ) es exactamente lo que vas a ver pedido como parámetros básicos de motor en la puesta en marcha de cualquier VFD específico de marca — memorizar bien qué significa cada uno ahora ahorra confusión después.")}
+      ${NOTE("Este mismo listado de datos de placa (tensión, corriente, frecuencia, velocidad, cos φ) es exactamente lo que vas a ver pedido como parámetros básicos de motor en la puesta en marcha de cualquier VDF específico de marca — memorizar bien qué significa cada uno ahora ahorra confusión después.")}
 
       ${PLACEHOLDER("Foto ilustrativa de una placa de datos de motor trifásico típica, con recuadros señalando cada campo: tensión (V), corriente (A), frecuencia (Hz), RPM, cos φ, clase de aislamiento y grado IP")}
     </div>
   `,
   quiz:[
     { q:"¿Qué es la placa de datos (nameplate) de un motor?", options:["Un accesorio decorativo sin información técnica","Una etiqueta con los parámetros de diseño del fabricante, adosada a la carcasa del motor","Un componente eléctrico interno del motor","Un tipo de fusible de protección"], answer:1, explain:"La placa de datos es una etiqueta metálica con los parámetros de diseño del fabricante, adosada a la carcasa del motor." },
-    { q:"¿Qué indica la corriente nominal en la placa de un motor?", options:["La corriente que consume el motor trabajando a plena carga, a tensión y frecuencia nominal","La corriente máxima que soporta el cableado de la instalación","La corriente del bus DC de un VFD","La corriente de arranque del motor únicamente"], answer:0, explain:"La corriente nominal indica el consumo del motor a plena carga, con la tensión y frecuencia nominal." },
+    { q:"¿Qué indica la corriente nominal en la placa de un motor?", options:["La corriente que consume el motor trabajando a plena carga, a tensión y frecuencia nominal","La corriente máxima que soporta el cableado de la instalación","La corriente del bus DC de un VDF","La corriente de arranque del motor únicamente"], answer:0, explain:"La corriente nominal indica el consumo del motor a plena carga, con la tensión y frecuencia nominal." },
     { q:"¿Por qué la velocidad nominal (RPM) de la placa siempre es algo menor que la velocidad síncrona?", options:["Por un error de fabricación","Por el deslizamiento (slip), necesario para que se induzca corriente y torque en el rotor","Porque la placa siempre redondea hacia abajo","Porque el motor gira más rápido en la práctica que en teoría"], answer:1, explain:"La velocidad nominal es menor que la síncrona debido al deslizamiento, necesario para inducir corriente y torque en el rotor." },
     { q:"¿Qué indica el grado de protección IP en la placa de un motor?", options:["El factor de potencia del motor","El nivel de sellado de la carcasa frente a polvo y agua","La clase de aislamiento térmico","La tensión nominal de alimentación"], answer:1, explain:"El grado de protección IP (Ingress Protection) indica el nivel de sellado de la carcasa frente a polvo y agua." },
-    { q:"¿Por qué los datos de la placa del motor son relevantes al poner en marcha un VFD?", options:["No tienen ninguna relación con la puesta en marcha de un VFD","Porque se cargan como parámetros básicos del variador (tensión, corriente, frecuencia, velocidad y cos φ nominales) para que el VFD calcule el modelo eléctrico del motor","Porque determinan el color del gabinete del VFD","Porque reemplazan la necesidad de cualquier otro parámetro del variador"], answer:1, explain:"Los datos de placa se cargan como parámetros básicos del VFD para que calcule internamente el modelo eléctrico del motor y lo controle correctamente." }
+    { q:"¿Por qué los datos de la placa del motor son relevantes al poner en marcha un VDF?", options:["No tienen ninguna relación con la puesta en marcha de un VDF","Porque se cargan como parámetros básicos del variador (tensión, corriente, frecuencia, velocidad y cos φ nominales) para que el VDF calcule el modelo eléctrico del motor","Porque determinan el color del gabinete del VDF","Porque reemplazan la necesidad de cualquier otro parámetro del variador"], answer:1, explain:"Los datos de placa se cargan como parámetros básicos del VDF para que calcule internamente el modelo eléctrico del motor y lo controle correctamente." }
   ]
 },
 
 {
   id:'glosario-electrico', title:'Glosario de electricidad básica', short:'Glosario',
-  eyebrow:'Módulo 07 · Fundamentos eléctricos', sub:'Términos eléctricos esenciales de esta capacitación de nivelación, previos al vocabulario específico de VFD.',
+  eyebrow:'Módulo 07 · Fundamentos eléctricos', sub:'Términos eléctricos esenciales de esta capacitación de nivelación, previos al vocabulario específico de VDF.',
   content:`
     <div class="card">
-      <p>Este glosario reúne los términos de electricidad básica cubiertos en esta capacitación. El vocabulario específico de variadores de frecuencia (IGBT, PWM, bus DC, etc.) se cubre en el glosario de la capacitación "Introducción a VFD" — no se repite acá.</p>
+      <p>Este glosario reúne los términos de electricidad básica cubiertos en esta capacitación. El vocabulario específico de variadores de frecuencia (IGBT, PWM, bus DC, etc.) se cubre en el glosario de la capacitación "Introducción a VDF" — no se repite acá.</p>
       <table class="tech">
         <tr><th>Término</th><th>Definición</th></tr>
         <tr><td>AC (corriente alterna)</td><td>Corriente que invierte periódicamente su sentido, siguiendo una forma de onda senoidal, caracterizada por su frecuencia en Hz.</td></tr>

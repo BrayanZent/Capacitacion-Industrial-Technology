@@ -184,10 +184,10 @@
 <div class="app">
   <nav class="sidebar">
     <div class="brand">
-      <div class="brand-logo">⚡ VFD ACADEMY</div>
+      <div class="brand-logo">⚡ VDF ACADEMY</div>
       <div class="tag">Fundamentos · Sin marca</div>
       <h1>Diagnóstico y fallas comunes</h1>
-      <p>Cómo razonar un diagnóstico de VFD paso a paso, antes de aprender los códigos específicos de cada marca.</p>
+      <p>Cómo razonar un diagnóstico de VDF paso a paso, antes de aprender los códigos específicos de cada marca.</p>
     </div>
     <ul class="navlist" id="navlist"></ul>
     <div class="sidebar-foot">
@@ -221,37 +221,37 @@ const MODULES = [
 { id:'overview', title:'Panel general', short:'Inicio', isOverview:true },
 
 {
-  id:'pensar-el-diagnostico', title:'Cómo pensar un diagnóstico de VFD', short:'Cómo pensar el diagnóstico',
+  id:'pensar-el-diagnostico', title:'Cómo pensar un diagnóstico de VDF', short:'Cómo pensar el diagnóstico',
   eyebrow:'Módulo 01 · Diagnóstico', sub:'Síntoma vs. causa raíz, por qué resetear sin investigar no resuelve nada, y el orden lógico para diagnosticar cualquier falla.',
   content:`
     <div class="card">
-      <p>Diagnosticar un VFD no es memorizar códigos de falla — es un proceso de razonamiento que se aplica igual sin importar la marca del equipo. Este módulo da el método general; los módulos siguientes lo aplican a las familias de falla más comunes.</p>
+      <p>Diagnosticar un VDF no es memorizar códigos de falla — es un proceso de razonamiento que se aplica igual sin importar la marca del equipo. Este módulo da el método general; los módulos siguientes lo aplican a las familias de falla más comunes.</p>
 
       ${H3("Síntoma vs. causa raíz")}
-      <p>El VFD reporta un <strong>síntoma</strong>: una condición que detectó y ante la cual se protegió (por ejemplo, "sobrecorriente" o "sobretemperatura"). Ese síntoma casi nunca es la <strong>causa raíz</strong> real del problema — es el efecto visible de algo que está pasando en la instalación, la carga mecánica, el cableado o el ambiente. Confundir el síntoma con la causa es el error de diagnóstico más común.</p>
+      <p>El VDF reporta un <strong>síntoma</strong>: una condición que detectó y ante la cual se protegió (por ejemplo, "sobrecorriente" o "sobretemperatura"). Ese síntoma casi nunca es la <strong>causa raíz</strong> real del problema — es el efecto visible de algo que está pasando en la instalación, la carga mecánica, el cableado o el ambiente. Confundir el síntoma con la causa es el error de diagnóstico más común.</p>
 
       ${H3("Por qué resetear sin investigar es un error")}
-      <p>Es tentador simplemente resetear la falla y volver a arrancar — muchas veces el equipo arranca de nuevo sin problema aparente. Pero si no se investigó qué generó la falla, la causa raíz sigue presente y el VFD va a volver a protegerse en cuanto se repitan las condiciones que la originaron. Cada reseteo sin investigación es una oportunidad perdida de evitar una parada de planta futura, y en algunos casos (fallas de tierra, por ejemplo) puede significar seguir operando con un riesgo eléctrico real sin resolver.</p>
+      <p>Es tentador simplemente resetear la falla y volver a arrancar — muchas veces el equipo arranca de nuevo sin problema aparente. Pero si no se investigó qué generó la falla, la causa raíz sigue presente y el VDF va a volver a protegerse en cuanto se repitan las condiciones que la originaron. Cada reseteo sin investigación es una oportunidad perdida de evitar una parada de planta futura, y en algunos casos (fallas de tierra, por ejemplo) puede significar seguir operando con un riesgo eléctrico real sin resolver.</p>
       ${NOTE("Resetear una falla no es diagnosticar. Es aceptable como paso operativo para restablecer producción si la situación lo exige, pero siempre debe ir acompañado de una investigación de la causa — antes o inmediatamente después del reset.")}
 
       ${H3("Orden lógico de diagnóstico: de lo simple/externo a lo complejo/interno")}
-      <p>Un diagnóstico eficiente sigue un orden: primero se descarta lo simple y externo al VFD, y recién después se profundiza en lo interno y complejo.</p>
+      <p>Un diagnóstico eficiente sigue un orden: primero se descarta lo simple y externo al VDF, y recién después se profundiza en lo interno y complejo.</p>
       <ol>
         <li><strong>Lo externo y simple primero:</strong> alimentación de red, conexiones flojas, temperatura ambiente, ventilación, estado de la carga mecánica.</li>
         <li><strong>Lo que cambió recientemente:</strong> ¿se modificó algún parámetro, se cambió el motor, se intervino la instalación?</li>
-        <li><strong>Lo interno y complejo al final:</strong> componentes internos del VFD (bus DC, IGBTs, tarjetas de control) — esto último normalmente requiere personal técnico especializado y, en muchos casos, contacto con el fabricante o su soporte.</li>
+        <li><strong>Lo interno y complejo al final:</strong> componentes internos del VDF (bus DC, IGBTs, tarjetas de control) — esto último normalmente requiere personal técnico especializado y, en muchos casos, contacto con el fabricante o su soporte.</li>
       </ol>
-      ${INFO("Ir directo a sospechar del VFD como \"culpable\" sin antes descartar la instalación y la carga es la causa más frecuente de diagnósticos largos y de cambiar piezas que no eran el problema real.")}
+      ${INFO("Ir directo a sospechar del VDF como \"culpable\" sin antes descartar la instalación y la carga es la causa más frecuente de diagnósticos largos y de cambiar piezas que no eran el problema real.")}
 
-      ${PLACEHOLDER("Diagrama de flujo de diagnóstico: síntoma reportado → verificar lo externo/simple → verificar cambios recientes → recién ahí investigar lo interno del VFD")}
+      ${PLACEHOLDER("Diagrama de flujo de diagnóstico: síntoma reportado → verificar lo externo/simple → verificar cambios recientes → recién ahí investigar lo interno del VDF")}
     </div>
   `,
   quiz:[
-    { q:"¿Qué es el 'síntoma' que reporta un VFD ante una falla?", options:["La causa raíz exacta del problema","La condición que detectó y ante la cual se protegió, no necesariamente la causa real","Un dato irrelevante que se puede ignorar","Siempre un problema del propio VFD"], answer:1, explain:"El síntoma es el efecto visible que el VFD detectó y ante el cual se protegió; casi nunca es la causa raíz real del problema." },
-    { q:"¿Por qué resetear una falla sin investigar la causa es un error de diagnóstico?", options:["Porque el VFD se daña al resetear","Porque la causa raíz sigue presente y la falla probablemente se repita al volver las mismas condiciones","Porque el reset borra el historial de fallas automáticamente","No es un error, siempre es la mejor práctica"], answer:1, explain:"Si no se investigó qué generó la falla, la causa raíz sigue ahí y el VFD volverá a protegerse en cuanto se repitan las condiciones que la originaron." },
-    { q:"Según el orden lógico de diagnóstico propuesto, ¿qué debería verificarse primero?", options:["Los componentes internos del VFD como el bus DC o los IGBTs","Lo externo y simple: alimentación, conexiones, temperatura ambiente, ventilación y carga mecánica","Directamente contactar al fabricante","Cambiar el VFD completo"], answer:1, explain:"El orden lógico propone descartar primero lo externo y simple al VFD, y recién después profundizar en lo interno y complejo." },
-    { q:"¿Cuál es la causa más frecuente de diagnósticos largos según el módulo?", options:["Revisar demasiado la instalación antes de sospechar del VFD","Ir directo a sospechar del VFD como culpable sin antes descartar la instalación y la carga","Consultar el historial de fallas","Usar el orden lógico de diagnóstico"], answer:1, explain:"Ir directo a sospechar del VFD sin descartar antes la instalación y la carga mecánica es la causa más frecuente de diagnósticos largos y reemplazos innecesarios de piezas." },
-    { q:"¿Es aceptable resetear una falla como paso operativo?", options:["Nunca, bajo ninguna circunstancia","Sí, si la situación lo exige, pero siempre acompañado de una investigación de la causa antes o después del reset","Sí, y no hace falta investigar nunca la causa","Solo si el VFD lo permite mediante software"], answer:1, explain:"Resetear puede ser aceptable como paso operativo para restablecer producción, pero siempre debe acompañarse de una investigación de la causa raíz." }
+    { q:"¿Qué es el 'síntoma' que reporta un VDF ante una falla?", options:["La causa raíz exacta del problema","La condición que detectó y ante la cual se protegió, no necesariamente la causa real","Un dato irrelevante que se puede ignorar","Siempre un problema del propio VDF"], answer:1, explain:"El síntoma es el efecto visible que el VDF detectó y ante el cual se protegió; casi nunca es la causa raíz real del problema." },
+    { q:"¿Por qué resetear una falla sin investigar la causa es un error de diagnóstico?", options:["Porque el VDF se daña al resetear","Porque la causa raíz sigue presente y la falla probablemente se repita al volver las mismas condiciones","Porque el reset borra el historial de fallas automáticamente","No es un error, siempre es la mejor práctica"], answer:1, explain:"Si no se investigó qué generó la falla, la causa raíz sigue ahí y el VDF volverá a protegerse en cuanto se repitan las condiciones que la originaron." },
+    { q:"Según el orden lógico de diagnóstico propuesto, ¿qué debería verificarse primero?", options:["Los componentes internos del VDF como el bus DC o los IGBTs","Lo externo y simple: alimentación, conexiones, temperatura ambiente, ventilación y carga mecánica","Directamente contactar al fabricante","Cambiar el VDF completo"], answer:1, explain:"El orden lógico propone descartar primero lo externo y simple al VDF, y recién después profundizar en lo interno y complejo." },
+    { q:"¿Cuál es la causa más frecuente de diagnósticos largos según el módulo?", options:["Revisar demasiado la instalación antes de sospechar del VDF","Ir directo a sospechar del VDF como culpable sin antes descartar la instalación y la carga","Consultar el historial de fallas","Usar el orden lógico de diagnóstico"], answer:1, explain:"Ir directo a sospechar del VDF sin descartar antes la instalación y la carga mecánica es la causa más frecuente de diagnósticos largos y reemplazos innecesarios de piezas." },
+    { q:"¿Es aceptable resetear una falla como paso operativo?", options:["Nunca, bajo ninguna circunstancia","Sí, si la situación lo exige, pero siempre acompañado de una investigación de la causa antes o después del reset","Sí, y no hace falta investigar nunca la causa","Solo si el VDF lo permite mediante software"], answer:1, explain:"Resetear puede ser aceptable como paso operativo para restablecer producción, pero siempre debe acompañarse de una investigación de la causa raíz." }
   ]
 },
 
@@ -261,12 +261,12 @@ const MODULES = [
   content:`
     <div class="card">
       ${H3("Qué es una falla de sobrecorriente / sobrecarga")}
-      <p>El VFD mide constantemente la corriente que entrega al motor y se protege cuando esa corriente supera un límite — ya sea de forma instantánea (sobrecorriente) o sostenida en el tiempo (sobrecarga térmica). Es una de las protecciones más comunes en cualquier variador, sin importar la marca.</p>
+      <p>El VDF mide constantemente la corriente que entrega al motor y se protege cuando esa corriente supera un límite — ya sea de forma instantánea (sobrecorriente) o sostenida en el tiempo (sobrecarga térmica). Es una de las protecciones más comunes en cualquier variador, sin importar la marca.</p>
 
       ${H3("Causas típicas genéricas")}
       <table class="tech">
         <tr><th>Causa</th><th>Por qué genera sobrecorriente/sobrecarga</th></tr>
-        <tr><td>Motor sobredimensionado para el VFD</td><td>El VFD no tiene capacidad de corriente suficiente para el motor conectado; se protege al primer arranque o ante cualquier variación de carga.</td></tr>
+        <tr><td>Motor sobredimensionado para el VDF</td><td>El VDF no tiene capacidad de corriente suficiente para el motor conectado; se protege al primer arranque o ante cualquier variación de carga.</td></tr>
         <tr><td>Carga mecánica trabada o excesiva</td><td>Un rodamiento agarrotado, un elemento mecánico atascado o una carga por encima del diseño exigen más torque (y más corriente) del que el motor puede entregar de forma sostenida.</td></tr>
         <tr><td>Rampa de aceleración demasiado agresiva</td><td>Pedirle al motor que acelere una inercia grande en muy poco tiempo demanda picos de corriente elevados.</td></tr>
         <tr><td>Cortocircuito de salida (cable o motor)</td><td>Un cortocircuito entre fases de salida o en el bobinado del motor genera una sobrecorriente instantánea y severa.</td></tr>
@@ -274,10 +274,10 @@ const MODULES = [
 
       ${H3("Qué verificar primero")}
       <ol>
-        <li>Que los datos de placa del motor coincidan con lo configurado en el VFD (corriente nominal, potencia).</li>
-        <li>Que el eje del motor y la carga mecánica giren libremente sin el VFD conectado (girar a mano si es seguro y posible, con el equipo bloqueado).</li>
+        <li>Que los datos de placa del motor coincidan con lo configurado en el VDF (corriente nominal, potencia).</li>
+        <li>Que el eje del motor y la carga mecánica giren libremente sin el VDF conectado (girar a mano si es seguro y posible, con el equipo bloqueado).</li>
         <li>El tiempo de rampa de aceleración configurado, comparado contra la inercia real de la carga.</li>
-        <li>Continuidad y aislamiento del cable y del motor, para descartar un cortocircuito de salida, antes de sospechar del VFD.</li>
+        <li>Continuidad y aislamiento del cable y del motor, para descartar un cortocircuito de salida, antes de sospechar del VDF.</li>
       </ol>
       ${INFO("Una sobrecorriente que aparece siempre al mismo punto de la rampa de arranque suele apuntar a la rampa o a la carga mecánica; una sobrecorriente aleatoria o intermitente suele apuntar más a un problema de cableado, conexión floja o aislamiento.")}
 
@@ -285,10 +285,10 @@ const MODULES = [
     </div>
   `,
   quiz:[
-    { q:"¿Qué mide y protege el VFD en una falla de sobrecorriente/sobrecarga?", options:["La temperatura ambiente","La corriente entregada al motor, instantánea o sostenida en el tiempo","La tensión del bus DC","La frecuencia de conmutación de los IGBT"], answer:1, explain:"El VFD mide la corriente que entrega al motor y se protege cuando supera un límite, ya sea de forma instantánea (sobrecorriente) o sostenida (sobrecarga térmica)." },
+    { q:"¿Qué mide y protege el VDF en una falla de sobrecorriente/sobrecarga?", options:["La temperatura ambiente","La corriente entregada al motor, instantánea o sostenida en el tiempo","La tensión del bus DC","La frecuencia de conmutación de los IGBT"], answer:1, explain:"El VDF mide la corriente que entrega al motor y se protege cuando supera un límite, ya sea de forma instantánea (sobrecorriente) o sostenida (sobrecarga térmica)." },
     { q:"¿Cuál de estas es una causa típica genérica de sobrecorriente mencionada en el módulo?", options:["Una rampa de aceleración demasiado lenta","Carga mecánica trabada o excesiva","Un exceso de ventilación en el gabinete","Un filtro de aire nuevo"], answer:1, explain:"Una carga mecánica trabada o excesiva exige más torque y corriente de la que el motor puede entregar de forma sostenida." },
-    { q:"¿Por qué una rampa de aceleración demasiado agresiva puede generar sobrecorriente?", options:["Porque reduce la tensión de red","Porque pedirle al motor acelerar una inercia grande en poco tiempo demanda picos de corriente elevados","Porque apaga el ventilador interno del VFD","Porque desconecta el bus DC"], answer:1, explain:"Acelerar una inercia grande en muy poco tiempo demanda picos de corriente elevados, lo que puede disparar una protección de sobrecorriente." },
-    { q:"¿Qué se recomienda verificar primero ante una sobrecorriente, según el módulo?", options:["Cambiar el VFD directamente","Que los datos de placa del motor coincidan con lo configurado en el VFD, entre otras verificaciones simples","Aumentar la frecuencia de conmutación","Reducir el tiempo de rampa a cero"], answer:1, explain:"Entre las primeras verificaciones está comparar los datos de placa del motor contra lo configurado en el VFD, además de revisar la carga mecánica y el cableado." },
+    { q:"¿Por qué una rampa de aceleración demasiado agresiva puede generar sobrecorriente?", options:["Porque reduce la tensión de red","Porque pedirle al motor acelerar una inercia grande en poco tiempo demanda picos de corriente elevados","Porque apaga el ventilador interno del VDF","Porque desconecta el bus DC"], answer:1, explain:"Acelerar una inercia grande en muy poco tiempo demanda picos de corriente elevados, lo que puede disparar una protección de sobrecorriente." },
+    { q:"¿Qué se recomienda verificar primero ante una sobrecorriente, según el módulo?", options:["Cambiar el VDF directamente","Que los datos de placa del motor coincidan con lo configurado en el VDF, entre otras verificaciones simples","Aumentar la frecuencia de conmutación","Reducir el tiempo de rampa a cero"], answer:1, explain:"Entre las primeras verificaciones está comparar los datos de placa del motor contra lo configurado en el VDF, además de revisar la carga mecánica y el cableado." },
     { q:"Según el módulo, ¿qué patrón de sobrecorriente suele apuntar más a un problema de cableado o conexión floja?", options:["Una sobrecorriente que siempre aparece en el mismo punto de la rampa","Una sobrecorriente aleatoria o intermitente","Una sobrecorriente que nunca se repite","No hay ningún patrón que ayude a diferenciar causas"], answer:1, explain:"Una sobrecorriente aleatoria o intermitente suele apuntar más a un problema de cableado, conexión floja o aislamiento que a la rampa o la carga mecánica." }
   ]
 },
@@ -298,13 +298,13 @@ const MODULES = [
   eyebrow:'Módulo 03 · Diagnóstico', sub:'Sobretensión típica por frenado, subtensión típica por caída de red o fase faltante.',
   content:`
     <div class="card">
-      <p>El bus DC interno del VFD debe mantenerse dentro de un rango de tensión para que el equipo opere de forma segura. Dos fallas típicas de esta familia son la sobretensión y la subtensión del bus DC.</p>
+      <p>El bus DC interno del VDF debe mantenerse dentro de un rango de tensión para que el equipo opere de forma segura. Dos fallas típicas de esta familia son la sobretensión y la subtensión del bus DC.</p>
 
       ${H3("Sobretensión del bus DC")}
-      <p>Ocurre cuando la tensión del bus DC sube por encima del límite admitido. La causa típica más genérica es un <strong>frenado o desaceleración demasiado rápida</strong>: al frenar, el motor se comporta momentáneamente como generador y devuelve energía al bus DC; si esa energía no tiene adónde ir (por ejemplo, no hay una resistencia de frenado instalada, o la rampa de desaceleración es más rápida de lo que la carga y su inercia permiten disipar), la tensión del bus DC sube y el VFD se protege.</p>
+      <p>Ocurre cuando la tensión del bus DC sube por encima del límite admitido. La causa típica más genérica es un <strong>frenado o desaceleración demasiado rápida</strong>: al frenar, el motor se comporta momentáneamente como generador y devuelve energía al bus DC; si esa energía no tiene adónde ir (por ejemplo, no hay una resistencia de frenado instalada, o la rampa de desaceleración es más rápida de lo que la carga y su inercia permiten disipar), la tensión del bus DC sube y el VDF se protege.</p>
 
       ${H3("Subtensión del bus DC")}
-      <p>Ocurre cuando la tensión del bus DC cae por debajo del límite admitido. Las causas típicas más genéricas son una <strong>caída de tensión de la red eléctrica</strong> (sag momentáneo, sobrecarga de la red, arranque simultáneo de otras cargas grandes) o una <strong>fase faltante</strong> en la alimentación de entrada del VFD.</p>
+      <p>Ocurre cuando la tensión del bus DC cae por debajo del límite admitido. Las causas típicas más genéricas son una <strong>caída de tensión de la red eléctrica</strong> (sag momentáneo, sobrecarga de la red, arranque simultáneo de otras cargas grandes) o una <strong>fase faltante</strong> en la alimentación de entrada del VDF.</p>
 
       <table class="tech">
         <tr><th>Falla</th><th>Causa típica genérica</th><th>Qué revisar primero</th></tr>
@@ -312,31 +312,31 @@ const MODULES = [
         <tr><td>Subtensión de bus DC</td><td>Caída de tensión de red o fase de entrada faltante</td><td>Tensión y las tres fases de la alimentación de entrada, con instrumento de medición</td></tr>
       </table>
 
-      ${NOTE("El bus DC almacena energía en condensadores y puede mantener tensión peligrosa incluso después de desconectar la red — ese riesgo de energía residual ya se cubrió en detalle en el módulo de seguridad eléctrica de la capacitación 'Introducción a VFD'; acá solo se lo menciona como recordatorio antes de manipular el equipo para diagnosticar estas fallas.")}
+      ${NOTE("El bus DC almacena energía en condensadores y puede mantener tensión peligrosa incluso después de desconectar la red — ese riesgo de energía residual ya se cubrió en detalle en el módulo de seguridad eléctrica de la capacitación 'Introducción a VDF'; acá solo se lo menciona como recordatorio antes de manipular el equipo para diagnosticar estas fallas.")}
     </div>
   `,
   quiz:[
     { q:"¿Cuál es la causa típica genérica de sobretensión del bus DC mencionada en el módulo?", options:["Una fase de entrada faltante","Frenado o desaceleración demasiado rápida sin manera de disipar la energía devuelta por el motor","Un filtro de aire sucio","Un motor sobredimensionado"], answer:1, explain:"Al frenar rápido, el motor devuelve energía al bus DC; si no hay resistencia de frenado adecuada o la rampa es muy rápida para la inercia de la carga, la tensión del bus DC sube." },
-    { q:"¿Cuál es la causa típica genérica de subtensión del bus DC mencionada en el módulo?", options:["Una rampa de aceleración muy lenta","Caída de tensión de la red eléctrica o una fase de entrada faltante","Exceso de ventilación","Un cortocircuito de salida"], answer:1, explain:"La subtensión del bus DC típicamente se origina en una caída de tensión de red o en una fase faltante en la alimentación de entrada del VFD." },
+    { q:"¿Cuál es la causa típica genérica de subtensión del bus DC mencionada en el módulo?", options:["Una rampa de aceleración muy lenta","Caída de tensión de la red eléctrica o una fase de entrada faltante","Exceso de ventilación","Un cortocircuito de salida"], answer:1, explain:"La subtensión del bus DC típicamente se origina en una caída de tensión de red o en una fase faltante en la alimentación de entrada del VDF." },
     { q:"Ante una sospecha de sobretensión de bus DC por frenado, ¿qué debería revisarse primero según la tabla del módulo?", options:["Las tres fases de la alimentación de entrada","El tiempo de rampa de desaceleración frente a la inercia de la carga, y la presencia/estado de la resistencia de frenado","El historial de temperatura ambiente","El grado de protección IP del gabinete"], answer:1, explain:"Para sobretensión de bus DC por frenado, se revisa el tiempo de rampa de desaceleración contra la inercia de la carga, y la resistencia de frenado." },
-    { q:"¿Por qué el motor puede devolver energía al bus DC durante un frenado rápido?", options:["Porque el motor se comporta momentáneamente como generador","Porque el rectificador se apaga durante el frenado","Porque el VFD invierte automáticamente las fases de red","Porque la carga se desconecta del motor"], answer:0, explain:"Durante un frenado, el motor se comporta momentáneamente como generador y devuelve energía eléctrica hacia el bus DC." },
-    { q:"¿Qué recordatorio de seguridad hace este módulo respecto al bus DC?", options:["Que nunca almacena energía peligrosa","Que puede mantener tensión peligrosa incluso después de desconectar la red, tema ya cubierto en detalle en otra capacitación de la serie","Que solo es peligroso si el VFD está encendido","Que no requiere ninguna precaución adicional"], answer:1, explain:"El módulo recuerda el riesgo de energía residual del bus DC, remitiendo al detalle ya cubierto en el módulo de seguridad eléctrica de 'Electricidad industrial básica'." }
+    { q:"¿Por qué el motor puede devolver energía al bus DC durante un frenado rápido?", options:["Porque el motor se comporta momentáneamente como generador","Porque el rectificador se apaga durante el frenado","Porque el VDF invierte automáticamente las fases de red","Porque la carga se desconecta del motor"], answer:0, explain:"Durante un frenado, el motor se comporta momentáneamente como generador y devuelve energía eléctrica hacia el bus DC." },
+    { q:"¿Qué recordatorio de seguridad hace este módulo respecto al bus DC?", options:["Que nunca almacena energía peligrosa","Que puede mantener tensión peligrosa incluso después de desconectar la red, tema ya cubierto en detalle en otra capacitación de la serie","Que solo es peligroso si el VDF está encendido","Que no requiere ninguna precaución adicional"], answer:1, explain:"El módulo recuerda el riesgo de energía residual del bus DC, remitiendo al detalle ya cubierto en el módulo de seguridad eléctrica de 'Electricidad industrial básica'." }
   ]
 },
 
 {
-  id:'sobretemperatura', title:'Fallas de sobretemperatura: VFD vs. motor', short:'Sobretemperatura',
-  eyebrow:'Módulo 04 · Diagnóstico', sub:'Causas típicas de sobretemperatura del propio VFD frente a las causas típicas de sobretemperatura del motor.',
+  id:'sobretemperatura', title:'Fallas de sobretemperatura: VDF vs. motor', short:'Sobretemperatura',
+  eyebrow:'Módulo 04 · Diagnóstico', sub:'Causas típicas de sobretemperatura del propio VDF frente a las causas típicas de sobretemperatura del motor.',
   content:`
     <div class="card">
-      <p>La sobretemperatura es otra familia de fallas frecuente, y es importante distinguir si lo que se está sobrecalentando es el <strong>VFD</strong> o el <strong>motor</strong> — las causas típicas son distintas.</p>
+      <p>La sobretemperatura es otra familia de fallas frecuente, y es importante distinguir si lo que se está sobrecalentando es el <strong>VDF</strong> o el <strong>motor</strong> — las causas típicas son distintas.</p>
 
-      ${H3("Sobretemperatura del VFD")}
+      ${H3("Sobretemperatura del VDF")}
       <ul>
         <li><strong>Ventilación obstruida:</strong> rejillas de entrada/salida de aire bloqueadas por polvo, objetos o mala instalación (espacio insuficiente alrededor del gabinete).</li>
-        <li><strong>Temperatura ambiente excesiva:</strong> el VFD instalado en un recinto o sala con temperatura por encima de lo que su diseño admite.</li>
+        <li><strong>Temperatura ambiente excesiva:</strong> el VDF instalado en un recinto o sala con temperatura por encima de lo que su diseño admite.</li>
         <li><strong>Filtros de aire sucios:</strong> en gabinetes con filtro de entrada de aire, la acumulación de polvo reduce el flujo de aire de enfriamiento.</li>
-        <li><strong>Ventilador interno fallado:</strong> el ventilador de enfriamiento del propio VFD dejó de girar o gira más lento de lo normal.</li>
+        <li><strong>Ventilador interno fallado:</strong> el ventilador de enfriamiento del propio VDF dejó de girar o gira más lento de lo normal.</li>
       </ul>
 
       ${H3("Sobretemperatura del motor")}
@@ -346,19 +346,19 @@ const MODULES = [
       </ul>
 
       ${H3("Cómo diferenciarlas al diagnosticar")}
-      <p>El primer paso es identificar cuál de los dos equipos está reportando la temperatura elevada. Si es el VFD, revisar primero el entorno de instalación (ventilación, temperatura de sala, filtros) antes de sospechar de un componente interno fallado. Si es el motor, revisar primero el punto de operación real (¿está sobrecargado?, ¿opera mucho tiempo a baja velocidad?) antes de asumir un problema del VFD.</p>
+      <p>El primer paso es identificar cuál de los dos equipos está reportando la temperatura elevada. Si es el VDF, revisar primero el entorno de instalación (ventilación, temperatura de sala, filtros) antes de sospechar de un componente interno fallado. Si es el motor, revisar primero el punto de operación real (¿está sobrecargado?, ¿opera mucho tiempo a baja velocidad?) antes de asumir un problema del VDF.</p>
 
-      ${INFO("Una sobretemperatura de VFD que aparece siempre en las horas de más calor ambiente o en época estival suele apuntar directamente a temperatura de sala o ventilación, más que a una falla de componente.")}
+      ${INFO("Una sobretemperatura de VDF que aparece siempre en las horas de más calor ambiente o en época estival suele apuntar directamente a temperatura de sala o ventilación, más que a una falla de componente.")}
 
-      ${PLACEHOLDER("Comparativa lado a lado: causas típicas de sobretemperatura del VFD (ventilación, ambiente, filtros, ventilador interno) vs. causas típicas de sobretemperatura del motor (sobrecarga, mala ventilación)")}
+      ${PLACEHOLDER("Comparativa lado a lado: causas típicas de sobretemperatura del VDF (ventilación, ambiente, filtros, ventilador interno) vs. causas típicas de sobretemperatura del motor (sobrecarga, mala ventilación)")}
     </div>
   `,
   quiz:[
-    { q:"¿Cuál de estas es una causa típica de sobretemperatura del VFD (no del motor)?", options:["Sobrecarga sostenida del motor","Ventilación obstruida del gabinete del VFD","Mala ventilación propia del motor","Motor operando a baja velocidad de forma prolongada"], answer:1, explain:"La ventilación obstruida del gabinete es una causa típica de sobretemperatura del propio VFD, junto con temperatura ambiente excesiva, filtros sucios y ventilador interno fallado." },
-    { q:"¿Cuál de estas es una causa típica de sobretemperatura del motor (no del VFD)?", options:["Filtros de aire del gabinete sucios","Ventilador interno del VFD fallado","Sobrecarga sostenida del motor","Temperatura ambiente excesiva en la sala del VFD"], answer:2, explain:"La sobrecarga sostenida es una causa típica de sobretemperatura del motor, junto con la mala ventilación propia del motor." },
-    { q:"Ante una sobretemperatura reportada por el VFD, ¿qué se recomienda revisar primero?", options:["Reemplazar directamente un componente interno","El entorno de instalación: ventilación, temperatura de sala y filtros, antes de sospechar de un componente interno","El torque de los terminales del motor","El historial de arranques del motor"], answer:1, explain:"El módulo recomienda revisar primero el entorno de instalación del VFD (ventilación, temperatura de sala, filtros) antes de sospechar de un componente interno fallado." },
-    { q:"¿Qué patrón de sobretemperatura del VFD suele apuntar a temperatura de sala o ventilación más que a un componente fallado?", options:["Una sobretemperatura que aparece solo de noche en invierno","Una sobretemperatura que aparece siempre en las horas de más calor ambiente o en época estival","Una sobretemperatura que aparece apenas se enciende el equipo en frío","No hay ningún patrón útil"], answer:1, explain:"Una sobretemperatura que se repite en las horas o épocas de más calor ambiente suele apuntar a temperatura de sala o ventilación, más que a una falla de componente." },
-    { q:"¿Qué se recomienda revisar primero ante una sobretemperatura del motor?", options:["El punto de operación real del motor: si está sobrecargado o si opera mucho tiempo a baja velocidad","El ventilador interno del VFD únicamente","La resistencia de frenado","La configuración del bus DC"], answer:0, explain:"Ante sobretemperatura del motor, se recomienda revisar primero el punto de operación real (sobrecarga, operación prolongada a baja velocidad) antes de asumir un problema del VFD." }
+    { q:"¿Cuál de estas es una causa típica de sobretemperatura del VDF (no del motor)?", options:["Sobrecarga sostenida del motor","Ventilación obstruida del gabinete del VDF","Mala ventilación propia del motor","Motor operando a baja velocidad de forma prolongada"], answer:1, explain:"La ventilación obstruida del gabinete es una causa típica de sobretemperatura del propio VDF, junto con temperatura ambiente excesiva, filtros sucios y ventilador interno fallado." },
+    { q:"¿Cuál de estas es una causa típica de sobretemperatura del motor (no del VDF)?", options:["Filtros de aire del gabinete sucios","Ventilador interno del VDF fallado","Sobrecarga sostenida del motor","Temperatura ambiente excesiva en la sala del VDF"], answer:2, explain:"La sobrecarga sostenida es una causa típica de sobretemperatura del motor, junto con la mala ventilación propia del motor." },
+    { q:"Ante una sobretemperatura reportada por el VDF, ¿qué se recomienda revisar primero?", options:["Reemplazar directamente un componente interno","El entorno de instalación: ventilación, temperatura de sala y filtros, antes de sospechar de un componente interno","El torque de los terminales del motor","El historial de arranques del motor"], answer:1, explain:"El módulo recomienda revisar primero el entorno de instalación del VDF (ventilación, temperatura de sala, filtros) antes de sospechar de un componente interno fallado." },
+    { q:"¿Qué patrón de sobretemperatura del VDF suele apuntar a temperatura de sala o ventilación más que a un componente fallado?", options:["Una sobretemperatura que aparece solo de noche en invierno","Una sobretemperatura que aparece siempre en las horas de más calor ambiente o en época estival","Una sobretemperatura que aparece apenas se enciende el equipo en frío","No hay ningún patrón útil"], answer:1, explain:"Una sobretemperatura que se repite en las horas o épocas de más calor ambiente suele apuntar a temperatura de sala o ventilación, más que a una falla de componente." },
+    { q:"¿Qué se recomienda revisar primero ante una sobretemperatura del motor?", options:["El punto de operación real del motor: si está sobrecargado o si opera mucho tiempo a baja velocidad","El ventilador interno del VDF únicamente","La resistencia de frenado","La configuración del bus DC"], answer:0, explain:"Ante sobretemperatura del motor, se recomienda revisar primero el punto de operación real (sobrecarga, operación prolongada a baja velocidad) antes de asumir un problema del VDF." }
   ]
 },
 
@@ -368,11 +368,11 @@ const MODULES = [
   content:`
     <div class="card">
       ${H3("Qué detecta una falla de tierra / fuga")}
-      <p>Esta protección detecta que parte de la corriente que sale del VFD hacia el motor no está regresando por el camino esperado — es decir, se está fugando hacia tierra por un camino no previsto (aislamiento dañado, humedad, etc.) en lugar de circular únicamente entre las fases del motor.</p>
+      <p>Esta protección detecta que parte de la corriente que sale del VDF hacia el motor no está regresando por el camino esperado — es decir, se está fugando hacia tierra por un camino no previsto (aislamiento dañado, humedad, etc.) en lugar de circular únicamente entre las fases del motor.</p>
 
       ${H3("Causas típicas genéricas")}
       <ul>
-        <li><strong>Aislamiento de cable dañado:</strong> el cable de potencia entre el VFD y el motor tiene el aislamiento cortado, pinchado o degradado, permitiendo fuga de corriente hacia tierra.</li>
+        <li><strong>Aislamiento de cable dañado:</strong> el cable de potencia entre el VDF y el motor tiene el aislamiento cortado, pinchado o degradado, permitiendo fuga de corriente hacia tierra.</li>
         <li><strong>Humedad:</strong> agua o condensación dentro de una caja de conexiones, un motor o un tramo de cableado reduce la resistencia de aislamiento y genera fuga.</li>
         <li><strong>Motor con aislamiento degradado:</strong> el bobinado del motor perdió aislamiento por edad, contaminación o daño térmico acumulado, permitiendo fuga hacia la carcasa (tierra) del motor.</li>
       </ul>
@@ -390,45 +390,45 @@ const MODULES = [
     </div>
   `,
   quiz:[
-    { q:"¿Qué detecta una falla de tierra / fuga en un VFD?", options:["Que la tensión del bus DC subió demasiado","Que parte de la corriente de salida se está fugando hacia tierra en lugar de circular solo entre las fases del motor","Que el ventilador interno dejó de girar","Que la rampa de aceleración es demasiado rápida"], answer:1, explain:"La falla de tierra detecta que parte de la corriente que sale hacia el motor no regresa por el camino esperado, sino que se fuga hacia tierra por un camino no previsto." },
-    { q:"¿Cuál de estas es una causa típica genérica de falla de tierra mencionada en el módulo?", options:["Una rampa de desaceleración muy rápida","Aislamiento de cable dañado","Un filtro de aire sucio","Un motor sobredimensionado para el VFD"], answer:1, explain:"El aislamiento de cable dañado es una causa típica de falla de tierra, junto con la humedad y el aislamiento degradado del motor." },
-    { q:"¿Por qué la humedad puede generar una falla de tierra?", options:["Porque aumenta la temperatura del motor","Porque reduce la resistencia de aislamiento dentro de cajas de conexión, motores o cableado, generando fuga","Porque afecta la tensión de la red eléctrica","Porque acelera el ventilador interno del VFD"], answer:1, explain:"El agua o la condensación reducen la resistencia de aislamiento y facilitan una fuga de corriente hacia tierra." },
-    { q:"¿Por qué el módulo insiste en que una falla de tierra nunca debe resetearse sin investigar?", options:["Porque el reset daña el VFD de forma permanente","Porque señala un riesgo eléctrico real de fuga de corriente que puede exponer a las personas a un choque eléctrico","Porque siempre implica reemplazar el motor completo","Porque no tiene relación con la seguridad de las personas"], answer:1, explain:"A diferencia de otras protecciones, la falla de tierra señala un riesgo eléctrico real; ignorarla sin corregir la causa puede exponer a las personas a un riesgo de choque eléctrico." },
+    { q:"¿Qué detecta una falla de tierra / fuga en un VDF?", options:["Que la tensión del bus DC subió demasiado","Que parte de la corriente de salida se está fugando hacia tierra en lugar de circular solo entre las fases del motor","Que el ventilador interno dejó de girar","Que la rampa de aceleración es demasiado rápida"], answer:1, explain:"La falla de tierra detecta que parte de la corriente que sale hacia el motor no regresa por el camino esperado, sino que se fuga hacia tierra por un camino no previsto." },
+    { q:"¿Cuál de estas es una causa típica genérica de falla de tierra mencionada en el módulo?", options:["Una rampa de desaceleración muy rápida","Aislamiento de cable dañado","Un filtro de aire sucio","Un motor sobredimensionado para el VDF"], answer:1, explain:"El aislamiento de cable dañado es una causa típica de falla de tierra, junto con la humedad y el aislamiento degradado del motor." },
+    { q:"¿Por qué la humedad puede generar una falla de tierra?", options:["Porque aumenta la temperatura del motor","Porque reduce la resistencia de aislamiento dentro de cajas de conexión, motores o cableado, generando fuga","Porque afecta la tensión de la red eléctrica","Porque acelera el ventilador interno del VDF"], answer:1, explain:"El agua o la condensación reducen la resistencia de aislamiento y facilitan una fuga de corriente hacia tierra." },
+    { q:"¿Por qué el módulo insiste en que una falla de tierra nunca debe resetearse sin investigar?", options:["Porque el reset daña el VDF de forma permanente","Porque señala un riesgo eléctrico real de fuga de corriente que puede exponer a las personas a un choque eléctrico","Porque siempre implica reemplazar el motor completo","Porque no tiene relación con la seguridad de las personas"], answer:1, explain:"A diferencia de otras protecciones, la falla de tierra señala un riesgo eléctrico real; ignorarla sin corregir la causa puede exponer a las personas a un riesgo de choque eléctrico." },
     { q:"¿Qué medición se recomienda para investigar una falla de tierra, según el módulo?", options:["Medición de resistencia de aislamiento del cableado de salida y del motor, con el equipo desenergizado y bloqueado","Medición de la frecuencia de conmutación del inversor","Medición del torque nominal del motor","Medición del grado de protección IP del gabinete"], answer:0, explain:"Se recomienda medir la resistencia de aislamiento del cableado y del motor, con el equipo desenergizado y bloqueado, usando el instrumento adecuado." }
   ]
 },
 
 {
   id:'historial-de-fallas', title:'Historial de fallas y checklist de primera respuesta', short:'Historial de fallas',
-  eyebrow:'Módulo 06 · Diagnóstico', sub:'Qué información aporta el historial de fallas del VFD y un checklist genérico de primera respuesta.',
+  eyebrow:'Módulo 06 · Diagnóstico', sub:'Qué información aporta el historial de fallas del VDF y un checklist genérico de primera respuesta.',
   content:`
     <div class="card">
       ${H3("Qué información valiosa da el historial de fallas")}
-      <p>Prácticamente todo VFD guarda un registro de las últimas fallas ocurridas. Antes de tocar nada, revisar ese historial es uno de los pasos de diagnóstico más rentables, porque suele incluir:</p>
+      <p>Prácticamente todo VDF guarda un registro de las últimas fallas ocurridas. Antes de tocar nada, revisar ese historial es uno de los pasos de diagnóstico más rentables, porque suele incluir:</p>
       <ul>
         <li><strong>Marca de tiempo:</strong> cuándo ocurrió exactamente la falla — útil para cruzar con otros eventos de planta (por ejemplo, un corte de red, el arranque de otro equipo grande, un cambio de turno).</li>
-        <li><strong>Valores de proceso al momento de la falla:</strong> muchos VFD guardan una "foto" de variables como corriente, tensión del bus DC o temperatura justo en el instante de la falla, lo cual ayuda a distinguir, por ejemplo, si una sobrecorriente ocurrió en el arranque o en régimen estable.</li>
+        <li><strong>Valores de proceso al momento de la falla:</strong> muchos VDF guardan una "foto" de variables como corriente, tensión del bus DC o temperatura justo en el instante de la falla, lo cual ayuda a distinguir, por ejemplo, si una sobrecorriente ocurrió en el arranque o en régimen estable.</li>
         <li><strong>Frecuencia de repetición:</strong> si el mismo código aparece muchas veces en poco tiempo, es una señal fuerte de que la causa raíz sigue sin resolverse.</li>
       </ul>
 
       ${H3("Checklist genérico de primera respuesta")}
       <ol>
         <li><strong>Anotar el código exacto</strong> de la falla, tal como lo muestra el equipo (no solo "se paró" o "dio error").</li>
-        <li><strong>Revisar el historial de fallas</strong> del VFD, buscando repeticiones y valores de proceso asociados.</li>
+        <li><strong>Revisar el historial de fallas</strong> del VDF, buscando repeticiones y valores de proceso asociados.</li>
         <li><strong>Verificar lo obvio</strong>: alimentación eléctrica, conexiones (terminales flojos), temperatura ambiente del recinto.</li>
         <li><strong>Recién después, escalar</strong> a un diagnóstico más profundo o a soporte técnico especializado si lo anterior no resolvió o no explicó la falla.</li>
       </ol>
       ${INFO("Este checklist es deliberadamente genérico: el detalle exacto de cómo leer el historial de fallas y qué códigos numéricos corresponden a qué evento cambia de un fabricante a otro. Ese nivel de detalle se cubre en las capacitaciones específicas de marca de este sitio.")}
 
-      ${PLACEHOLDER("Captura ilustrativa de un panel de VFD mostrando un listado de historial de fallas con código, marca de tiempo y valores de proceso asociados")}
+      ${PLACEHOLDER("Captura ilustrativa de un panel de VDF mostrando un listado de historial de fallas con código, marca de tiempo y valores de proceso asociados")}
     </div>
   `,
   quiz:[
-    { q:"¿Qué información típica guarda el historial de fallas de un VFD, según el módulo?", options:["Solo el nombre del técnico que lo instaló","Marca de tiempo y valores de proceso al momento de la falla, entre otra información","Únicamente el color del código de error","El manual completo del fabricante"], answer:1, explain:"El historial de fallas típicamente guarda marca de tiempo y una 'foto' de valores de proceso (corriente, tensión de bus DC, temperatura) al momento de la falla." },
+    { q:"¿Qué información típica guarda el historial de fallas de un VDF, según el módulo?", options:["Solo el nombre del técnico que lo instaló","Marca de tiempo y valores de proceso al momento de la falla, entre otra información","Únicamente el color del código de error","El manual completo del fabricante"], answer:1, explain:"El historial de fallas típicamente guarda marca de tiempo y una 'foto' de valores de proceso (corriente, tensión de bus DC, temperatura) al momento de la falla." },
     { q:"¿Qué señal da que el mismo código de falla aparezca muchas veces en poco tiempo?", options:["Que el equipo está funcionando perfectamente","Una señal fuerte de que la causa raíz sigue sin resolverse","Que hay que aumentar la velocidad del motor","Que el historial de fallas está dañado"], answer:1, explain:"La repetición frecuente del mismo código en poco tiempo es una señal fuerte de que la causa raíz de la falla no se resolvió." },
     { q:"Según el checklist de primera respuesta, ¿qué debe hacerse primero ante una falla?", options:["Escalar directamente a soporte técnico especializado","Anotar el código exacto de la falla tal como lo muestra el equipo","Cambiar el motor","Aumentar el tiempo de rampa al máximo"], answer:1, explain:"El primer paso del checklist es anotar el código exacto de la falla, no una descripción vaga como 'se paró'." },
-    { q:"¿Qué se recomienda verificar como parte de 'lo obvio' en el checklist de primera respuesta?", options:["El diseño interno de los IGBTs del inversor","Alimentación eléctrica, conexiones y temperatura ambiente del recinto","El código fuente del firmware del VFD","La curva de eficiencia energética del motor"], answer:1, explain:"El checklist indica verificar lo obvio: alimentación eléctrica, conexiones (terminales flojos) y temperatura ambiente, antes de escalar." },
-    { q:"¿Por qué el checklist de este módulo se describe como 'deliberadamente genérico'?", options:["Porque no sirve para ningún fabricante en particular","Porque el detalle exacto de cómo leer el historial y los códigos numéricos varía por fabricante, y eso se cubre en las capacitaciones de marca","Porque todavía no existe ningún VFD con historial de fallas","Porque el historial de fallas no es confiable"], answer:1, explain:"El módulo aclara que el detalle exacto de lectura del historial y los códigos numéricos cambia según el fabricante, y ese nivel se profundiza en las capacitaciones de marca del sitio." }
+    { q:"¿Qué se recomienda verificar como parte de 'lo obvio' en el checklist de primera respuesta?", options:["El diseño interno de los IGBTs del inversor","Alimentación eléctrica, conexiones y temperatura ambiente del recinto","El código fuente del firmware del VDF","La curva de eficiencia energética del motor"], answer:1, explain:"El checklist indica verificar lo obvio: alimentación eléctrica, conexiones (terminales flojos) y temperatura ambiente, antes de escalar." },
+    { q:"¿Por qué el checklist de este módulo se describe como 'deliberadamente genérico'?", options:["Porque no sirve para ningún fabricante en particular","Porque el detalle exacto de cómo leer el historial y los códigos numéricos varía por fabricante, y eso se cubre en las capacitaciones de marca","Porque todavía no existe ningún VDF con historial de fallas","Porque el historial de fallas no es confiable"], answer:1, explain:"El módulo aclara que el detalle exacto de lectura del historial y los códigos numéricos cambia según el fabricante, y ese nivel se profundiza en las capacitaciones de marca del sitio." }
   ]
 },
 
@@ -437,10 +437,10 @@ const MODULES = [
   eyebrow:'Módulo 07 · Diagnóstico', sub:'Buenas prácticas genéricas para reducir la probabilidad de que las fallas de los módulos anteriores vuelvan a ocurrir.',
   content:`
     <div class="card">
-      <p>Gran parte de las fallas vistas en este curso son evitables o al menos menos frecuentes con un programa de mantenimiento preventivo básico. Estas son prácticas genéricas, aplicables a cualquier marca de VFD.</p>
+      <p>Gran parte de las fallas vistas en este curso son evitables o al menos menos frecuentes con un programa de mantenimiento preventivo básico. Estas son prácticas genéricas, aplicables a cualquier marca de VDF.</p>
 
       ${H3("Limpieza de filtros y ventilación")}
-      <p>Limpiar o reemplazar periódicamente los filtros de aire del gabinete y despejar las rejillas de ventilación reduce directamente el riesgo de sobretemperatura del VFD — la causa más fácilmente prevenible de esa familia de fallas.</p>
+      <p>Limpiar o reemplazar periódicamente los filtros de aire del gabinete y despejar las rejillas de ventilación reduce directamente el riesgo de sobretemperatura del VDF — la causa más fácilmente prevenible de esa familia de fallas.</p>
 
       ${H3("Ajuste de terminales (torque)")}
       <p>Verificar periódicamente que los terminales de potencia y de control mantengan el torque de apriete especificado. Un terminal flojo genera calentamiento localizado, puede producir arcos, y con el tiempo puede derivar en una falla de tierra o en lecturas erráticas.</p>
@@ -449,15 +449,15 @@ const MODULES = [
       <p>Medir la resistencia de aislamiento del cableado y del motor de forma periódica (no solo cuando ya ocurrió una falla de tierra) permite detectar un aislamiento en degradación antes de que se convierta en una falla real.</p>
 
       ${H3("Revisión de condensadores del bus DC en equipos de muchos años")}
-      <p>Los condensadores del bus DC tienen una vida útil finita y se degradan con el tiempo, especialmente en ambientes calurosos. En VFDs con varios años de servicio, una inspección o reemplazo preventivo de estos condensadores según la recomendación del fabricante reduce el riesgo de fallas relacionadas con el bus DC.</p>
+      <p>Los condensadores del bus DC tienen una vida útil finita y se degradan con el tiempo, especialmente en ambientes calurosos. En equipos VDF con varios años de servicio, una inspección o reemplazo preventivo de estos condensadores según la recomendación del fabricante reduce el riesgo de fallas relacionadas con el bus DC.</p>
 
       ${NOTE("El detalle específico de cada una de estas prácticas — intervalos recomendados, procedimientos exactos, herramientas de diagnóstico propias de cada marca — se profundiza en las capacitaciones específicas de marca de este sitio. Este módulo cierra la nivelación genérica: a partir de acá, las siguientes capacitaciones aplican estos conceptos a un fabricante concreto.")}
     </div>
   `,
   quiz:[
-    { q:"¿Qué falla de las vistas en este curso se reduce directamente con la limpieza de filtros y ventilación?", options:["La falla de tierra","La sobretemperatura del VFD","La subtensión del bus DC","El cortocircuito de salida"], answer:1, explain:"Limpiar filtros y despejar rejillas de ventilación reduce directamente el riesgo de sobretemperatura del VFD, su causa más fácilmente prevenible." },
+    { q:"¿Qué falla de las vistas en este curso se reduce directamente con la limpieza de filtros y ventilación?", options:["La falla de tierra","La sobretemperatura del VDF","La subtensión del bus DC","El cortocircuito de salida"], answer:1, explain:"Limpiar filtros y despejar rejillas de ventilación reduce directamente el riesgo de sobretemperatura del VDF, su causa más fácilmente prevenible." },
     { q:"¿Qué consecuencia puede tener un terminal flojo según el módulo?", options:["Ninguna, no afecta al equipo","Calentamiento localizado, posibles arcos, y con el tiempo puede derivar en falla de tierra o lecturas erráticas","Aumenta automáticamente la eficiencia energética","Mejora la ventilación del gabinete"], answer:1, explain:"Un terminal flojo genera calentamiento localizado, puede producir arcos y derivar con el tiempo en una falla de tierra o lecturas erráticas." },
-    { q:"¿Qué permite detectar la medición periódica de resistencia de aislamiento?", options:["La velocidad máxima del motor","Un aislamiento en degradación antes de que se convierta en una falla de tierra real","La eficiencia energética del VFD","El torque nominal del motor"], answer:1, explain:"Medir la resistencia de aislamiento de forma periódica, no solo tras una falla, permite detectar degradación antes de que derive en una falla de tierra real." },
+    { q:"¿Qué permite detectar la medición periódica de resistencia de aislamiento?", options:["La velocidad máxima del motor","Un aislamiento en degradación antes de que se convierta en una falla de tierra real","La eficiencia energética del VDF","El torque nominal del motor"], answer:1, explain:"Medir la resistencia de aislamiento de forma periódica, no solo tras una falla, permite detectar degradación antes de que derive en una falla de tierra real." },
     { q:"¿Por qué se recomienda revisar los condensadores del bus DC en equipos de muchos años de servicio?", options:["Porque nunca se degradan","Porque tienen vida útil finita y se degradan con el tiempo, especialmente en ambientes calurosos, aumentando el riesgo de fallas de bus DC","Porque siempre hay que reemplazarlos cada mes sin excepción","Porque afectan directamente la velocidad máxima del motor"], answer:1, explain:"Los condensadores del bus DC tienen vida útil finita y se degradan con el tiempo, en especial en ambientes calurosos; revisarlos reduce el riesgo de fallas relacionadas con el bus DC." },
     { q:"¿Qué mensaje de cierre da este módulo (y esta capacitación) respecto al detalle específico de cada práctica de mantenimiento?", options:["Que no existe ningún detalle adicional que aprender","Que el detalle específico de intervalos y procedimientos se profundiza en las capacitaciones de marca del sitio","Que cada práctica es idéntica en todos los fabricantes sin excepción","Que el mantenimiento preventivo no tiene relación con las fallas vistas en el curso"], answer:1, explain:"El módulo cierra indicando que el detalle específico de cada práctica se profundiza en las capacitaciones específicas de marca, ya que este curso es la nivelación genérica previa." }
   ]
