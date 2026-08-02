@@ -47,11 +47,11 @@
 
     <div class="card" id="card">
       <div class="price">$8.000 <span>CLP / mes</span></div>
-      <div class="steps">Hacé la transferencia y mandanos el comprobante por WhatsApp — activamos tu acceso en menos de 24 horas.</div>
+      <div class="steps">Haz la transferencia y envíanos el comprobante por WhatsApp — activamos tu acceso en menos de 24 horas.</div>
       <table class="transfer">
         <tr><td>Banco</td><td>Banco Estado</td></tr>
         <tr><td>Tipo de cuenta</td><td>Cuenta RUT</td></tr>
-        <tr><td>N° de cuenta</td><td>18.111.459-2</td></tr>
+        <tr><td>N° de cuenta</td><td>18111459</td></tr>
         <tr><td>RUT</td><td>18.111.459-2</td></tr>
         <tr><td>Nombre</td><td>Brayan Zenteno</td></tr>
         <tr><td>Monto</td><td>$8.000 CLP</td></tr>
@@ -89,7 +89,7 @@
       var expiresAt = user.publicMetadata && user.publicMetadata.subscriptionExpiresAt;
       var isActive = status === 'active' && typeof expiresAt === 'number' && Date.now() < expiresAt;
       if (isActive) {
-        title.textContent = 'Ya tenés acceso';
+        title.textContent = 'Ya tienes acceso';
         subtitle.innerHTML = '<span class="active-badge">✓ Suscripción activa</span>';
         var dest = volver || '/index.html';
         card.innerHTML = '<a class="btn" href="' + dest + '">' + (volver ? 'Volver a la capacitación' : 'Ir al portal') + '</a>';

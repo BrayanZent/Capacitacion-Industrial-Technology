@@ -84,7 +84,7 @@
 
     function renderLoginPrompt() {
       wrap.className = 'wrap';
-      title.textContent = 'Iniciá sesión';
+      title.textContent = 'Inicia sesión';
       card.innerHTML = '<button class="wide" id="loginBtn">Iniciar sesión</button>';
       document.getElementById('loginBtn').onclick = function () { window.Clerk.openSignIn(REDIRECT_OPTS); };
     }
