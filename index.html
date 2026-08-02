@@ -40,7 +40,13 @@
       <button onClick="{{ toggleTheme }}" style="{{ themeSwitchStyle }}" aria-label="Cambiar tema">
         <span style="{{ themeKnobStyle }}"></span>
       </button>
-      <button onClick="{{ onAuthClick }}" style="{{ authButtonStyle }}">{{ authLabel }}</button>
+      <div style="{{ menuWrapStyle }}">
+        <button onClick="{{ onAuthClick }}" style="{{ authButtonStyle }}">{{ authLabel }}</button>
+        <div style="{{ menuStyle }}">
+          <button onClick="{{ onOpenAccount }}" style="{{ menuItemStyle }}">Mi cuenta</button>
+          <button onClick="{{ onSignOut }}" style="{{ menuItemStyle }}">Cerrar sesión</button>
+        </div>
+      </div>
     </nav>
   </header>
 
@@ -122,7 +128,8 @@ class Component extends DCLogic {
     progress: {},
     authReady: false,
     isSignedIn: false,
-    userFirstName: ''
+    userFirstName: '',
+    menuOpen: false
   };
 
   componentDidMount() {
@@ -150,7 +157,21 @@ class Component extends DCLogic {
     };
     const waitForClerk = () => {
       if (window.Clerk) {
-        window.Clerk.load().then(() => {
+        window.Clerk.load({
+          appearance: {
+            variables: {
+              colorPrimary: '#e8912b',
+              colorBackground: '#131a22',
+              colorInputBackground: '#1a232d',
+              colorInputText: '#eef2f6',
+              colorText: '#eef2f6',
+              colorTextSecondary: '#8b97a3',
+              colorNeutral: '#eef2f6',
+              borderRadius: '8px',
+              fontFamily: "'Inter', sans-serif"
+            }
+          }
+        }).then(() => {
           applyUser(window.Clerk.user);
           window.Clerk.addListener(({ user }) => applyUser(user));
         });
@@ -164,10 +185,20 @@ class Component extends DCLogic {
   handleAuthClick() {
     if (!window.Clerk) return;
     if (this.state.isSignedIn) {
-      window.Clerk.openUserProfile();
+      this.setState(s => ({ menuOpen: !s.menuOpen }));
     } else {
       window.Clerk.openSignIn();
     }
+  }
+
+  openAccount() {
+    this.setState({ menuOpen: false });
+    window.Clerk.openUserProfile();
+  }
+
+  signOut() {
+    this.setState({ menuOpen: false });
+    window.Clerk.signOut();
   }
 
   palette(theme) {
@@ -252,7 +283,11 @@ class Component extends DCLogic {
     }));
 
     const authButtonStyle = `font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; color:${isLight ? '#ffffff' : '#0a0e13'}; background:${v.accent}; border:none; padding:9px 16px; border-radius:5px; cursor:pointer; opacity:${this.state.authReady ? 1 : 0.5};`;
-    const authLabel = this.state.isSignedIn ? `👤 ${this.state.userFirstName}` : 'Iniciar sesión';
+    const authLabel = this.state.isSignedIn ? `👤 ${this.state.userFirstName} ▾` : 'Iniciar sesión';
+
+    const menuWrapStyle = `position:relative; display:inline-block;`;
+    const menuStyle = `display:${this.state.menuOpen ? 'block' : 'none'}; position:absolute; top:calc(100% + 8px); right:0; min-width:170px; background:${v.panel}; border:1px solid ${v.line}; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,.35); overflow:hidden; z-index:20;`;
+    const menuItemStyle = `display:block; width:100%; text-align:left; font-family:'Inter',sans-serif; font-size:13px; color:${v.text}; background:transparent; border:none; padding:11px 14px; cursor:pointer;`;
 
     return {
       vars: v,
@@ -263,7 +298,13 @@ class Component extends DCLogic {
       toggleTheme: () => this.setState(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
       authButtonStyle,
       authLabel,
-      onAuthClick: () => this.handleAuthClick()
+      onAuthClick: () => this.handleAuthClick(),
+      menuWrapStyle,
+      menuStyle,
+      menuItemStyle,
+      isSignedIn: this.state.isSignedIn,
+      onOpenAccount: () => this.openAccount(),
+      onSignOut: () => this.signOut()
     };
   }
 }
