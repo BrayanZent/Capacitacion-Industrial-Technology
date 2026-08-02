@@ -6,6 +6,20 @@
 <script src="./support.js"></script>
 </head>
 <body>
+<script>
+(function () {
+  var ua = navigator.userAgent || '';
+  var isInAppBrowser = /WhatsApp|FBAN|FBAV|Instagram|Line\//i.test(ua);
+  if (!isInAppBrowser) return;
+  document.addEventListener('DOMContentLoaded', function () {
+    var banner = document.createElement('div');
+    banner.style.cssText = 'position:fixed; top:0; left:0; right:0; z-index:99999; background:#e8912b; color:#0a0e13; font-family:Inter,sans-serif; font-size:13px; padding:12px 16px; text-align:center; line-height:1.5;';
+    banner.innerHTML = 'Estás viendo esto dentro de una app (WhatsApp/Instagram) — el inicio de sesión con Google no funciona ahí. Toca los <b>⋮</b> o <b>•••</b> arriba a la derecha y elige <b>"Abrir en Chrome"</b> o <b>"Abrir en el navegador"</b>.';
+    document.body.insertBefore(banner, document.body.firstChild);
+    document.body.style.paddingTop = banner.offsetHeight + 'px';
+  });
+})();
+</script>
 <x-dc>
 <helmet>
   <meta name="design_doc_mode" content="canvas">
