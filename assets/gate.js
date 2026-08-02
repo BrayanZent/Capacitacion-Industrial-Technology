@@ -20,7 +20,9 @@
       return;
     }
     var status = user.publicMetadata && user.publicMetadata.subscriptionStatus;
-    if (status === 'active') {
+    var expiresAt = user.publicMetadata && user.publicMetadata.subscriptionExpiresAt;
+    var isActive = status === 'active' && typeof expiresAt === 'number' && Date.now() < expiresAt;
+    if (isActive) {
       reveal();
     } else {
       redirectToSubscribe();

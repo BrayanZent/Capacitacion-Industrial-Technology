@@ -151,10 +151,12 @@ class Component extends DCLogic {
   initAuth() {
     const applyUser = (user) => {
       const status = user && user.publicMetadata && user.publicMetadata.subscriptionStatus;
+      const expiresAt = user && user.publicMetadata && user.publicMetadata.subscriptionExpiresAt;
+      const hasSubscription = status === 'active' && typeof expiresAt === 'number' && Date.now() < expiresAt;
       this.setState({
         authReady: true,
         isSignedIn: !!user,
-        hasSubscription: status === 'active',
+        hasSubscription,
         userFirstName: user ? (user.firstName || 'Cuenta') : ''
       });
     };
