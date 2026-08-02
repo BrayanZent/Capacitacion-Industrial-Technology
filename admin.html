@@ -172,7 +172,8 @@
             document.getElementById('email').value = '';
             loadUsers();
           } else {
-            msg.textContent = result.data.error || 'No se pudo activar.';
+            msg.textContent = (result.data.error || 'No se pudo activar.') +
+              (result.data.debugCallerEmail !== undefined ? ' [debug: email=' + result.data.debugCallerEmail + ', adminCount=' + result.data.debugAdminEmailsCount + ', raw=' + result.data.debugAdminEmailsRaw + ']' : '');
             msg.className = 'msg err';
           }
         }).catch(function () {
