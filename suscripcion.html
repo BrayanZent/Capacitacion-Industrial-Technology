@@ -70,12 +70,19 @@
     var title = document.getElementById('title');
     var subtitle = document.getElementById('subtitle');
     var msg = document.getElementById('msg');
+    var REDIRECT_OPTS = {
+      redirectUrl: window.location.href,
+      afterSignInUrl: window.location.href,
+      afterSignUpUrl: window.location.href,
+      fallbackRedirectUrl: window.location.href,
+      forceRedirectUrl: window.location.href
+    };
 
     function render() {
       var user = window.Clerk.user;
       if (!user) {
         msg.innerHTML = '<button id="loginBtn" style="margin-top:0;">Iniciar sesión para continuar</button>';
-        document.getElementById('loginBtn').onclick = function () { window.Clerk.openSignIn(); };
+        document.getElementById('loginBtn').onclick = function () { window.Clerk.openSignIn(REDIRECT_OPTS); };
         return;
       }
       var status = user.publicMetadata && user.publicMetadata.subscriptionStatus;

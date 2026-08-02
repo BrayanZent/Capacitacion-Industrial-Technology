@@ -67,6 +67,13 @@
     var wrap = document.getElementById('wrap');
     var card = document.getElementById('card');
     var title = document.getElementById('title');
+    var REDIRECT_OPTS = {
+      redirectUrl: window.location.href,
+      afterSignInUrl: window.location.href,
+      afterSignUpUrl: window.location.href,
+      fallbackRedirectUrl: window.location.href,
+      forceRedirectUrl: window.location.href
+    };
 
     function renderDenied() {
       wrap.className = 'wrap';
@@ -79,7 +86,7 @@
       wrap.className = 'wrap';
       title.textContent = 'Iniciá sesión';
       card.innerHTML = '<button class="wide" id="loginBtn">Iniciar sesión</button>';
-      document.getElementById('loginBtn').onclick = function () { window.Clerk.openSignIn(); };
+      document.getElementById('loginBtn').onclick = function () { window.Clerk.openSignIn(REDIRECT_OPTS); };
     }
 
     function fmtDate(ms) {
