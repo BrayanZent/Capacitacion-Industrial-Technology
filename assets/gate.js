@@ -31,7 +31,15 @@
 
   function waitForClerk() {
     if (window.Clerk) {
-      window.Clerk.load().then(checkAccess);
+      window.Clerk.load().then(function () {
+        checkAccess();
+        window.Clerk.addListener(checkAccess);
+        document.addEventListener('visibilitychange', function () {
+          if (document.visibilityState === 'visible' && window.Clerk.user && window.Clerk.user.reload) {
+            window.Clerk.user.reload().then(checkAccess);
+          }
+        });
+      });
     } else {
       setTimeout(waitForClerk, 100);
     }

@@ -271,6 +271,8 @@
         }).then(function (result) {
           if (result.status === 200) {
             renderUsers(result.data.users || []);
+          } else if (result.status === 403) {
+            renderDenied();
           } else {
             listArea.className = 'empty';
             listArea.textContent = result.data.error || 'No se pudo cargar la lista de usuarios.';
@@ -284,17 +286,10 @@
       loadUsers();
     }
 
-    var ADMIN_EMAILS = ['vdf.academy26@gmail.com'];
-
     function render() {
       var user = window.Clerk.user;
       if (!user) {
         renderLoginPrompt();
-        return;
-      }
-      var email = (user.primaryEmailAddress && user.primaryEmailAddress.emailAddress || '').toLowerCase();
-      if (ADMIN_EMAILS.indexOf(email) === -1) {
-        renderDenied();
         return;
       }
       renderForm();

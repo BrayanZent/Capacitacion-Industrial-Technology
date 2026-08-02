@@ -50,7 +50,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const list = await clerkClient.users.getUserList({ limit: 100 });
+    const list = await clerkClient.users.getUserList({ limit: 500 });
     const users = list.data || list;
 
     const mapped = (users || []).map((u) => {

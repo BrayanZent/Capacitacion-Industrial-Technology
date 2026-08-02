@@ -99,6 +99,7 @@ module.exports = async (req, res) => {
       }
     });
 
+    console.log(`[admin-audit] ${callerEmail} -> ${action} -> ${targetEmail} @ ${new Date().toISOString()}`);
     res.status(200).json({ ok: true, subscriptionStatus, subscriptionExpiresAt });
   } catch (err) {
     console.error('Error administrando usuario:', err);
