@@ -280,11 +280,12 @@ class Component extends DCLogic {
 
     const footerStyle = `background:${v.bgAlt}; border-top:1px solid ${v.line};`;
 
+    const FREE_COURSE_IDS = ['introduccion-vfd', 'electricidad-basica'];
     const allCourses = this.courseDefs().map(c => {
       const p = this.state.progress[c.id] || { done: 0, total: 0 };
       const pct = c.locked ? 0 : (p.total > 0 ? Math.round((p.done / p.total) * 100) : 0);
       const completed = !c.locked && p.total > 0 && p.done >= p.total;
-      const requiresSub = c.id !== 'introduccion-vfd';
+      const requiresSub = !FREE_COURSE_IDS.includes(c.id);
       const subLocked = !c.locked && requiresSub && !this.state.hasSubscription;
       const dimmed = c.locked || subLocked;
 
