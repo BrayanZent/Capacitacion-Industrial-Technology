@@ -134,6 +134,7 @@ class Component extends DCLogic {
     theme: this.props.defaultTheme || 'dark',
     progress: {},
     authReady: false,
+    clerkFailed: false,
     isSignedIn: false,
     hasSubscription: false,
     userFirstName: '',
@@ -167,6 +168,7 @@ class Component extends DCLogic {
         userFirstName: user ? (user.firstName || 'Cuenta') : ''
       });
     };
+    let waitAttempts = 0;
     const waitForClerk = () => {
       if (window.Clerk) {
         window.Clerk.load({
@@ -187,15 +189,25 @@ class Component extends DCLogic {
           applyUser(window.Clerk.user);
           window.Clerk.addListener(({ user }) => applyUser(user));
         });
-      } else {
+      } else if (waitAttempts < 150) {
+        waitAttempts++;
         setTimeout(waitForClerk, 100);
+      } else {
+        this.setState({ authReady: true, clerkFailed: true });
       }
     };
     waitForClerk();
   }
 
   handleAuthClick() {
-    if (!window.Clerk) return;
+    if (this.state.clerkFailed) {
+      window.location.reload();
+      return;
+    }
+    if (!window.Clerk || !this.state.authReady) {
+      alert('Todavía está cargando el inicio de sesión — esperá un segundo y volvé a tocar el botón. Si el problema sigue, revisá tu conexión o probá recargar la página.');
+      return;
+    }
     if (this.state.isSignedIn) {
       this.setState(s => ({ menuOpen: !s.menuOpen }));
     } else {
@@ -306,7 +318,7 @@ class Component extends DCLogic {
     }));
 
     const authButtonStyle = `font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; color:${isLight ? '#ffffff' : '#0a0e13'}; background:${v.accent}; border:none; padding:9px 16px; border-radius:5px; cursor:pointer; opacity:${this.state.authReady ? 1 : 0.5};`;
-    const authLabel = this.state.isSignedIn ? `👤 ${this.state.userFirstName} ▾` : 'Entrar';
+    const authLabel = this.state.clerkFailed ? 'Reintentar' : (!this.state.authReady ? 'Cargando…' : (this.state.isSignedIn ? `👤 ${this.state.userFirstName} ▾` : 'Entrar'));
 
     const menuWrapStyle = `position:relative; display:inline-block;`;
     const menuStyle = `display:${this.state.menuOpen ? 'block' : 'none'}; position:absolute; top:calc(100% + 8px); right:0; min-width:170px; background:${v.panel}; border:1px solid ${v.line}; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,.35); overflow:hidden; z-index:20;`;
