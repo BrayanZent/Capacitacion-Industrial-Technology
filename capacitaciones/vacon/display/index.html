@@ -70,5 +70,178 @@
   window.runTestsIfRequested();
 })();
 </script>
+<script>
+const NXData = {
+  // Menú M1 — Tabla 41 del manual de usuario NXS/NXP, p.81
+  monitorValues: [
+    { id:'V1.1', nombre:'Frec Salida', unidad:'Hz' },
+    { id:'V1.2', nombre:'Refer Frec', unidad:'Hz' },
+    { id:'V1.3', nombre:'Velocidad Motor', unidad:'rpm' },
+    { id:'V1.4', nombre:'Intensidad Motor', unidad:'A' },
+    { id:'V1.5', nombre:'Par Motor', unidad:'%' },
+    { id:'V1.6', nombre:'Potencia Motor', unidad:'%' },
+    { id:'V1.7', nombre:'Voltaje Motor', unidad:'V' },
+    { id:'V1.8', nombre:'Voltaje DC-link', unidad:'V' },
+    { id:'V1.9', nombre:'Temper Convert', unidad:'°C' },
+    { id:'V1.10', nombre:'TempMotor', unidad:'%' },
+    { id:'V1.11', nombre:'EntradaAnalog 1', unidad:'mA' },
+    { id:'V1.12', nombre:'EntradaAnalog 2', unidad:'mA' },
+    { id:'V1.13', nombre:'DIN 1,2,3', unidad:'' },
+    { id:'V1.14', nombre:'DIN 4,5,6', unidad:'' },
+    { id:'V1.15', nombre:'DO1,RO1,RO2', unidad:'' },
+    { id:'V1.16', nombre:'Salida analógica', unidad:'mA' },
+    { id:'V1.17', nombre:'Elementos multimon.', unidad:'' }
+  ],
+
+  // Menú M2 -> G2.1 — Tabla 2 del manual All-in-One, Aplicación Básica, p.15-16
+  // La Aplicación Básica solo tiene el grupo G2.1 (no existe G2.2 en esta aplicación).
+  paramsG21: [
+    { id:'P2.1', nombre:'Frecuencia mín.', tipo:'numeric', min:0.00, max:'P2.2', unidad:'Hz', porDefecto:0.00, paso:0.01 },
+    { id:'P2.2', nombre:'Frecuencia máx.', tipo:'numeric', min:'P2.1', max:320.00, unidad:'Hz', porDefecto:50.00, paso:0.01 },
+    { id:'P2.3', nombre:'T.aceleración 1', tipo:'numeric', min:0.1, max:3000.0, unidad:'s', porDefecto:3.0, paso:0.1 },
+    { id:'P2.4', nombre:'T.deceleración 1', tipo:'numeric', min:0.1, max:3000.0, unidad:'s', porDefecto:3.0, paso:0.1 },
+    { id:'P2.5', nombre:'Límite intensidad', tipo:'numeric', min:0.84, max:16.80, unidad:'A', porDefecto:8.40, paso:0.1 },
+    { id:'P2.6', nombre:'Tensión nom.motor', tipo:'numeric', min:180, max:690, unidad:'V', porDefecto:400, paso:1 },
+    { id:'P2.7', nombre:'Frec.nom.motor', tipo:'numeric', min:8.00, max:320.00, unidad:'Hz', porDefecto:50.00, paso:0.01 },
+    { id:'P2.8', nombre:'Veloc.nom.motor', tipo:'numeric', min:24, max:20000, unidad:'rpm', porDefecto:1440, paso:1 },
+    { id:'P2.9', nombre:'Intens.nom.motor', tipo:'numeric', min:0.84, max:16.80, unidad:'A', porDefecto:8.40, paso:0.1 },
+    { id:'P2.10', nombre:'Cos phi motor', tipo:'numeric', min:0.30, max:1.00, unidad:'', porDefecto:0.85, paso:0.01 },
+    { id:'P2.11', nombre:'Tipo de marcha', tipo:'enum', porDefecto:0, opciones:[
+      {valor:0, etiqueta:'Rampa'}, {valor:1, etiqueta:'Arranque al vuelo'}, {valor:2, etiqueta:'Vuelo condicional'}
+    ]},
+    // Simplificación documentada: el manual describe 4 opciones (0-3) pero el texto de las
+    // opciones 1-3 llega mezclado por el layout en columnas del PDF fuente. Se usan las dos
+    // opciones inequívocas (0=Frenado libre, 1=Rampa); 2 y 3 se tratan como 0 y 1 respectivamente
+    // para efectos de la simulación (agregan "permiso de marcha" que este simulador no modela).
+    { id:'P2.12', nombre:'Tipo de paro', tipo:'enum', porDefecto:0, opciones:[
+      {valor:0, etiqueta:'Frenado libre'}, {valor:1, etiqueta:'Rampa'},
+      {valor:2, etiqueta:'Frenado libre + Permiso marcha'}, {valor:3, etiqueta:'Rampa + Permiso marcha'}
+    ]},
+    { id:'P2.13', nombre:'Optimización U/f', tipo:'enum', porDefecto:0, opciones:[
+      {valor:0, etiqueta:'Deshabilitado'}, {valor:1, etiqueta:'Sobrepar automático'}
+    ]},
+    { id:'P2.14', nombre:'Referencia I/O', tipo:'enum', porDefecto:0, opciones:[
+      {valor:0, etiqueta:'AI1'}, {valor:1, etiqueta:'AI2'}, {valor:2, etiqueta:'Panel'}, {valor:3, etiqueta:'Fieldbus'}
+    ]},
+    { id:'P2.15', nombre:'Comp.AI2 referencia', tipo:'enum', porDefecto:1, opciones:[
+      {valor:0, etiqueta:'0-20 mA'}, {valor:1, etiqueta:'4-20 mA'}
+    ]},
+    { id:'P2.16', nombre:'Func.salida analóg.', tipo:'enum', porDefecto:1, opciones:[
+      {valor:0, etiqueta:'Deshabilitado'}, {valor:1, etiqueta:'Frec. salida'}, {valor:2, etiqueta:'Referencia frecuencia'},
+      {valor:3, etiqueta:'Velocidad motor'}, {valor:4, etiqueta:'Intensidad salida'}, {valor:5, etiqueta:'Par de motor'},
+      {valor:6, etiqueta:'Potencia motor'}, {valor:7, etiqueta:'Tensión motor'}, {valor:8, etiqueta:'Tensión bus CC'}
+    ]},
+    { id:'P2.17', nombre:'Func.salida dig.1(DIN3)', tipo:'enum', porDefecto:1, opciones:[
+      {valor:0, etiqueta:'Deshabilitado'}, {valor:1, etiqueta:'Fallo ext. cont.cerrado'}, {valor:2, etiqueta:'Fallo ext. cont.abierto'},
+      {valor:3, etiqueta:'Permiso marcha, cc'}, {valor:4, etiqueta:'Permiso marcha, oc'}, {valor:5, etiqueta:'Forzar cp a E/S'},
+      {valor:6, etiqueta:'Forzar cp a panel'}, {valor:7, etiqueta:'Forzar cp a fieldbus'}
+    ]},
+    { id:'P2.18', nombre:'Velocidad fija 1', tipo:'numeric', min:0.00, max:'P2.2', unidad:'Hz', porDefecto:0.00, paso:0.01 },
+    { id:'P2.19', nombre:'Velocidad fija 2', tipo:'numeric', min:0.00, max:'P2.2', unidad:'Hz', porDefecto:50.00, paso:0.01 },
+    { id:'P2.20', nombre:'Rearranque auto.', tipo:'enum', porDefecto:0, opciones:[
+      {valor:0, etiqueta:'Deshabilitado'}, {valor:1, etiqueta:'Habilitado'}
+    ]}
+  ],
+
+  // Menú M3 — Tabla 42 del manual de usuario NXS/NXP, p.85
+  paramsM3: [
+    { id:'P3.1', nombre:'Lugar de control', tipo:'enum', porDefecto:1, opciones:[
+      {valor:1, etiqueta:'Terminal I/O'}, {valor:2, etiqueta:'Panel'}, {valor:3, etiqueta:'Fieldbus'}
+    ]},
+    { id:'P3.2', nombre:'Referencia panel', tipo:'numeric', min:'P2.1', max:'P2.2', unidad:'Hz', porDefecto:0.00, paso:0.01 },
+    { id:'P3.3', nombre:'Sentido de giro', tipo:'enum', porDefecto:0, opciones:[
+      {valor:0, etiqueta:'Marcha directa'}, {valor:1, etiqueta:'Inversión'}
+    ]},
+    { id:'P3.4', nombre:'Botón de paro', tipo:'enum', porDefecto:1, opciones:[
+      {valor:0, etiqueta:'Función limitada'}, {valor:1, etiqueta:'Siempre activado'}
+    ]}
+  ],
+
+  // Menú M6/M7 — pantallas estáticas de información (fuera de alcance su edición, p.80)
+  systemInfo: ['Aplicación: Básica', 'Idioma: Español', 'Simulador VACON NX v1.0'],
+  expanderInfo: ['Sin tarjetas conectadas'],
+
+  // Catálogo de fallas — capítulo 10.1 "Códigos de fallo" del manual All-in-One, p.411-419
+  faultCatalog: [
+    { codigo:1, nombre:'Sobreintensidad', causa:'Intensidad >4×IH en el cable del motor: aumento súbito de carga, cortocircuito o motor incorrecto.', remedio:'Revisar carga, motor, cableado y conexiones; hacer identificación en marcha.' },
+    { codigo:2, nombre:'Sobretensión', causa:'Tensión de bus CC superior al límite: tiempo de deceleración muy corto, picos de red o marcha/paro muy rápido.', remedio:'Aumentar el tiempo de deceleración (P2.4); usar chopper o resistencia de frenado; revisar tensión de entrada.' },
+    { codigo:3, nombre:'Fallo de tierra', causa:'La suma de intensidades de fase del motor no es cero: avería de aislamiento en cables o motor.', remedio:'Revisar cables del motor y el motor.' },
+    { codigo:5, nombre:'Circuito de precarga', causa:'El interruptor de carga está abierto al dar la orden de marcha.', remedio:'Resetear el fallo y volver a arrancar; si persiste, contactar al distribuidor.' },
+    { codigo:6, nombre:'Paro de emergencia', causa:'Señal de paro recibida desde la tarjeta opcional.', remedio:'Revisar el circuito de paro de emergencia.' },
+    { codigo:7, nombre:'Desconexión por saturación', causa:'Componente defectuoso o resistencia de frenado en cortocircuito/sobrecarga.', remedio:'No arrancar ni conectar alimentación; pedir instrucciones al distribuidor.' },
+    { codigo:8, nombre:'Fallo de la aplicación', causa:'Avería de funcionamiento o componente defectuoso.', remedio:'Resetear el fallo y volver a arrancar; si persiste, contactar al distribuidor.' },
+    { codigo:9, nombre:'Baja tensión', causa:'Tensión de bus CC inferior al límite: tensión de red baja, fusible de entrada o interruptor de carga abierto.', remedio:'Resetear tras un corte temporal; revisar la tensión de alimentación.' },
+    { codigo:10, nombre:'Supervisión línea de entrada', causa:'Falta una fase de la línea de entrada.', remedio:'Revisar tensión de alimentación, fusibles y cable de alimentación.' },
+    { codigo:11, nombre:'Fase de salida', causa:'Falta intensidad en una de las fases del motor.', remedio:'Revisar el cable del motor y el motor.' },
+    { codigo:12, nombre:'Supervisión chopper de frenado', causa:'Resistencia de frenado ausente o rota; chopper defectuoso.', remedio:'Revisar la resistencia de frenado y sus cables.' },
+    { codigo:13, nombre:'Baja temperatura del convertidor', causa:'Temperatura del radiador por debajo de -10 °C.', remedio:'Esperar a que el equipo alcance temperatura de operación.' },
+    { codigo:14, nombre:'Exceso de temperatura del convertidor', causa:'Temperatura del radiador superior a 85-90 °C.', remedio:'Revisar ventilación, polvo, temperatura ambiente y frecuencia de conmutación.' },
+    { codigo:15, nombre:'Motor bloqueado', causa:'El motor se ha bloqueado.', remedio:'Revisar el cable del motor y la carga.' },
+    { codigo:16, nombre:'Exceso de temperatura del motor', causa:'Carga excesiva sostenida en el motor.', remedio:'Reducir la carga del motor; revisar los parámetros del modelo térmico.' },
+    { codigo:17, nombre:'Protección de baja carga', causa:'Se activó la protección de baja carga.', remedio:'Revisar la carga.' },
+    { codigo:18, nombre:'Desequilibrio', causa:'Desequilibrio de intensidad o tensión de bus CC entre módulos de potencia en paralelo.', remedio:'Si el fallo persiste, contactar al distribuidor.' },
+    { codigo:22, nombre:'Fallo de suma de verificación EEPROM', causa:'Fallo al guardar parámetros.', remedio:'Si el fallo persiste, contactar al distribuidor.' },
+    { codigo:24, nombre:'Fallo del contador', causa:'Los valores del contador no son correctos.', remedio:'Informativo; sin acción de campo requerida.' },
+    { codigo:25, nombre:'Fallo del watchdog del microprocesador', causa:'Avería de funcionamiento o componente defectuoso.', remedio:'Resetear el fallo y volver a arrancar; si persiste, contactar al distribuidor.' },
+    { codigo:26, nombre:'Prevención de puesta en marcha', causa:'La orden de marcha está activa al descargar una aplicación nueva.', remedio:'Cancelar la prevención si es seguro; retirar la solicitud de marcha.' },
+    { codigo:29, nombre:'Fallo termistor', causa:'La entrada de termistor detectó un aumento de temperatura del motor.', remedio:'Revisar refrigeración, carga y conexión del termistor.' },
+    { codigo:30, nombre:'Desactivación segura', causa:'Se abrió la entrada en la tarjeta OPTAF.', remedio:'Cancelar la desactivación segura si se puede hacer con seguridad.' },
+    { codigo:31, nombre:'Temperatura de IGBT (hardware)', causa:'Sobrecarga de corriente a corto plazo muy alta.', remedio:'Revisar carga y tamaño del motor; hacer identificación en marcha.' },
+    { codigo:32, nombre:'Ventilador de refrigeración', causa:'El ventilador no arranca con la orden ACTIVAR.', remedio:'Pedir instrucciones al distribuidor.' },
+    { codigo:34, nombre:'Bus de comunicaciones CAN', causa:'No se reconoció el mensaje enviado.', remedio:'Comprobar que hay otro dispositivo en el bus con igual configuración.' },
+    { codigo:35, nombre:'Aplicación', causa:'Problema en el software de la aplicación.', remedio:'Pedir instrucciones al distribuidor o revisar el programa de aplicación.' },
+    { codigo:36, nombre:'Unidad de control', causa:'La unidad de control no puede controlar la unidad de potencia.', remedio:'Cambiar la unidad de control.' },
+    { codigo:37, nombre:'Dispositivo cambiado (mismo tipo)', causa:'Tarjeta opcional reemplazada por una ya usada en esa ranura.', remedio:'Resetear el fallo; el convertidor retoma los ajustes previos.' },
+    { codigo:38, nombre:'Dispositivo añadido (mismo tipo)', causa:'Tarjeta opcional añadida, ya usada antes en esa ranura.', remedio:'Resetear el fallo; el convertidor retoma los ajustes previos.' },
+    { codigo:39, nombre:'Dispositivo extraído', causa:'Se quitó una tarjeta opcional de la ranura.', remedio:'Resetear el fallo.' },
+    { codigo:40, nombre:'Dispositivo desconocido', causa:'Se conectó un dispositivo no reconocido.', remedio:'Pedir instrucciones al distribuidor.' },
+    { codigo:41, nombre:'Temperatura de IGBT', causa:'Sobrecarga de corriente a corto plazo muy alta.', remedio:'Revisar carga y tamaño del motor; hacer identificación en marcha.' },
+    { codigo:42, nombre:'Sobrecalentamiento resistencia de frenado', causa:'La protección detectó frenado excesivo.', remedio:'Aumentar el tiempo de deceleración; usar resistencia de frenado externa.' },
+    { codigo:43, nombre:'Fallo encoder', causa:'Problema detectado en las señales del encoder.', remedio:'Revisar conexiones y tarjeta del encoder.' },
+    { codigo:44, nombre:'Dispositivo cambiado (distinto tipo)', causa:'Tarjeta opcional o unidad de potencia cambiada por otra de distinto tipo.', remedio:'Resetear; reconfigurar los parámetros correspondientes.' },
+    { codigo:45, nombre:'Dispositivo añadido (distinto tipo)', causa:'Se añadió una tarjeta opcional de distinto tipo.', remedio:'Resetear; reconfigurar los parámetros de la unidad de potencia.' },
+    { codigo:49, nombre:'División por cero en aplicación', causa:'Error en el programa de la aplicación.', remedio:'Si ocurre en marcha, contactar al distribuidor.' },
+    { codigo:50, nombre:'Iin entrada analógica < 4mA', causa:'Señal de entrada analógica (rango 4-20 mA) por debajo de 4 mA.', remedio:'Revisar el circuito de lazo de corriente.' },
+    { codigo:51, nombre:'Fallo externo', causa:'Fallo de entrada digital programable.', remedio:'Solucionar la condición de fallo en el dispositivo externo.' },
+    { codigo:52, nombre:'Fallo de comunicación del panel', causa:'Conexión defectuosa entre el teclado (o NCDrive) y el convertidor.', remedio:'Revisar la conexión y el cable del teclado.' },
+    { codigo:53, nombre:'Fallo de comunicación Fieldbus', causa:'Conexión de datos defectuosa entre el maestro Fieldbus y la tarjeta Fieldbus.', remedio:'Revisar la instalación y el maestro de Fieldbus.' },
+    { codigo:54, nombre:'Fallo en la ranura', causa:'Tarjeta opcional o ranura defectuosa.', remedio:'Revisar la tarjeta y la ranura; contactar al distribuidor.' },
+    { codigo:56, nombre:'Temperatura excesiva', causa:'Límite de temperatura superado; sensor desconectado o cortocircuito.', remedio:'Localizar la causa del aumento de temperatura.' },
+    { codigo:57, nombre:'Identificación', causa:'Falló la identificación con motor girando.', remedio:'Verificar que el motor esté conectado y sin carga en el eje.' },
+    { codigo:58, nombre:'Chopper', causa:'El estado real del freno difiere de la señal de control.', remedio:'Revisar estado y conexiones del freno mecánico.' },
+    { codigo:59, nombre:'Comunicación con unidad seguidora', causa:'Se interrumpió la comunicación SystemBus/CAN entre maestro y seguidor.', remedio:'Revisar parámetros de la tarjeta opcional y el cable de fibra óptica o CAN.' },
+    { codigo:60, nombre:'Refrigeración', causa:'Falló la circulación de refrigerante en el convertidor de refrigeración líquida.', remedio:'Revisar el sistema externo de refrigeración.' },
+    { codigo:61, nombre:'Error de velocidad', causa:'La velocidad del motor no coincide con la referencia.', remedio:'Revisar la conexión del encoder.' },
+    { codigo:62, nombre:'Marcha deshabilitada', causa:'La señal de permiso de marcha está baja.', remedio:'Revisar el motivo de la señal de permiso de marcha.' },
+    { codigo:63, nombre:'Paro de emergencia', causa:'Se recibió la orden de paro de emergencia desde la entrada digital o el Fieldbus.', remedio:'Se acepta una nueva orden de marcha tras el reset.' },
+    { codigo:64, nombre:'Interruptor de entrada abierto', causa:'El interruptor de entrada del convertidor está abierto.', remedio:'Revisar el interruptor de alimentación principal.' },
+    { codigo:65, nombre:'Temperatura excesiva', causa:'Límite de temperatura superado; sensor desconectado o cortocircuito.', remedio:'Localizar la causa del aumento de temperatura.' },
+    { codigo:70, nombre:'Fallo de filtro activo', causa:'Fallo desencadenado por entrada digital.', remedio:'Solucionar la condición de fallo en el filtro activo.' },
+    { codigo:74, nombre:'Fallo de seguidor', causa:'Uno o más convertidores seguidores se dispararon por fallo en modo maestro-seguidor.', remedio:'Revisar el convertidor seguidor que originó el fallo.' }
+  ]
+};
+
+NXData.menu = [
+  { id:'M1', nombre:'Monitor' },
+  { id:'M2', nombre:'Parámetros' },
+  { id:'M3', nombre:'Control Panel' },
+  { id:'M4', nombre:'Fallos Activos' },
+  { id:'M5', nombre:'Historial Fallos' },
+  { id:'M6', nombre:'Menú Sistema' },
+  { id:'M7', nombre:'Cartas Expansión' }
+];
+</script>
+<script>
+assert(NXData.menu.length === 7, 'NXData.menu tiene los 7 menús principales M1-M7');
+assert(NXData.monitorValues.length === 17, 'NXData.monitorValues tiene los 17 valores V1.1-V1.17');
+assert(NXData.paramsG21.find(function(p){return p.id==='P2.3';}).porDefecto === 3.0, 'P2.3 (t.aceleración) tiene default real 3.0 s');
+assert(NXData.paramsG21.find(function(p){return p.id==='P2.4';}).porDefecto === 3.0, 'P2.4 (t.deceleración) tiene default real 3.0 s');
+assert(NXData.paramsG21.length === 20, 'paramsG21 tiene los 20 parámetros reales P2.1-P2.20 de la Tabla 2 del manual');
+assert(NXData.paramsM3.find(function(p){return p.id==='P3.2';}).unidad === 'Hz', 'P3.2 (referencia de panel) existe y es la referencia real, no P2.1.3');
+assert(NXData.faultCatalog.find(function(f){return f.codigo===1;}).nombre === 'Sobreintensidad', 'Falla F1 = Sobreintensidad');
+assert(NXData.faultCatalog.find(function(f){return f.codigo===2;}).nombre === 'Sobretensión', 'Falla F2 = Sobretensión');
+assert(NXData.faultCatalog.length === 55, 'El catálogo de fallas tiene las 55 entradas reales del manual (cap.10.1)');
+window.runTestsIfRequested();
+</script>
 </body>
 </html>
