@@ -243,5 +243,82 @@ assert(NXData.faultCatalog.find(function(f){return f.codigo===2;}).nombre === 'S
 assert(NXData.faultCatalog.length === 55, 'El catálogo de fallas tiene las 55 entradas reales del manual (cap.10.1)');
 window.runTestsIfRequested();
 </script>
+<script>
+function NXEngine(){
+  // El teclado real siempre arranca mostrando M1 (nunca una pantalla en blanco), así que
+  // la ruta nunca queda vacía: ['M1'] = nivel superior, ['M2','G2.1'] = dentro de un grupo, etc.
+  this.ruta = ['M1'];
+  this.modo = 'navegar';   // 'navegar' | 'editar'
+}
+
+NXEngine.prototype._hijosDe = function(ruta){
+  if (ruta.length === 0) return NXData.menu.map(function(m){ return m.id; });
+  if (ruta[0] === 'M2' && ruta.length === 1) return ['G2.1'];
+  if (ruta[0] === 'M2' && ruta[1] === 'G2.1' && ruta.length === 2) return NXData.paramsG21.map(function(p){ return p.id; });
+  if (ruta[0] === 'M1' && ruta.length === 1) return NXData.monitorValues.map(function(v){ return v.id; });
+  if (ruta[0] === 'M3' && ruta.length === 1) return NXData.paramsM3.map(function(p){ return p.id; });
+  return []; // M4, M5, M6, M7 y hojas de parámetro: sin hijos navegables
+};
+
+NXEngine.prototype._indiceEnNivel = function(){
+  var hijos = this._hijosDe(this.ruta.slice(0, -1));
+  return hijos.indexOf(this.ruta[this.ruta.length - 1]);
+};
+
+NXEngine.prototype.press = function(tecla){
+  if (this.modo === 'editar') return; // Task 4 maneja 'editar'
+  if (tecla === 'right'){
+    var hijos = this._hijosDe(this.ruta);
+    if (hijos.length > 0) this.ruta = this.ruta.concat([hijos[0]]);
+    return;
+  }
+  if (tecla === 'left'){
+    // length > 1: nunca vaciar la ruta del todo, el nivel superior (M1-M7) siempre tiene
+    // un elemento seleccionado, igual que en el teclado real.
+    if (this.ruta.length > 1) this.ruta = this.ruta.slice(0, -1);
+    return;
+  }
+  if (tecla === 'up' || tecla === 'down'){
+    var nivel = this._hijosDe(this.ruta.slice(0, -1));
+    if (nivel.length === 0) return;
+    var i = this._indiceEnNivel();
+    var delta = (tecla === 'up') ? -1 : 1;
+    var nuevoIndice = (i + delta + nivel.length) % nivel.length;
+    this.ruta = this.ruta.slice(0, -1).concat([nivel[nuevoIndice]]);
+    return;
+  }
+};
+
+NXEngine.prototype.ubicacionActual = function(){
+  return this.ruta.length === 0 ? null : this.ruta[this.ruta.length - 1];
+};
+</script>
+<script>
+(function(){
+  var e = new NXEngine();
+  assert(e.ubicacionActual() === 'M1', 'Motor nuevo inicia en M1, igual que el teclado real al energizarse');
+
+  e.press('down'); // M1 -> M2
+  assert(e.ubicacionActual() === 'M2', 'down desde M1 mueve a M2 en el nivel raíz');
+
+  e.press('right'); // entra a M2 -> G2.1
+  assert(e.ubicacionActual() === 'G2.1', 'right entra al grupo G2.1 dentro de M2');
+
+  e.press('right'); // entra a G2.1 -> P2.1 (primer parámetro)
+  assert(e.ubicacionActual() === 'P2.1', 'right entra al primer parámetro del grupo');
+
+  for (var i = 0; i < 2; i++) e.press('down'); // P2.1 -> P2.2 -> P2.3
+  assert(e.ubicacionActual() === 'P2.3', 'down x2 navega P2.1 -> P2.2 -> P2.3');
+
+  e.press('left'); // vuelve a G2.1
+  assert(e.ubicacionActual() === 'G2.1', 'left desde un parámetro vuelve al grupo');
+
+  var e2 = new NXEngine();
+  e2.press('up'); // desde M1 (índice 0), up debe dar la vuelta a M7 (último)
+  assert(e2.ubicacionActual() === 'M7', 'up desde el primer menú da la vuelta al último (M7)');
+
+  window.runTestsIfRequested();
+})();
+</script>
 </body>
 </html>
