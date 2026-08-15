@@ -1,0 +1,1060 @@
+# Simulador Web del Teclado VACON NX — Plan de Implementación
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Construir `capacitaciones/vacon/display/index.html`, una capacitación autocontenida donde el alumno navega el teclado VACON NX real, edita parámetros de la Aplicación Básica, arranca/detiene un motor simulado con rampas reales, y diagnostica/resetea fallas — con tareas guiadas y evaluadas.
+
+**Architecture:** Cuatro capas en un único archivo HTML: `NXData` (datos puros extraídos del manual All-in-One y del manual de usuario NXS/NXP), `NXEngine` (máquina de estados sin DOM, testeable con `?test=1`), `NXPanel` (vista: LCD + LEDs + teclado), `NXTasks` (ejercicios guiados con validación). Sigue el patrón de archivo único de `vacon-nxp.html` (mismas variables CSS, mismo patrón de `localStorage` para progreso, mismo gate de pago).
+
+**Tech Stack:** HTML/CSS/JS vanilla, sin build, sin dependencias externas. Debe funcionar abierto por `file://` sin servidor.
+
+**Spec:** [docs/superpowers/specs/2026-08-15-vacon-nx-simulador-design.md](../specs/2026-08-15-vacon-nx-simulador-design.md)
+
+## Global Constraints
+
+- Un único archivo `capacitaciones/vacon/display/index.html`. Excepción deliberada al patrón "flat training files" (un `.html` por capacitación como hermanos en la carpeta de marca): el usuario pidió una carpeta `display/` dedicada dentro de `vacon/` para agrupar contenido interactivo, con el simulador como `index.html` de esa carpeta.
+- Debe funcionar por doble clic (`file://`), cero llamadas de red salvo Google Fonts y Clerk (igual que `vacon-nxp.html`).
+- Va detrás del gate de pago: incluir `<script src="../../../assets/gate.js"></script>` y el script de Clerk con `data-clerk-publishable-key`, copiados literalmente de `vacon-nxp.html`.
+- `NXEngine` no debe referenciar `document`, `window` ni ningún API de DOM — debe poder ejecutarse y testearse en aislamiento.
+- Todo dato de menú/parámetro/falla viene del manual (`Vacon-NX-All-in-One-Application-Manual-DPD01211E-ES (1).pdf` y `Vacon-NXS-NXP-User-Manual-DPD01220F-ES (2).pdf`, ambos en `fuentes/vacon/VACON NXP/`), no inventado. Donde el manual no fija un número (ej. corriente nominal del motor de demostración), se documenta explícitamente como constante del simulador.
+- Progreso persistido en `localStorage` bajo `vfd_progress_vacon-nx-simulador`, mismo formato `{done, total}` que usan las demás capacitaciones para el portal.
+- Tema oscuro/claro con la misma clave `capacitacion-theme` que el resto del sitio.
+
+---
+
+## Task 1: Scaffold del archivo y arnés de pruebas
+
+**Files:**
+- Create: `capacitaciones/vacon/display/index.html`
+
+**Interfaces:**
+- Produces: función global `assert(cond, mensaje)` que acumula resultados en `window.__testResults` (array de `{ok, mensaje}`) y los imprime en un `<pre id="test-output">` cuando la URL trae `?test=1`. Cualquier tarea posterior que agregue pruebas usa esta función.
+
+- [ ] **Step 1: Crear el archivo con la cabecera estándar del proyecto**
+
+Copiar el `<head>` de `capacitaciones/vacon/vacon-nxp.html` líneas 1-45 (Clerk script, gate.js, fuentes IBM Plex, variables CSS `:root` y `:root.light-theme`) sin modificar. Cambiar el `<title>` a `VACON NX — Simulador de Teclado · Capacitación Interactiva`.
+
+- [ ] **Step 2: Agregar el arnés de pruebas al final del `<script>` principal**
+
+```html
+<div id="test-output" style="display:none; font-family:var(--mono); white-space:pre; padding:20px; color:var(--text);"></div>
+<script>
+(function(){
+  window.__testResults = [];
+  window.assert = function(cond, mensaje){
+    window.__testResults.push({ ok: !!cond, mensaje: mensaje });
+  };
+  window.runTestsIfRequested = function(){
+    if (new URLSearchParams(location.search).get('test') !== '1') return;
+    var out = document.getElementById('test-output');
+    out.style.display = 'block';
+    var fails = window.__testResults.filter(function(r){ return !r.ok; });
+    var lines = window.__testResults.map(function(r){
+      return (r.ok ? 'OK   ' : 'FAIL ') + r.mensaje;
+    });
+    lines.push('');
+    lines.push(fails.length === 0
+      ? ('TODO OK: ' + window.__testResults.length + '/' + window.__testResults.length)
+      : ('FALLOS: ' + fails.length + '/' + window.__testResults.length));
+    out.textContent = lines.join('\n');
+  };
+})();
+</script>
+```
+
+- [ ] **Step 3: Verificar que carga sin errores**
+
+Abrir el archivo con el navegador (`file://` directo) y con Preview tool. Confirmar en consola: cero errores. Confirmar que `?test=1` muestra "TODO OK: 0/0" (aún no hay pruebas).
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add capacitaciones/vacon/display/index.html
+git commit -m "Agregar scaffold del simulador VACON NX con arnés de pruebas"
+```
+
+---
+
+## Task 2: NXData — árbol de menús, parámetros y catálogo de fallas
+
+**Files:**
+- Modify: `capacitaciones/vacon/display/index.html` (agregar bloque `NXData` antes del arnés de pruebas)
+
+**Interfaces:**
+- Consumes: `assert()` de Task 1.
+- Produces: objeto global `NXData` con las propiedades `menu`, `monitorValues`, `paramsG21`, `paramsM3`, `faultCatalog` — usadas por `NXEngine` (Task 3+) y `NXPanel` (Task 7).
+
+- [ ] **Step 1: Escribir `NXData` con los datos reales del manual**
+
+```html
+<script>
+const NXData = {
+  // Menú M1 — Tabla 41 del manual de usuario NXS/NXP, p.81
+  monitorValues: [
+    { id:'V1.1', nombre:'Frec Salida', unidad:'Hz' },
+    { id:'V1.2', nombre:'Refer Frec', unidad:'Hz' },
+    { id:'V1.3', nombre:'Velocidad Motor', unidad:'rpm' },
+    { id:'V1.4', nombre:'Intensidad Motor', unidad:'A' },
+    { id:'V1.5', nombre:'Par Motor', unidad:'%' },
+    { id:'V1.6', nombre:'Potencia Motor', unidad:'%' },
+    { id:'V1.7', nombre:'Voltaje Motor', unidad:'V' },
+    { id:'V1.8', nombre:'Voltaje DC-link', unidad:'V' },
+    { id:'V1.9', nombre:'Temper Convert', unidad:'°C' },
+    { id:'V1.10', nombre:'TempMotor', unidad:'%' },
+    { id:'V1.11', nombre:'EntradaAnalog 1', unidad:'mA' },
+    { id:'V1.12', nombre:'EntradaAnalog 2', unidad:'mA' },
+    { id:'V1.13', nombre:'DIN 1,2,3', unidad:'' },
+    { id:'V1.14', nombre:'DIN 4,5,6', unidad:'' },
+    { id:'V1.15', nombre:'DO1,RO1,RO2', unidad:'' },
+    { id:'V1.16', nombre:'Salida analógica', unidad:'mA' },
+    { id:'V1.17', nombre:'Elementos multimon.', unidad:'' }
+  ],
+
+  // Menú M2 -> G2.1 — Tabla 2 del manual All-in-One, Aplicación Básica, p.15-16
+  // La Aplicación Básica solo tiene el grupo G2.1 (no existe G2.2 en esta aplicación).
+  paramsG21: [
+    { id:'P2.1', nombre:'Frecuencia mín.', tipo:'numeric', min:0.00, max:'P2.2', unidad:'Hz', porDefecto:0.00, paso:0.01 },
+    { id:'P2.2', nombre:'Frecuencia máx.', tipo:'numeric', min:'P2.1', max:320.00, unidad:'Hz', porDefecto:50.00, paso:0.01 },
+    { id:'P2.3', nombre:'T.aceleración 1', tipo:'numeric', min:0.1, max:3000.0, unidad:'s', porDefecto:3.0, paso:0.1 },
+    { id:'P2.4', nombre:'T.deceleración 1', tipo:'numeric', min:0.1, max:3000.0, unidad:'s', porDefecto:3.0, paso:0.1 },
+    { id:'P2.5', nombre:'Límite intensidad', tipo:'numeric', min:0.84, max:16.80, unidad:'A', porDefecto:8.40, paso:0.1 },
+    { id:'P2.6', nombre:'Tensión nom.motor', tipo:'numeric', min:180, max:690, unidad:'V', porDefecto:400, paso:1 },
+    { id:'P2.7', nombre:'Frec.nom.motor', tipo:'numeric', min:8.00, max:320.00, unidad:'Hz', porDefecto:50.00, paso:0.01 },
+    { id:'P2.8', nombre:'Veloc.nom.motor', tipo:'numeric', min:24, max:20000, unidad:'rpm', porDefecto:1440, paso:1 },
+    { id:'P2.9', nombre:'Intens.nom.motor', tipo:'numeric', min:0.84, max:16.80, unidad:'A', porDefecto:8.40, paso:0.1 },
+    { id:'P2.10', nombre:'Cos phi motor', tipo:'numeric', min:0.30, max:1.00, unidad:'', porDefecto:0.85, paso:0.01 },
+    { id:'P2.11', nombre:'Tipo de marcha', tipo:'enum', porDefecto:0, opciones:[
+      {valor:0, etiqueta:'Rampa'}, {valor:1, etiqueta:'Arranque al vuelo'}, {valor:2, etiqueta:'Vuelo condicional'}
+    ]},
+    // Simplificación documentada: el manual describe 4 opciones (0-3) pero el texto de las
+    // opciones 1-3 llega mezclado por el layout en columnas del PDF fuente. Se usan las dos
+    // opciones inequívocas (0=Frenado libre, 1=Rampa); 2 y 3 se tratan como 0 y 1 respectivamente
+    // para efectos de la simulación (agregan "permiso de marcha" que este simulador no modela).
+    { id:'P2.12', nombre:'Tipo de paro', tipo:'enum', porDefecto:0, opciones:[
+      {valor:0, etiqueta:'Frenado libre'}, {valor:1, etiqueta:'Rampa'},
+      {valor:2, etiqueta:'Frenado libre + Permiso marcha'}, {valor:3, etiqueta:'Rampa + Permiso marcha'}
+    ]},
+    { id:'P2.13', nombre:'Optimización U/f', tipo:'enum', porDefecto:0, opciones:[
+      {valor:0, etiqueta:'Deshabilitado'}, {valor:1, etiqueta:'Sobrepar automático'}
+    ]},
+    { id:'P2.14', nombre:'Referencia I/O', tipo:'enum', porDefecto:0, opciones:[
+      {valor:0, etiqueta:'AI1'}, {valor:1, etiqueta:'AI2'}, {valor:2, etiqueta:'Panel'}, {valor:3, etiqueta:'Fieldbus'}
+    ]},
+    { id:'P2.15', nombre:'Comp.AI2 referencia', tipo:'enum', porDefecto:1, opciones:[
+      {valor:0, etiqueta:'0-20 mA'}, {valor:1, etiqueta:'4-20 mA'}
+    ]},
+    { id:'P2.16', nombre:'Func.salida analóg.', tipo:'enum', porDefecto:1, opciones:[
+      {valor:0, etiqueta:'Deshabilitado'}, {valor:1, etiqueta:'Frec. salida'}, {valor:2, etiqueta:'Referencia frecuencia'},
+      {valor:3, etiqueta:'Velocidad motor'}, {valor:4, etiqueta:'Intensidad salida'}, {valor:5, etiqueta:'Par de motor'},
+      {valor:6, etiqueta:'Potencia motor'}, {valor:7, etiqueta:'Tensión motor'}, {valor:8, etiqueta:'Tensión bus CC'}
+    ]},
+    { id:'P2.17', nombre:'Func.salida dig.1(DIN3)', tipo:'enum', porDefecto:1, opciones:[
+      {valor:0, etiqueta:'Deshabilitado'}, {valor:1, etiqueta:'Fallo ext. cont.cerrado'}, {valor:2, etiqueta:'Fallo ext. cont.abierto'},
+      {valor:3, etiqueta:'Permiso marcha, cc'}, {valor:4, etiqueta:'Permiso marcha, oc'}, {valor:5, etiqueta:'Forzar cp a E/S'},
+      {valor:6, etiqueta:'Forzar cp a panel'}, {valor:7, etiqueta:'Forzar cp a fieldbus'}
+    ]},
+    { id:'P2.18', nombre:'Velocidad fija 1', tipo:'numeric', min:0.00, max:'P2.2', unidad:'Hz', porDefecto:0.00, paso:0.01 },
+    { id:'P2.19', nombre:'Velocidad fija 2', tipo:'numeric', min:0.00, max:'P2.2', unidad:'Hz', porDefecto:50.00, paso:0.01 },
+    { id:'P2.20', nombre:'Rearranque auto.', tipo:'enum', porDefecto:0, opciones:[
+      {valor:0, etiqueta:'Deshabilitado'}, {valor:1, etiqueta:'Habilitado'}
+    ]}
+  ],
+
+  // Menú M3 — Tabla 42 del manual de usuario NXS/NXP, p.85
+  paramsM3: [
+    { id:'P3.1', nombre:'Lugar de control', tipo:'enum', porDefecto:1, opciones:[
+      {valor:1, etiqueta:'Terminal I/O'}, {valor:2, etiqueta:'Panel'}, {valor:3, etiqueta:'Fieldbus'}
+    ]},
+    { id:'P3.2', nombre:'Referencia panel', tipo:'numeric', min:'P2.1', max:'P2.2', unidad:'Hz', porDefecto:0.00, paso:0.01 },
+    { id:'P3.3', nombre:'Sentido de giro', tipo:'enum', porDefecto:0, opciones:[
+      {valor:0, etiqueta:'Marcha directa'}, {valor:1, etiqueta:'Inversión'}
+    ]},
+    { id:'P3.4', nombre:'Botón de paro', tipo:'enum', porDefecto:1, opciones:[
+      {valor:0, etiqueta:'Función limitada'}, {valor:1, etiqueta:'Siempre activado'}
+    ]}
+  ],
+
+  // Menú M6/M7 — pantallas estáticas de información (fuera de alcance su edición, p.80)
+  systemInfo: ['Aplicación: Básica', 'Idioma: Español', 'Simulador VACON NX v1.0'],
+  expanderInfo: ['Sin tarjetas conectadas'],
+
+  // Catálogo de fallas — capítulo 10.1 "Códigos de fallo" del manual All-in-One, p.411-419
+  faultCatalog: [
+    { codigo:1, nombre:'Sobreintensidad', causa:'Intensidad >4×IH en el cable del motor: aumento súbito de carga, cortocircuito o motor incorrecto.', remedio:'Revisar carga, motor, cableado y conexiones; hacer identificación en marcha.' },
+    { codigo:2, nombre:'Sobretensión', causa:'Tensión de bus CC superior al límite: tiempo de deceleración muy corto, picos de red o marcha/paro muy rápido.', remedio:'Aumentar el tiempo de deceleración (P2.4); usar chopper o resistencia de frenado; revisar tensión de entrada.' },
+    { codigo:3, nombre:'Fallo de tierra', causa:'La suma de intensidades de fase del motor no es cero: avería de aislamiento en cables o motor.', remedio:'Revisar cables del motor y el motor.' },
+    { codigo:5, nombre:'Circuito de precarga', causa:'El interruptor de carga está abierto al dar la orden de marcha.', remedio:'Resetear el fallo y volver a arrancar; si persiste, contactar al distribuidor.' },
+    { codigo:6, nombre:'Paro de emergencia', causa:'Señal de paro recibida desde la tarjeta opcional.', remedio:'Revisar el circuito de paro de emergencia.' },
+    { codigo:7, nombre:'Desconexión por saturación', causa:'Componente defectuoso o resistencia de frenado en cortocircuito/sobrecarga.', remedio:'No arrancar ni conectar alimentación; pedir instrucciones al distribuidor.' },
+    { codigo:8, nombre:'Fallo de la aplicación', causa:'Avería de funcionamiento o componente defectuoso.', remedio:'Resetear el fallo y volver a arrancar; si persiste, contactar al distribuidor.' },
+    { codigo:9, nombre:'Baja tensión', causa:'Tensión de bus CC inferior al límite: tensión de red baja, fusible de entrada o interruptor de carga abierto.', remedio:'Resetear tras un corte temporal; revisar la tensión de alimentación.' },
+    { codigo:10, nombre:'Supervisión línea de entrada', causa:'Falta una fase de la línea de entrada.', remedio:'Revisar tensión de alimentación, fusibles y cable de alimentación.' },
+    { codigo:11, nombre:'Fase de salida', causa:'Falta intensidad en una de las fases del motor.', remedio:'Revisar el cable del motor y el motor.' },
+    { codigo:12, nombre:'Supervisión chopper de frenado', causa:'Resistencia de frenado ausente o rota; chopper defectuoso.', remedio:'Revisar la resistencia de frenado y sus cables.' },
+    { codigo:13, nombre:'Baja temperatura del convertidor', causa:'Temperatura del radiador por debajo de -10 °C.', remedio:'Esperar a que el equipo alcance temperatura de operación.' },
+    { codigo:14, nombre:'Exceso de temperatura del convertidor', causa:'Temperatura del radiador superior a 85-90 °C.', remedio:'Revisar ventilación, polvo, temperatura ambiente y frecuencia de conmutación.' },
+    { codigo:15, nombre:'Motor bloqueado', causa:'El motor se ha bloqueado.', remedio:'Revisar el cable del motor y la carga.' },
+    { codigo:16, nombre:'Exceso de temperatura del motor', causa:'Carga excesiva sostenida en el motor.', remedio:'Reducir la carga del motor; revisar los parámetros del modelo térmico.' },
+    { codigo:17, nombre:'Protección de baja carga', causa:'Se activó la protección de baja carga.', remedio:'Revisar la carga.' },
+    { codigo:18, nombre:'Desequilibrio', causa:'Desequilibrio de intensidad o tensión de bus CC entre módulos de potencia en paralelo.', remedio:'Si el fallo persiste, contactar al distribuidor.' },
+    { codigo:22, nombre:'Fallo de suma de verificación EEPROM', causa:'Fallo al guardar parámetros.', remedio:'Si el fallo persiste, contactar al distribuidor.' },
+    { codigo:24, nombre:'Fallo del contador', causa:'Los valores del contador no son correctos.', remedio:'Informativo; sin acción de campo requerida.' },
+    { codigo:25, nombre:'Fallo del watchdog del microprocesador', causa:'Avería de funcionamiento o componente defectuoso.', remedio:'Resetear el fallo y volver a arrancar; si persiste, contactar al distribuidor.' },
+    { codigo:26, nombre:'Prevención de puesta en marcha', causa:'La orden de marcha está activa al descargar una aplicación nueva.', remedio:'Cancelar la prevención si es seguro; retirar la solicitud de marcha.' },
+    { codigo:29, nombre:'Fallo termistor', causa:'La entrada de termistor detectó un aumento de temperatura del motor.', remedio:'Revisar refrigeración, carga y conexión del termistor.' },
+    { codigo:30, nombre:'Desactivación segura', causa:'Se abrió la entrada en la tarjeta OPTAF.', remedio:'Cancelar la desactivación segura si se puede hacer con seguridad.' },
+    { codigo:31, nombre:'Temperatura de IGBT (hardware)', causa:'Sobrecarga de corriente a corto plazo muy alta.', remedio:'Revisar carga y tamaño del motor; hacer identificación en marcha.' },
+    { codigo:32, nombre:'Ventilador de refrigeración', causa:'El ventilador no arranca con la orden ACTIVAR.', remedio:'Pedir instrucciones al distribuidor.' },
+    { codigo:34, nombre:'Bus de comunicaciones CAN', causa:'No se reconoció el mensaje enviado.', remedio:'Comprobar que hay otro dispositivo en el bus con igual configuración.' },
+    { codigo:35, nombre:'Aplicación', causa:'Problema en el software de la aplicación.', remedio:'Pedir instrucciones al distribuidor o revisar el programa de aplicación.' },
+    { codigo:36, nombre:'Unidad de control', causa:'La unidad de control no puede controlar la unidad de potencia.', remedio:'Cambiar la unidad de control.' },
+    { codigo:37, nombre:'Dispositivo cambiado (mismo tipo)', causa:'Tarjeta opcional reemplazada por una ya usada en esa ranura.', remedio:'Resetear el fallo; el convertidor retoma los ajustes previos.' },
+    { codigo:38, nombre:'Dispositivo añadido (mismo tipo)', causa:'Tarjeta opcional añadida, ya usada antes en esa ranura.', remedio:'Resetear el fallo; el convertidor retoma los ajustes previos.' },
+    { codigo:39, nombre:'Dispositivo extraído', causa:'Se quitó una tarjeta opcional de la ranura.', remedio:'Resetear el fallo.' },
+    { codigo:40, nombre:'Dispositivo desconocido', causa:'Se conectó un dispositivo no reconocido.', remedio:'Pedir instrucciones al distribuidor.' },
+    { codigo:41, nombre:'Temperatura de IGBT', causa:'Sobrecarga de corriente a corto plazo muy alta.', remedio:'Revisar carga y tamaño del motor; hacer identificación en marcha.' },
+    { codigo:42, nombre:'Sobrecalentamiento resistencia de frenado', causa:'La protección detectó frenado excesivo.', remedio:'Aumentar el tiempo de deceleración; usar resistencia de frenado externa.' },
+    { codigo:43, nombre:'Fallo encoder', causa:'Problema detectado en las señales del encoder.', remedio:'Revisar conexiones y tarjeta del encoder.' },
+    { codigo:44, nombre:'Dispositivo cambiado (distinto tipo)', causa:'Tarjeta opcional o unidad de potencia cambiada por otra de distinto tipo.', remedio:'Resetear; reconfigurar los parámetros correspondientes.' },
+    { codigo:45, nombre:'Dispositivo añadido (distinto tipo)', causa:'Se añadió una tarjeta opcional de distinto tipo.', remedio:'Resetear; reconfigurar los parámetros de la unidad de potencia.' },
+    { codigo:49, nombre:'División por cero en aplicación', causa:'Error en el programa de la aplicación.', remedio:'Si ocurre en marcha, contactar al distribuidor.' },
+    { codigo:50, nombre:'Iin entrada analógica < 4mA', causa:'Señal de entrada analógica (rango 4-20 mA) por debajo de 4 mA.', remedio:'Revisar el circuito de lazo de corriente.' },
+    { codigo:51, nombre:'Fallo externo', causa:'Fallo de entrada digital programable.', remedio:'Solucionar la condición de fallo en el dispositivo externo.' },
+    { codigo:52, nombre:'Fallo de comunicación del panel', causa:'Conexión defectuosa entre el teclado (o NCDrive) y el convertidor.', remedio:'Revisar la conexión y el cable del teclado.' },
+    { codigo:53, nombre:'Fallo de comunicación Fieldbus', causa:'Conexión de datos defectuosa entre el maestro Fieldbus y la tarjeta Fieldbus.', remedio:'Revisar la instalación y el maestro de Fieldbus.' },
+    { codigo:54, nombre:'Fallo en la ranura', causa:'Tarjeta opcional o ranura defectuosa.', remedio:'Revisar la tarjeta y la ranura; contactar al distribuidor.' },
+    { codigo:56, nombre:'Temperatura excesiva', causa:'Límite de temperatura superado; sensor desconectado o cortocircuito.', remedio:'Localizar la causa del aumento de temperatura.' },
+    { codigo:57, nombre:'Identificación', causa:'Falló la identificación con motor girando.', remedio:'Verificar que el motor esté conectado y sin carga en el eje.' },
+    { codigo:58, nombre:'Chopper', causa:'El estado real del freno difiere de la señal de control.', remedio:'Revisar estado y conexiones del freno mecánico.' },
+    { codigo:59, nombre:'Comunicación con unidad seguidora', causa:'Se interrumpió la comunicación SystemBus/CAN entre maestro y seguidor.', remedio:'Revisar parámetros de la tarjeta opcional y el cable de fibra óptica o CAN.' },
+    { codigo:60, nombre:'Refrigeración', causa:'Falló la circulación de refrigerante en el convertidor de refrigeración líquida.', remedio:'Revisar el sistema externo de refrigeración.' },
+    { codigo:61, nombre:'Error de velocidad', causa:'La velocidad del motor no coincide con la referencia.', remedio:'Revisar la conexión del encoder.' },
+    { codigo:62, nombre:'Marcha deshabilitada', causa:'La señal de permiso de marcha está baja.', remedio:'Revisar el motivo de la señal de permiso de marcha.' },
+    { codigo:63, nombre:'Paro de emergencia', causa:'Se recibió la orden de paro de emergencia desde la entrada digital o el Fieldbus.', remedio:'Se acepta una nueva orden de marcha tras el reset.' },
+    { codigo:64, nombre:'Interruptor de entrada abierto', causa:'El interruptor de entrada del convertidor está abierto.', remedio:'Revisar el interruptor de alimentación principal.' },
+    { codigo:65, nombre:'Temperatura excesiva', causa:'Límite de temperatura superado; sensor desconectado o cortocircuito.', remedio:'Localizar la causa del aumento de temperatura.' },
+    { codigo:70, nombre:'Fallo de filtro activo', causa:'Fallo desencadenado por entrada digital.', remedio:'Solucionar la condición de fallo en el filtro activo.' },
+    { codigo:74, nombre:'Fallo de seguidor', causa:'Uno o más convertidores seguidores se dispararon por fallo en modo maestro-seguidor.', remedio:'Revisar el convertidor seguidor que originó el fallo.' }
+  ]
+};
+
+NXData.menu = [
+  { id:'M1', nombre:'Monitor' },
+  { id:'M2', nombre:'Parámetros' },
+  { id:'M3', nombre:'Control Panel' },
+  { id:'M4', nombre:'Fallos Activos' },
+  { id:'M5', nombre:'Historial Fallos' },
+  { id:'M6', nombre:'Menú Sistema' },
+  { id:'M7', nombre:'Cartas Expansión' }
+];
+</script>
+```
+
+- [ ] **Step 2: Agregar pruebas de estructura de datos**
+
+```html
+<script>
+assert(NXData.menu.length === 7, 'NXData.menu tiene los 7 menús principales M1-M7');
+assert(NXData.monitorValues.length === 17, 'NXData.monitorValues tiene los 17 valores V1.1-V1.17');
+assert(NXData.paramsG21.find(function(p){return p.id==='P2.3';}).porDefecto === 3.0, 'P2.3 (t.aceleración) tiene default real 3.0 s');
+assert(NXData.paramsG21.find(function(p){return p.id==='P2.4';}).porDefecto === 3.0, 'P2.4 (t.deceleración) tiene default real 3.0 s');
+assert(NXData.paramsG21.length === 20, 'paramsG21 tiene los 20 parámetros reales P2.1-P2.20 de la Tabla 2 del manual');
+assert(NXData.paramsM3.find(function(p){return p.id==='P3.2';}).unidad === 'Hz', 'P3.2 (referencia de panel) existe y es la referencia real, no P2.1.3');
+assert(NXData.faultCatalog.find(function(f){return f.codigo===1;}).nombre === 'Sobreintensidad', 'Falla F1 = Sobreintensidad');
+assert(NXData.faultCatalog.find(function(f){return f.codigo===2;}).nombre === 'Sobretensión', 'Falla F2 = Sobretensión');
+assert(NXData.faultCatalog.length === 55, 'El catálogo de fallas tiene las 55 entradas reales del manual (cap.10.1)');
+window.runTestsIfRequested();
+</script>
+```
+
+- [ ] **Step 3: Ejecutar y verificar**
+
+Abrir con Preview tool agregando `?test=1` a la URL. Confirmar "TODO OK: 9/9" en el `<pre>`.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add capacitaciones/vacon/display/index.html
+git commit -m "Agregar NXData con menus, parametros G2.1/M3 y catalogo de fallas reales"
+```
+
+---
+
+## Task 3: NXEngine — navegación del árbol de menús
+
+**Files:**
+- Modify: `capacitaciones/vacon/display/index.html`
+
+**Interfaces:**
+- Consumes: `NXData.menu`, `NXData.paramsG21`, `NXData.paramsM3`, `NXData.monitorValues` (Task 2).
+- Produces: constructor `NXEngine()` con propiedad `.ruta` (array de ids, ej. `['M2','G2.1','P2.3']`) y métodos `press(tecla)`, `ubicacionActual()`. Usado por Task 4 (edición), Task 5 (simulación), Task 7 (vista).
+
+- [ ] **Step 1: Escribir la máquina de estados de navegación**
+
+```html
+<script>
+function NXEngine(){
+  // El teclado real siempre arranca mostrando M1 (nunca una pantalla en blanco), así que
+  // la ruta nunca queda vacía: ['M1'] = nivel superior, ['M2','G2.1'] = dentro de un grupo, etc.
+  this.ruta = ['M1'];
+  this.modo = 'navegar';   // 'navegar' | 'editar'
+}
+
+NXEngine.prototype._hijosDe = function(ruta){
+  if (ruta.length === 0) return NXData.menu.map(function(m){ return m.id; });
+  if (ruta[0] === 'M2' && ruta.length === 1) return ['G2.1'];
+  if (ruta[0] === 'M2' && ruta[1] === 'G2.1' && ruta.length === 2) return NXData.paramsG21.map(function(p){ return p.id; });
+  if (ruta[0] === 'M1' && ruta.length === 1) return NXData.monitorValues.map(function(v){ return v.id; });
+  if (ruta[0] === 'M3' && ruta.length === 1) return NXData.paramsM3.map(function(p){ return p.id; });
+  return []; // M4, M5, M6, M7 y hojas de parámetro: sin hijos navegables
+};
+
+NXEngine.prototype._indiceEnNivel = function(){
+  var hijos = this._hijosDe(this.ruta.slice(0, -1));
+  return hijos.indexOf(this.ruta[this.ruta.length - 1]);
+};
+
+NXEngine.prototype.press = function(tecla){
+  if (this.modo === 'editar') return; // Task 4 maneja 'editar'
+  if (tecla === 'right'){
+    var hijos = this._hijosDe(this.ruta);
+    if (hijos.length > 0) this.ruta = this.ruta.concat([hijos[0]]);
+    return;
+  }
+  if (tecla === 'left'){
+    // length > 1: nunca vaciar la ruta del todo, el nivel superior (M1-M7) siempre tiene
+    // un elemento seleccionado, igual que en el teclado real.
+    if (this.ruta.length > 1) this.ruta = this.ruta.slice(0, -1);
+    return;
+  }
+  if (tecla === 'up' || tecla === 'down'){
+    var nivel = this._hijosDe(this.ruta.slice(0, -1));
+    if (nivel.length === 0) return;
+    var i = this._indiceEnNivel();
+    var delta = (tecla === 'up') ? -1 : 1;
+    var nuevoIndice = (i + delta + nivel.length) % nivel.length;
+    this.ruta = this.ruta.slice(0, -1).concat([nivel[nuevoIndice]]);
+    return;
+  }
+};
+
+NXEngine.prototype.ubicacionActual = function(){
+  return this.ruta.length === 0 ? null : this.ruta[this.ruta.length - 1];
+};
+</script>
+```
+
+- [ ] **Step 2: Escribir las pruebas de navegación**
+
+```html
+<script>
+(function(){
+  var e = new NXEngine();
+  assert(e.ubicacionActual() === 'M1', 'Motor nuevo inicia en M1, igual que el teclado real al energizarse');
+
+  e.press('down'); // M1 -> M2
+  assert(e.ubicacionActual() === 'M2', 'down desde M1 mueve a M2 en el nivel raíz');
+
+  e.press('right'); // entra a M2 -> G2.1
+  assert(e.ubicacionActual() === 'G2.1', 'right entra al grupo G2.1 dentro de M2');
+
+  e.press('right'); // entra a G2.1 -> P2.1 (primer parámetro)
+  assert(e.ubicacionActual() === 'P2.1', 'right entra al primer parámetro del grupo');
+
+  for (var i = 0; i < 2; i++) e.press('down'); // P2.1 -> P2.2 -> P2.3
+  assert(e.ubicacionActual() === 'P2.3', 'down x2 navega P2.1 -> P2.2 -> P2.3');
+
+  e.press('left'); // vuelve a G2.1
+  assert(e.ubicacionActual() === 'G2.1', 'left desde un parámetro vuelve al grupo');
+
+  var e2 = new NXEngine();
+  e2.press('up'); // desde M1 (índice 0), up debe dar la vuelta a M7 (último)
+  assert(e2.ubicacionActual() === 'M7', 'up desde el primer menú da la vuelta al último (M7)');
+
+  window.runTestsIfRequested();
+})();
+</script>
+```
+
+- [ ] **Step 3: Ejecutar y verificar**
+
+Preview con `?test=1`: confirmar "TODO OK: 16/16" (9 de Task 2 + 7 nuevas).
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add capacitaciones/vacon/display/index.html
+git commit -m "Agregar navegacion del arbol de menus a NXEngine"
+```
+
+---
+
+## Task 4: NXEngine — edición de parámetros
+
+**Files:**
+- Modify: `capacitaciones/vacon/display/index.html`
+
+**Interfaces:**
+- Consumes: `NXEngine` de Task 3, `NXData.paramsG21`/`paramsM3`.
+- Produces: `NXEngine.prototype.valores` (objeto `{P2.1: 0.00, ...}` inicializado con `porDefecto` de cada parámetro), método `resolverParam(id)` (busca en `paramsG21` o `paramsM3`), método `rangoDe(param)` (resuelve min/max numéricos incluso cuando referencian otro parámetro como `'P2.2'`). Usado por Task 5 (simulación lee `engine.valores['P2.3']`, etc.) y Task 7 (vista de edición).
+
+- [ ] **Step 1: Inicializar valores y agregar el modo edición**
+
+```html
+<script>
+NXEngine.prototype._todosLosParams = function(){
+  return NXData.paramsG21.concat(NXData.paramsM3);
+};
+
+NXEngine.prototype.resolverParam = function(id){
+  return this._todosLosParams().filter(function(p){ return p.id === id; })[0] || null;
+};
+
+// Constructor extendido: valores iniciales = porDefecto de cada parámetro
+var _initNXEngine = NXEngine;
+NXEngine = function(){
+  _initNXEngine.call(this);
+  this.valores = {};
+  this._todosLosParamsEstatico().forEach(function(p){ this.valores[p.id] = p.porDefecto; }, this);
+};
+NXEngine.prototype = _initNXEngine.prototype;
+NXEngine.prototype._todosLosParamsEstatico = function(){ return NXData.paramsG21.concat(NXData.paramsM3); };
+
+NXEngine.prototype.rangoDe = function(param){
+  var min = param.min, max = param.max;
+  if (typeof min === 'string') min = this.valores[min];
+  if (typeof max === 'string') max = this.valores[max];
+  return { min: min, max: max };
+};
+
+NXEngine.prototype._clamp = function(v, min, max){
+  return Math.max(min, Math.min(max, v));
+};
+
+var _pressNav = NXEngine.prototype.press;
+NXEngine.prototype.press = function(tecla){
+  var idActual = this.ubicacionActual();
+  var param = idActual ? this.resolverParam(idActual) : null;
+
+  if (this.modo === 'navegar'){
+    if (tecla === 'right' && param){
+      this.modo = 'editar';
+      return;
+    }
+    return _pressNav.call(this, tecla);
+  }
+
+  // modo === 'editar'
+  if (tecla === 'left'){
+    this.modo = 'navegar'; // cancela: no persiste cambios en curso (ya están en this.valores porque up/down escribe directo)
+    return;
+  }
+  if (tecla === 'enter'){
+    this.modo = 'navegar'; // confirma
+    return;
+  }
+  if ((tecla === 'up' || tecla === 'down') && param){
+    if (param.tipo === 'numeric'){
+      var rango = this.rangoDe(param);
+      var delta = (tecla === 'up' ? 1 : -1) * param.paso;
+      var nuevo = Math.round((this.valores[param.id] + delta) * 1000) / 1000;
+      this.valores[param.id] = this._clamp(nuevo, rango.min, rango.max);
+    } else if (param.tipo === 'enum'){
+      var vals = param.opciones.map(function(o){ return o.valor; });
+      var i = vals.indexOf(this.valores[param.id]);
+      var nuevoI = (i + (tecla === 'up' ? 1 : -1) + vals.length) % vals.length;
+      this.valores[param.id] = vals[nuevoI];
+    }
+    return;
+  }
+};
+</script>
+```
+
+- [ ] **Step 2: Escribir las pruebas de edición**
+
+```html
+<script>
+(function(){
+  var e = new NXEngine();
+  assert(e.valores['P2.3'] === 3.0, 'Valor inicial de P2.3 es el default real 3.0 s');
+
+  e.ruta = ['M2', 'G2.1', 'P2.3'];
+  e.press('right'); // entra a modo editar
+  assert(e.modo === 'editar', 'right sobre un parámetro entra a modo edición');
+
+  e.press('up'); e.press('up');
+  assert(Math.abs(e.valores['P2.3'] - 3.2) < 0.001, 'up x2 sobre P2.3 (paso 0.1) da 3.2 s');
+
+  e.press('enter');
+  assert(e.modo === 'navegar', 'enter confirma y vuelve a modo navegar');
+  assert(Math.abs(e.valores['P2.3'] - 3.2) < 0.001, 'El valor editado persiste tras confirmar con enter');
+
+  var e2 = new NXEngine();
+  e2.ruta = ['M2', 'G2.1', 'P2.3'];
+  e2.press('right');
+  for (var i = 0; i < 40000; i++) e2.press('up'); // fuerza a superar el máximo (3000.0 s)
+  assert(e2.valores['P2.3'] === 3000.0, 'El valor se satura en el máximo real (3000.0 s), no lo excede');
+
+  var e3 = new NXEngine();
+  e3.ruta = ['M2', 'G2.1', 'P2.11'];
+  e3.press('right');
+  e3.press('up');
+  assert(e3.valores['P2.11'] === 1, 'up sobre un parámetro enum avanza a la siguiente opción (Arranque al vuelo)');
+
+  window.runTestsIfRequested();
+})();
+</script>
+```
+
+- [ ] **Step 3: Ejecutar y verificar**
+
+Preview con `?test=1`: confirmar "TODO OK: 23/23".
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add capacitaciones/vacon/display/index.html
+git commit -m "Agregar edicion de parametros numericos y enum a NXEngine"
+```
+
+---
+
+## Task 5: NXEngine — simulación del drive (arranque, rampas, monitor)
+
+**Files:**
+- Modify: `capacitaciones/vacon/display/index.html`
+
+**Interfaces:**
+- Consumes: `NXEngine.valores` de Task 4.
+- Produces: `engine.estadoDrive` (`'stop'|'run'|'deteniendo'|'falla'`), `engine.freqActual`, método `press('start')`/`press('stop')`, método `tick(dt)`, método `valorMonitor(id)` (retorna valor formateado para cualquier `V1.x`). Usado por Task 6 (fallas leen `freqActual`/corriente) y Task 7 (vista de M1).
+
+- [ ] **Step 1: Agregar estado de simulación y arranque/paro gateados por P3.1**
+
+```html
+<script>
+var _NXEngineCtor = NXEngine;
+NXEngine = function(){
+  _NXEngineCtor.call(this);
+  this.estadoDrive = 'stop';
+  this.freqActual = 0;
+  this.mensaje = null; // mensaje transitorio, ej. 'Control de panel NO ACTIVO'
+};
+NXEngine.prototype = _NXEngineCtor.prototype;
+
+var _pressEdit = NXEngine.prototype.press;
+NXEngine.prototype.press = function(tecla){
+  if (tecla === 'start'){
+    if (this.valores['P3.1'] !== 2){
+      this.mensaje = 'Control de panel NO ACTIVO';
+      return;
+    }
+    if (this.estadoDrive === 'stop') this.estadoDrive = 'run';
+    return;
+  }
+  if (tecla === 'stop'){
+    if (this.estadoDrive === 'run') this.estadoDrive = 'deteniendo';
+    return;
+  }
+  return _pressEdit.call(this, tecla);
+};
+
+// Tiempos de rampa del manual: se definen como tiempo de 0 a frecuencia MÁXIMA (P2.2),
+// no como tiempo a la referencia puntual. Es la definición real de VACON para P2.3/P2.4.
+NXEngine.prototype.tick = function(dt){
+  var fmax = this.valores['P2.2'];
+  if (this.estadoDrive === 'run'){
+    var ref = this.valores['P3.2'];
+    var tasaAccel = fmax / this.valores['P2.3'];
+    var tasaDecel = fmax / this.valores['P2.4'];
+    if (this.freqActual < ref) this.freqActual = Math.min(ref, this.freqActual + tasaAccel * dt);
+    else if (this.freqActual > ref) this.freqActual = Math.max(ref, this.freqActual - tasaDecel * dt);
+  } else if (this.estadoDrive === 'deteniendo'){
+    if (this.valores['P2.12'] === 0){
+      this.freqActual = 0; // frenado libre: paro inmediato
+    } else {
+      var tasaDecelParo = fmax / this.valores['P2.4'];
+      this.freqActual = Math.max(0, this.freqActual - tasaDecelParo * dt);
+    }
+    if (this.freqActual === 0) this.estadoDrive = 'stop';
+  }
+};
+
+// Modelo simplificado y declarado del motor de demostración (no hay físicas reales de carga).
+NXEngine.prototype._intensidadMotor = function(){
+  var fn = this.valores['P2.7'], in_ = this.valores['P2.9'];
+  var frac = fn > 0 ? Math.min(1, this.freqActual / fn) : 0;
+  return in_ * (0.3 + 0.7 * frac);
+};
+
+NXEngine.prototype.valorMonitor = function(id){
+  var fn = this.valores['P2.7'], vn = this.valores['P2.6'], in_ = this.valores['P2.9'];
+  var intensidad = this._intensidadMotor();
+  var parPct = in_ > 0 ? Math.round(intensidad / in_ * 100) : 0;
+  switch(id){
+    case 'V1.1': return this.freqActual.toFixed(2);
+    case 'V1.2': return this.valores['P3.2'].toFixed(2);
+    case 'V1.3': return fn > 0 ? Math.round(this.freqActual / fn * this.valores['P2.8']) : 0;
+    case 'V1.4': return intensidad.toFixed(1);
+    case 'V1.5': return parPct;
+    case 'V1.6': return fn > 0 ? Math.round(parPct * this.freqActual / fn) : 0;
+    case 'V1.7': return fn > 0 ? Math.round(vn * Math.min(1, this.freqActual / fn)) : 0;
+    case 'V1.8': return Math.round(vn * 1.35);
+    case 'V1.9': return this.estadoDrive === 'run' ? (35 + Math.round(intensidad / in_ * 25)) : 30;
+    case 'V1.10': return in_ > 0 ? Math.round(intensidad / in_ * 100) : 0;
+    default: return 0; // V1.11-V1.17: E/S no simulada en v1, se documenta en el spec
+  }
+};
+</script>
+```
+
+- [ ] **Step 2: Escribir las pruebas de simulación**
+
+```html
+<script>
+(function(){
+  var e = new NXEngine();
+  e.press('start');
+  assert(e.mensaje === 'Control de panel NO ACTIVO', 'START sin P3.1=Panel muestra el mensaje real del manual');
+  assert(e.estadoDrive === 'stop', 'El drive no arranca si el panel no es el lugar de control activo');
+
+  e.ruta = ['M3', 'P3.1']; e.press('right'); e.press('up'); e.press('enter'); // P3.1: 1 -> 2 (Panel)
+  assert(e.valores['P3.1'] === 2, 'P3.1 quedó en Panel');
+
+  e.ruta = ['M3', 'P3.2']; e.press('right');
+  for (var i = 0; i < 25; i++) e.press('up'); // sube referencia de a 0.01 Hz... usar salto mayor
+  e.press('enter');
+
+  var e2 = new NXEngine();
+  e2.valores['P3.1'] = 2;
+  e2.valores['P3.2'] = 25.00;
+  e2.valores['P2.3'] = 5.0; // rampa: 50Hz/5s = 10 Hz/s
+  e2.press('start');
+  assert(e2.estadoDrive === 'run', 'START con P3.1=Panel pone el drive en marcha');
+  e2.tick(2.5); // 2.5s * 10Hz/s = 25 Hz => llega exactamente a la referencia
+  assert(Math.abs(e2.freqActual - 25.00) < 0.01, 'Tras 2.5s de rampa a 10 Hz/s, freqActual llega a los 25 Hz de referencia');
+
+  e2.press('stop');
+  assert(e2.estadoDrive === 'deteniendo', 'STOP desde run pasa a deteniendo');
+  e2.valores['P2.12'] = 1; // rampa
+  e2.tick(2.5); // decel: 50Hz/3s ≈ 16.67 Hz/s * 2.5s ≈ 41.7 Hz de caída, más que suficiente
+  assert(e2.freqActual === 0 && e2.estadoDrive === 'stop', 'Paro en rampa llega a 0 Hz y el drive vuelve a stop');
+
+  window.runTestsIfRequested();
+})();
+</script>
+```
+
+- [ ] **Step 3: Ejecutar y verificar**
+
+Preview con `?test=1`: confirmar "TODO OK: 30/30".
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add capacitaciones/vacon/display/index.html
+git commit -m "Agregar simulacion de arranque, rampas y valores de monitor a NXEngine"
+```
+
+---
+
+## Task 6: NXEngine — sistema de fallas
+
+**Files:**
+- Modify: `capacitaciones/vacon/display/index.html`
+
+**Interfaces:**
+- Consumes: `NXEngine.tick`, `NXEngine._intensidadMotor` de Task 5; `NXData.faultCatalog` de Task 2.
+- Produces: `engine.fallaActiva` (código numérico o `null`), `engine.historialFallas` (array, más reciente primero, tope 10), método `forzarFalla(codigo)` (para NXTasks, Task 8), método `resetearFalla()`.
+
+- [ ] **Step 1: Agregar disparo, forzado y reset de fallas**
+
+```html
+<script>
+var _NXEngineCtor2 = NXEngine;
+NXEngine = function(){
+  _NXEngineCtor2.call(this);
+  this.fallaActiva = null;
+  this.historialFallas = [];
+};
+NXEngine.prototype = _NXEngineCtor2.prototype;
+
+NXEngine.prototype._dispararFalla = function(codigo){
+  this.fallaActiva = codigo;
+  this.estadoDrive = 'falla';
+  this.freqActual = 0;
+  this.historialFallas.unshift(codigo);
+  if (this.historialFallas.length > 10) this.historialFallas.pop();
+};
+
+// Umbral de deceleración segura del motor de demostración: el manual no fija un número
+// (depende de la inercia real de cada motor), así que el simulador usa 1.0 s como
+// constante didáctica para poder enseñar la causa real documentada ("tiempo de
+// deceleración demasiado corto").
+NXEngine.prototype._UMBRAL_DECEL_SEGURO = 1.0;
+
+var _tickSim = NXEngine.prototype.tick;
+NXEngine.prototype.tick = function(dt){
+  if (this.estadoDrive === 'falla') return;
+  _tickSim.call(this, dt);
+  if (this.estadoDrive === 'run' && this._intensidadMotor() > this.valores['P2.5']){
+    this._dispararFalla(1); // F1 Sobreintensidad
+    return;
+  }
+  // No hace falta detectar el "borde" de la transición run->deteniendo: en cuanto
+  // dispara, estadoDrive pasa a 'falla' y el guard de arriba corta los ticks
+  // siguientes, así que esta condición solo puede disparar una vez por parada.
+  if (this.estadoDrive === 'deteniendo' && this.valores['P2.12'] === 1 &&
+      this.valores['P2.4'] < this._UMBRAL_DECEL_SEGURO){
+    this._dispararFalla(2); // F2 Sobretensión
+  }
+};
+
+// Usado solo por NXTasks (Task 8) para ejercicios que necesitan practicar el flujo de
+// diagnóstico/reset con fallas que no son prácticas de disparar por física simulada (ej. F51).
+NXEngine.prototype.forzarFalla = function(codigo){
+  this._dispararFalla(codigo);
+};
+
+NXEngine.prototype.resetearFalla = function(){
+  if (this.estadoDrive !== 'falla') return;
+  this.fallaActiva = null;
+  this.estadoDrive = 'stop';
+};
+
+NXEngine.prototype.infoFalla = function(codigo){
+  return NXData.faultCatalog.filter(function(f){ return f.codigo === codigo; })[0] || null;
+};
+
+// El botón físico "reset" del panel (Task 7) y las tareas guiadas (Task 8) llaman a
+// press('reset'); sin este branch la tecla no hace nada porque ningún press() anterior
+// la maneja.
+var _pressFalla = NXEngine.prototype.press;
+NXEngine.prototype.press = function(tecla){
+  if (tecla === 'reset'){ this.resetearFalla(); return; }
+  return _pressFalla.call(this, tecla);
+};
+</script>
+```
+
+- [ ] **Step 2: Escribir las pruebas del sistema de fallas**
+
+```html
+<script>
+(function(){
+  var e = new NXEngine();
+  e.valores['P3.1'] = 2;
+  e.valores['P3.2'] = e.valores['P2.7']; // referencia = frecuencia nominal => intensidad ≈ nominal, no dispara
+  e.valores['P2.5'] = 1.0; // límite de intensidad absurdamente bajo para forzar F1
+  e.press('start');
+  e.tick(100); // tiempo de sobra para llegar a régimen y superar el límite
+
+  assert(e.fallaActiva === 1, 'Corriente simulada por sobre P2.5 dispara F1 (Sobreintensidad)');
+  assert(e.estadoDrive === 'falla', 'estadoDrive pasa a falla al dispararse F1');
+  assert(e.infoFalla(1).nombre === 'Sobreintensidad', 'infoFalla(1) devuelve los datos reales del catálogo');
+  assert(e.historialFallas[0] === 1, 'F1 queda registrado como el más reciente en historialFallas');
+
+  e.press('reset'); // el botón físico reset debe resetear la falla igual que resetearFalla()
+  assert(e.fallaActiva === null && e.estadoDrive === 'stop', 'press(reset) limpia la falla y vuelve a stop (misma ruta que usan el panel y las tareas)');
+
+  var e2 = new NXEngine();
+  e2.forzarFalla(51);
+  assert(e2.fallaActiva === 51, 'forzarFalla dispara cualquier codigo del catalogo para uso de NXTasks');
+
+  var e3 = new NXEngine();
+  e3.valores['P3.1'] = 2;
+  e3.valores['P3.2'] = 50.00;
+  e3.valores['P2.3'] = 1.0;
+  e3.valores['P2.4'] = 0.5; // por debajo del umbral seguro de 1.0s
+  e3.valores['P2.12'] = 1; // tipo de paro = rampa
+  e3.press('start');
+  e3.tick(10); // llega a régimen
+  e3.press('stop');
+  e3.tick(0.01); // primer tick tras stop: entra a 'deteniendo' y evalua el umbral
+  assert(e3.fallaActiva === 2, 'Deceleracion por debajo del umbral seguro dispara F2 (Sobretension)');
+
+  window.runTestsIfRequested();
+})();
+</script>
+```
+
+- [ ] **Step 3: Ejecutar y verificar**
+
+Preview con `?test=1`: confirmar "TODO OK: 37/37".
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add capacitaciones/vacon/display/index.html
+git commit -m "Agregar sistema de fallas (F1/F2 simuladas, forzado, reset) a NXEngine"
+```
+
+---
+
+## Task 7: NXPanel — vista del teclado (LCD, LEDs, botones)
+
+**Files:**
+- Modify: `capacitaciones/vacon/display/index.html`
+
+**Interfaces:**
+- Consumes: instancia `engine = new NXEngine()`, todo `NXData`.
+- Produces: función `render()` que pinta el panel en `#panel-root`; se ejecuta en cada interacción y en un loop `requestAnimationFrame` para la simulación.
+
+- [ ] **Step 1: Maquetar el panel con la apariencia capturada del VirtualPanel real**
+
+```html
+<div id="panel-root" style="display:flex; gap:32px; align-items:flex-start; padding:24px; flex-wrap:wrap;">
+  <div style="width:280px; background:#1c5fa8; border-radius:12px; padding:16px; box-shadow:0 8px 24px rgba(0,0,0,.4);">
+    <div style="background:#2a2a1a; border-radius:4px; padding:10px; margin-bottom:14px;">
+      <div id="lcd-linea-k" style="font-family:var(--mono); color:#c8d84a; font-size:11px; opacity:.85;"></div>
+      <div id="lcd-linea-l" style="font-family:var(--mono); color:#c8d84a; font-size:14px; font-weight:600; margin:2px 0;"></div>
+      <div id="lcd-linea-m" style="font-family:var(--mono); color:#c8d84a; font-size:18px;"></div>
+    </div>
+    <div style="display:flex; justify-content:space-around; font-family:var(--sans); font-size:11px; color:#fff; margin-bottom:10px;">
+      <span>ready <span id="led-ready" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#333;"></span></span>
+      <span>run <span id="led-run" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#333;"></span></span>
+      <span>fault <span id="led-fault" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#333;"></span></span>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; place-items:center;">
+      <button data-key="reset" style="grid-column:1;">reset</button>
+      <button data-key="up" style="grid-column:2;">▲</button>
+      <button data-key="start" style="grid-column:3; border-radius:50%; background:#3ecf5e; color:#fff;">▶</button>
+      <button data-key="left" style="grid-column:1;">◀</button>
+      <button data-key="right" style="grid-column:3; grid-row:2;">▶</button>
+      <button data-key="stop" style="grid-column:3; border-radius:50%; background:#e0433a; color:#fff;">■</button>
+      <button data-key="select" style="grid-column:1;">select</button>
+      <button data-key="down" style="grid-column:2;">▼</button>
+      <button data-key="enter" style="grid-column:3;">enter</button>
+    </div>
+  </div>
+  <div id="panel-tasks" style="flex:1; min-width:280px;"></div>
+</div>
+```
+
+- [ ] **Step 2: Cablear teclado físico, botones y el render**
+
+```html
+<script>
+var engine = new NXEngine();
+
+function nombreDeUbicacion(id){
+  if (!id) return { k:'', l:'Menú principal', m:'' };
+  var menuTop = NXData.menu.filter(function(m){ return m.id === id; })[0];
+  if (menuTop) return { k:id, l:menuTop.nombre, m:'' };
+  if (id === 'G2.1') return { k:id, l:'Parámetros básicos', m:'' };
+  var mv = NXData.monitorValues.filter(function(v){ return v.id === id; })[0];
+  if (mv) return { k:id, l:mv.nombre, m: engine.valorMonitor(id) + ' ' + mv.unidad };
+  var param = engine.resolverParam(id);
+  if (param){
+    var val = engine.valores[id];
+    var texto = param.tipo === 'enum'
+      ? param.opciones.filter(function(o){ return o.valor === val; })[0].etiqueta
+      : val.toFixed(2) + ' ' + param.unidad;
+    return { k:id, l:param.nombre, m: (engine.modo === 'editar' ? '[' + texto + ']' : texto) };
+  }
+  return { k:id, l:'', m:'' };
+}
+
+function render(){
+  if (engine.estadoDrive === 'falla' && !engine._verFallaEnM4){
+    // M4 se refleja automáticamente porque fallaActiva ya está seteado; no requiere acción aquí.
+  }
+  var loc = nombreDeUbicacion(engine.ubicacionActual());
+  var idActual = engine.ubicacionActual();
+  if (idActual === 'M4'){
+    loc = engine.fallaActiva
+      ? { k:'M4', l:'F' + engine.fallaActiva + ' ' + engine.infoFalla(engine.fallaActiva).nombre, m: engine.infoFalla(engine.fallaActiva).remedio }
+      : { k:'M4', l:'Fallos Activos', m:'Sin fallas activas' };
+  }
+  if (idActual === 'M5'){
+    loc = { k:'M5', l:'Historial Fallos', m: engine.historialFallas.length ? engine.historialFallas.map(function(c){return 'F'+c;}).join(' ') : 'Vacío' };
+  }
+  if (idActual === 'M6') loc = { k:'M6', l:'Menú Sistema', m: NXData.systemInfo.join(' · ') };
+  if (idActual === 'M7') loc = { k:'M7', l:'Cartas Expansión', m: NXData.expanderInfo.join(' · ') };
+
+  document.getElementById('lcd-linea-k').textContent = engine.mensaje || loc.k;
+  document.getElementById('lcd-linea-l').textContent = loc.l;
+  document.getElementById('lcd-linea-m').textContent = loc.m;
+
+  document.getElementById('led-ready').style.background = (engine.estadoDrive !== 'falla') ? '#3ecf5e' : '#333';
+  document.getElementById('led-run').style.background = (engine.estadoDrive === 'run') ? '#3ecf5e' : '#333';
+  document.getElementById('led-fault').style.background = (engine.estadoDrive === 'falla') ? '#e0433a' : '#333';
+
+  engine.mensaje = null; // mensaje transitorio: se muestra un render y se limpia
+  if (window.renderTareas) window.renderTareas();
+}
+
+document.querySelectorAll('#panel-root button[data-key]').forEach(function(btn){
+  btn.addEventListener('click', function(){ engine.press(btn.getAttribute('data-key')); render(); });
+});
+
+var MAPA_TECLAS = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right', Enter:'enter', Escape:'reset' };
+document.addEventListener('keydown', function(ev){
+  var k = MAPA_TECLAS[ev.key];
+  if (k){ engine.press(k); render(); }
+});
+
+var _ultimoTick = performance.now();
+function loop(ahora){
+  var dt = (ahora - _ultimoTick) / 1000;
+  _ultimoTick = ahora;
+  engine.tick(Math.min(dt, 0.25)); // clamp: evita saltos grandes si la pestaña estuvo en background
+  render();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+render();
+</script>
+```
+
+- [ ] **Step 3: Verificar visualmente con el navegador**
+
+Iniciar el preview server y abrir `capacitaciones/vacon/display/index.html`. Con el Preview tool:
+1. Confirmar que el LCD muestra "Menú principal" al cargar.
+2. Click en flecha derecha repetidamente: navegar hasta `M2 -> G2.1 -> P2.3`, confirmar que el LCD muestra "T.aceleración 1" y "3.00 s".
+3. Ir a `M3 -> P3.1`, editarlo a "Panel", ir a `M3 -> P3.2`, editarlo a un valor > 0.
+4. Presionar START: confirmar LED run se enciende y, tras unos segundos, `M1 -> V1.1` muestra la frecuencia subiendo hacia la referencia.
+5. Revisar consola del navegador: cero errores.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add capacitaciones/vacon/display/index.html
+git commit -m "Agregar NXPanel: vista del LCD, LEDs y teclado fisico/en pantalla"
+```
+
+---
+
+## Task 8: NXTasks — ejercicios guiados y progreso
+
+**Files:**
+- Modify: `capacitaciones/vacon/display/index.html`
+
+**Interfaces:**
+- Consumes: `engine` global de Task 7.
+- Produces: array `NXTasks`, función `window.renderTareas()` (llamada por `render()` de Task 7 en cada frame), persistencia en `localStorage['vfd_progress_vacon-nx-simulador']`.
+
+- [ ] **Step 1: Definir los ejercicios**
+
+```html
+<script>
+const NXTasks = [
+  {
+    id: 'seleccionar-panel',
+    enunciado: 'Ve a M3 y pon el Lugar de control (P3.1) en "Panel".',
+    pista: 'M3 → flecha derecha para entrar → flecha derecha para editar P3.1 → arriba/abajo para cambiar → Enter para confirmar.',
+    verificar: function(e){ return e.valores['P3.1'] === 2; }
+  },
+  {
+    id: 'referencia-25hz',
+    enunciado: 'En M3 → P3.2 (Referencia panel), pon la referencia en 25.00 Hz.',
+    pista: 'Entra en modo edición con la flecha derecha y usa arriba/abajo. Confirma con Enter.',
+    verificar: function(e){ return Math.abs(e.valores['P3.2'] - 25.00) < 0.01; }
+  },
+  {
+    id: 'arrancar-y-llegar',
+    enunciado: 'Presiona START y espera a que la frecuencia de salida (M1 → V1.1) llegue a la referencia.',
+    pista: 'La rampa depende de P2.3 (tiempo de aceleración). Observa M1 → V1.1 mientras corre.',
+    verificar: function(e){ return e.estadoDrive === 'run' && Math.abs(e.freqActual - e.valores['P3.2']) < 0.05; }
+  },
+  {
+    id: 'diagnosticar-falla',
+    enunciado: 'Se acaba de disparar una falla externa (F51). Ve a M4, identifica la falla, y resetéala con el botón "reset".',
+    pista: 'M4 muestra el código y el remedio. El botón reset limpia la falla activa.',
+    accion: function(e){ if (e.estadoDrive !== 'falla') e.forzarFalla(51); },
+    verificar: function(e){ return e.historialFallas[0] === 51 && e.estadoDrive !== 'falla'; }
+  }
+];
+
+const TASKS_STORAGE_KEY = 'vfd_progress_vacon-nx-simulador';
+var indiceTareaActual = 0;
+var tareaAccionEjecutada = false;
+
+function cargarProgresoTareas(){
+  try{
+    var raw = localStorage.getItem(TASKS_STORAGE_KEY);
+    if (!raw) return;
+    var datos = JSON.parse(raw);
+    if (typeof datos.done === 'number') indiceTareaActual = Math.min(datos.done, NXTasks.length);
+  }catch(e){ console.warn('No se pudo cargar el progreso de tareas:', e); }
+}
+function guardarProgresoTareas(){
+  try{
+    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify({ done: indiceTareaActual, total: NXTasks.length }));
+  }catch(e){ console.warn('No se pudo guardar el progreso de tareas:', e); }
+}
+
+window.renderTareas = function(){
+  var cont = document.getElementById('panel-tasks');
+  if (!cont) return;
+  if (indiceTareaActual >= NXTasks.length){
+    cont.innerHTML = '<p style="color:var(--emerald);font-family:var(--sans);">Completaste las ' + NXTasks.length + ' tareas guiadas.</p>';
+    return;
+  }
+  var tarea = NXTasks[indiceTareaActual];
+  if (tarea.accion && !tareaAccionEjecutada){ tarea.accion(engine); tareaAccionEjecutada = true; }
+  if (tarea.verificar(engine)){
+    indiceTareaActual++;
+    tareaAccionEjecutada = false;
+    guardarProgresoTareas();
+  }
+  cont.innerHTML =
+    '<div style="font-family:var(--sans);color:var(--text);">' +
+    '<div style="font-size:12px;color:var(--text-dim);">Tarea ' + (indiceTareaActual+1) + ' de ' + NXTasks.length + '</div>' +
+    '<p style="font-size:15px;">' + tarea.enunciado + '</p>' +
+    '<p style="font-size:12px;color:var(--text-dim);">Pista: ' + tarea.pista + '</p>' +
+    '</div>';
+};
+
+cargarProgresoTareas();
+</script>
+```
+
+- [ ] **Step 2: Verificar el flujo completo en el navegador**
+
+Con Preview tool, recorrer las 4 tareas en orden real (P3.1 → Panel, P3.2 → 25 Hz, START y esperar la rampa, resetear F51 en M4). Confirmar que el panel de tareas avanza automáticamente al cumplirse cada una y que "Tarea 4 de 4" aparece al final. Recargar la página y confirmar que el progreso persiste (no vuelve a "Tarea 1 de 4").
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add capacitaciones/vacon/display/index.html
+git commit -m "Agregar NXTasks: ejercicios guiados con validacion y progreso persistente"
+```
+
+---
+
+## Task 9: Registro en el portal y polish final
+
+**Files:**
+- Modify: `index.html:283` (agregar entrada al array de `courseDefs()`, justo después de `vacon-nxc`)
+- Modify: `capacitaciones/vacon/display/index.html` (encabezado visual de la página, fuera del panel)
+
+**Interfaces:**
+- No expone nada nuevo — es integración final.
+
+- [ ] **Step 1: Registrar la capacitación en el portal**
+
+En `index.html`, agregar tras la línea de `vacon-nxc` (línea 283):
+
+```js
+{ id: 'vacon-nx-simulador', title: 'VACON NX — Simulador de Teclado', brand: 'VACON', model: 'Práctica interactiva de teclado y diagnóstico', desc: 'Simulador del teclado VACON NX: navegá menús reales, editá parámetros de la Aplicación Básica, arrancá el motor con rampas reales y diagnosticá fallas — con ejercicios guiados y evaluados.', href: 'capacitaciones/vacon/display/index.html', locked: false },
+```
+
+- [ ] **Step 2: Agregar encabezado de página consistente con las demás capacitaciones**
+
+Revisar el `<header>`/título de `vacon-nxp.html` (barra superior con logo, título de la capacitación y toggle de tema) y replicar la misma estructura arriba del `#panel-root` en `capacitaciones/vacon/display/index.html`, con el título "VACON NX — Simulador de Teclado".
+
+- [ ] **Step 3: Verificación end-to-end en el navegador**
+
+Con Preview tool:
+1. Abrir `index.html`, confirmar que la tarjeta "VACON NX — Simulador de Teclado" aparece en la sección VACON.
+2. Click en la tarjeta, confirmar que redirige a `capacitaciones/vacon/display/index.html` y que el gate de Clerk se activa igual que en `vacon-nxp.html`.
+3. Abrir `capacitaciones/vacon/display/index.html?test=1` directamente: confirmar "TODO OK: 37/37" (todas las pruebas de Tasks 2-6, sin regresiones).
+4. Revisar `mcp__Claude_Preview__preview_console_logs` con `level: error`: cero errores en todo el flujo.
+
+- [ ] **Step 4: Commit final**
+
+```bash
+git add index.html capacitaciones/vacon/display/index.html
+git commit -m "Registrar el simulador VACON NX en el portal y agregar encabezado de pagina"
+```

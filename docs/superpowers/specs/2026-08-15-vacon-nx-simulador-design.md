@@ -21,7 +21,7 @@ patrón de las capacitaciones existentes en `capacitaciones/vacon/`.
 
 ## Objetivo
 
-Una capacitación más, `vacon-nx-simulador.html`, donde el alumno:
+Una capacitación más, `capacitaciones/vacon/display/index.html`, donde el alumno:
 
 1. Navega el árbol de menús real del teclado NX (M1 Monitor, M2 Par.
    básicos, M3 Copiar parámetros, M4 Fallas activas, M5 Historial de
@@ -138,9 +138,13 @@ el resto del proyecto: sin framework, sin build). Casos mínimos:
 
 ## Archivo y ubicación
 
-`capacitaciones/vacon/vacon-nx-simulador.html` — sigue el patrón plano
-existente (un `.html` por capacitación, sin subcarpetas), hermano de
-`vacon-nxp.html`, `vacon-nxc.html`, `vacon-nxp-aplicaciones.html`.
+`capacitaciones/vacon/display/index.html` — excepción deliberada al
+patrón plano existente (un `.html` por capacitación, sin subcarpetas).
+El usuario pidió una carpeta `display/` dedicada dentro de `vacon/`
+para agrupar contenido interactivo (este simulador y futuros displays
+similares), con el simulador como `index.html` de esa carpeta. Las
+rutas relativas a `assets/gate.js` y a las fuentes/Clerk se ajustan un
+nivel extra respecto a los archivos hermanos en `capacitaciones/vacon/`.
 
 ## Decisiones ya tomadas con el usuario
 
