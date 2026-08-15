@@ -320,5 +320,104 @@ NXEngine.prototype.ubicacionActual = function(){
   window.runTestsIfRequested();
 })();
 </script>
+<script>
+NXEngine.prototype._todosLosParams = function(){
+  return NXData.paramsG21.concat(NXData.paramsM3);
+};
+
+NXEngine.prototype.resolverParam = function(id){
+  return this._todosLosParams().filter(function(p){ return p.id === id; })[0] || null;
+};
+
+// Constructor extendido: valores iniciales = porDefecto de cada parámetro
+var _initNXEngine = NXEngine;
+NXEngine = function(){
+  _initNXEngine.call(this);
+  this.valores = {};
+  this._todosLosParamsEstatico().forEach(function(p){ this.valores[p.id] = p.porDefecto; }, this);
+};
+NXEngine.prototype = _initNXEngine.prototype;
+NXEngine.prototype._todosLosParamsEstatico = function(){ return NXData.paramsG21.concat(NXData.paramsM3); };
+
+NXEngine.prototype.rangoDe = function(param){
+  var min = param.min, max = param.max;
+  if (typeof min === 'string') min = this.valores[min];
+  if (typeof max === 'string') max = this.valores[max];
+  return { min: min, max: max };
+};
+
+NXEngine.prototype._clamp = function(v, min, max){
+  return Math.max(min, Math.min(max, v));
+};
+
+var _pressNav = NXEngine.prototype.press;
+NXEngine.prototype.press = function(tecla){
+  var idActual = this.ubicacionActual();
+  var param = idActual ? this.resolverParam(idActual) : null;
+
+  if (this.modo === 'navegar'){
+    if (tecla === 'right' && param){
+      this.modo = 'editar';
+      return;
+    }
+    return _pressNav.call(this, tecla);
+  }
+
+  // modo === 'editar'
+  if (tecla === 'left'){
+    this.modo = 'navegar'; // cancela: no persiste cambios en curso (ya están en this.valores porque up/down escribe directo)
+    return;
+  }
+  if (tecla === 'enter'){
+    this.modo = 'navegar'; // confirma
+    return;
+  }
+  if ((tecla === 'up' || tecla === 'down') && param){
+    if (param.tipo === 'numeric'){
+      var rango = this.rangoDe(param);
+      var delta = (tecla === 'up' ? 1 : -1) * param.paso;
+      var nuevo = Math.round((this.valores[param.id] + delta) * 1000) / 1000;
+      this.valores[param.id] = this._clamp(nuevo, rango.min, rango.max);
+    } else if (param.tipo === 'enum'){
+      var vals = param.opciones.map(function(o){ return o.valor; });
+      var i = vals.indexOf(this.valores[param.id]);
+      var nuevoI = (i + (tecla === 'up' ? 1 : -1) + vals.length) % vals.length;
+      this.valores[param.id] = vals[nuevoI];
+    }
+    return;
+  }
+};
+</script>
+<script>
+(function(){
+  var e = new NXEngine();
+  assert(e.valores['P2.3'] === 3.0, 'Valor inicial de P2.3 es el default real 3.0 s');
+
+  e.ruta = ['M2', 'G2.1', 'P2.3'];
+  e.press('right'); // entra a modo editar
+  assert(e.modo === 'editar', 'right sobre un parámetro entra a modo edición');
+
+  e.press('up'); e.press('up');
+  assert(Math.abs(e.valores['P2.3'] - 3.2) < 0.001, 'up x2 sobre P2.3 (paso 0.1) da 3.2 s');
+
+  e.press('enter');
+  assert(e.modo === 'navegar', 'enter confirma y vuelve a modo navegar');
+  assert(Math.abs(e.valores['P2.3'] - 3.2) < 0.001, 'El valor editado persiste tras confirmar con enter');
+
+  var e2 = new NXEngine();
+  e2.ruta = ['M2', 'G2.1', 'P2.3'];
+  e2.press('right');
+  for (var i = 0; i < 40000; i++) e2.press('up'); // fuerza a superar el máximo (3000.0 s)
+  assert(e2.valores['P2.3'] === 3000.0, 'El valor se satura en el máximo real (3000.0 s), no lo excede');
+
+  var e3 = new NXEngine();
+  e3.ruta = ['M2', 'G2.1', 'P2.11'];
+  e3.press('right');
+  e3.press('up');
+  assert(e3.valores['P2.11'] === 1, 'up sobre un parámetro enum avanza a la siguiente opción (Arranque al vuelo)');
+
+  window.runTestsIfRequested();
+})();
+</script>
 </body>
 </html>
