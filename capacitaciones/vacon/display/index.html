@@ -701,7 +701,7 @@ NXEngine.prototype.press = function(tecla){
 // de VACON NX, no a la Aplicación Básica (G2.1). Se simula aquí para los módulos de
 // identificación y lazo cerrado, documentando explícitamente su origen real.
 NXData.paramsG26 = [
-  { id:'P2.6.16', nombre:'Identificación', tipo:'enum', porDefecto:0, opciones:[
+  { id:'P2.6.13', nombre:'Identificación', tipo:'enum', porDefecto:0, opciones:[
     {valor:0, etiqueta:'Sin acción'},
     {valor:1, etiqueta:'Identif. sin marcha'},
     {valor:2, etiqueta:'Identif. con marcha'}
@@ -738,7 +738,7 @@ NXEngine = function(){
 NXEngine.prototype = _NXEngineCtorIdent.prototype;
 
 NXEngine.prototype.correrIdentificacion = function(){
-  var modo = this.valores['P2.6.16'];
+  var modo = this.valores['P2.6.13'];
   if (modo === 2 && this.motorAcoplado){
     this._dispararFalla(57);
     return;
@@ -756,9 +756,9 @@ NXEngine.prototype.correrIdentificacion = function(){
 
 var _pressIdent = NXEngine.prototype.press;
 NXEngine.prototype.press = function(tecla){
-  if (tecla === 'start' && this.estadoDrive === 'stop' && this.valores['P2.6.16'] !== 0){
+  if (tecla === 'start' && this.estadoDrive === 'stop' && this.valores['P2.6.13'] !== 0){
     this.correrIdentificacion();
-    this.valores['P2.6.16'] = 0; // vuelve a "Sin acción" tras ejecutar, como el equipo real
+    this.valores['P2.6.13'] = 0; // vuelve a "Sin acción" tras ejecutar, como el equipo real
     return;
   }
   return _pressIdent.call(this, tecla);
@@ -767,36 +767,36 @@ NXEngine.prototype.press = function(tecla){
 <script>
 (function(){
   var e = new NXEngine();
-  assert(e.valores['P2.6.16'] === 0, 'Identificación (P2.6.16) inicia en "Sin acción" por defecto');
+  assert(e.valores['P2.6.13'] === 0, 'Identificación (P2.6.13) inicia en "Sin acción" por defecto');
   assert(e.motorAcoplado === false, 'motorAcoplado inicia en false');
   assert(e.identificacionCompleta === false, 'identificacionCompleta inicia en false');
 
   var hijosM2 = e._hijosDe(['M2']);
   assert(hijosM2.indexOf('G2.6') !== -1, 'M2 ahora incluye el grupo G2.6 junto a G2.1');
   var hijosG26 = e._hijosDe(['M2', 'G2.6']);
-  assert(hijosG26.indexOf('P2.6.16') !== -1, 'G2.6 incluye el parámetro P2.6.16 (Identificación)');
+  assert(hijosG26.indexOf('P2.6.13') !== -1, 'G2.6 incluye el parámetro P2.6.13 (Identificación)');
 
   var e2 = new NXEngine();
   e2.motorAcoplado = true;
-  e2.valores['P2.6.16'] = 2; // identificación con marcha
+  e2.valores['P2.6.13'] = 2; // identificación con marcha
   e2.press('start');
   assert(e2.fallaActiva === 57, 'START con identificación "con marcha" y motor acoplado dispara F57');
-  assert(e2.valores['P2.6.16'] === 0, 'P2.6.16 vuelve a "Sin acción" tras ejecutar, igual que el equipo real');
+  assert(e2.valores['P2.6.13'] === 0, 'P2.6.13 vuelve a "Sin acción" tras ejecutar, igual que el equipo real');
 
   var e3 = new NXEngine();
   e3.motorAcoplado = false;
-  e3.valores['P2.6.16'] = 2;
+  e3.valores['P2.6.13'] = 2;
   e3.press('start');
   assert(e3.identificacionCompleta === true && e3.fallaActiva === null, 'Identificación "con marcha" y motor desacoplado completa sin falla');
 
   var e4 = new NXEngine();
   e4.motorAcoplado = true; // no debería importar en modo 1
-  e4.valores['P2.6.16'] = 1;
+  e4.valores['P2.6.13'] = 1;
   e4.press('start');
   assert(e4.identificacionCompleta === true, 'Identificación "sin marcha" completa independientemente de motorAcoplado');
 
   var e5 = new NXEngine();
-  e5.valores['P2.6.16'] = 0;
+  e5.valores['P2.6.13'] = 0;
   e5.press('start'); // sin P3.1=Panel, y sin pedir identificación: debe comportarse como el START original
   assert(e5.mensaje === 'Control de panel NO ACTIVO', 'START normal (sin identificación pedida) sigue delegando al comportamiento original');
 
@@ -805,9 +805,14 @@ NXEngine.prototype.press = function(tecla){
 </script>
 <script>
 NXData.paramsG26.push(
-  { id:'P2.6.12', nombre:'Modo de control', tipo:'enum', porDefecto:0, opciones:[
-    {valor:0, etiqueta:'Lazo abierto'},
-    {valor:1, etiqueta:'Lazo cerrado'}
+  // Simplificación documentada: el real P2.6.1 "Modo control motor" tiene 5 opciones
+  // (0=Control frecuencia, 1=Control velocidad, 2=Control par lazo abierto,
+  // 3=Control velocidad lazo cerrado, 4=Control par lazo cerrado en NXP) — el simulador
+  // reduce esto a la distinción binaria abierto/cerrado que es la relevante para el
+  // módulo de encoder/F43, sin modelar control de par ni las 5 variantes reales.
+  { id:'P2.6.1', nombre:'Modo de control', tipo:'enum', porDefecto:0, opciones:[
+    {valor:0, etiqueta:'Frec./Veloc. (lazo abierto)'},
+    {valor:1, etiqueta:'Veloc. lazo cerrado'}
   ]}
 );
 
@@ -822,7 +827,7 @@ NXEngine.prototype = _NXEngineCtorEncoder.prototype;
 var _pressEncoder = NXEngine.prototype.press;
 NXEngine.prototype.press = function(tecla){
   if (tecla === 'start' && this.estadoDrive === 'stop' && this.valores['P3.1'] === 2 &&
-      this.valores['P2.6.12'] === 1 && !this.encoderConectado){
+      this.valores['P2.6.1'] === 1 && !this.encoderConectado){
     // Sub-causa real de F43: "Falta la tarjeta de encoder" (una de las 5 sub-causas
     // documentadas; las otras 4 requieren modelar cableado parcial, fuera de alcance).
     this._dispararFalla(43);
@@ -830,7 +835,7 @@ NXEngine.prototype.press = function(tecla){
   }
   if (tecla === 'right' && this.modo === 'navegar'){
     var idActual = this.ubicacionActual();
-    if (idActual === 'P2.6.12' && this.estadoDrive === 'run'){
+    if (idActual === 'P2.6.1' && this.estadoDrive === 'run'){
       this.mensaje = 'No se puede cambiar en MARCHA';
       this._cambioModoControlBloqueado = true;
       return;
@@ -842,21 +847,21 @@ NXEngine.prototype.press = function(tecla){
 <script>
 (function(){
   var e = new NXEngine();
-  assert(e.valores['P2.6.12'] === 0, 'Modo de control (P2.6.12) inicia en Lazo abierto por defecto');
+  assert(e.valores['P2.6.1'] === 0, 'Modo de control (P2.6.1) inicia en Lazo abierto por defecto');
   assert(e.encoderConectado === false, 'encoderConectado inicia en false');
 
   var hijosG26 = e._hijosDe(['M2', 'G2.6']);
-  assert(hijosG26.indexOf('P2.6.12') !== -1, 'G2.6 incluye P2.6.12 junto a P2.6.16');
+  assert(hijosG26.indexOf('P2.6.1') !== -1, 'G2.6 incluye P2.6.1 junto a P2.6.13');
 
   var e2 = new NXEngine();
   e2.valores['P3.1'] = 2;
-  e2.valores['P2.6.12'] = 1; // lazo cerrado
+  e2.valores['P2.6.1'] = 1; // lazo cerrado
   e2.press('start');
   assert(e2.fallaActiva === 43, 'Lazo cerrado sin encoder conectado dispara F43 al intentar arrancar');
 
   var e3 = new NXEngine();
   e3.valores['P3.1'] = 2;
-  e3.valores['P2.6.12'] = 1;
+  e3.valores['P2.6.1'] = 1;
   e3.encoderConectado = true;
   e3.press('start');
   assert(e3.estadoDrive === 'run', 'Lazo cerrado con encoder conectado arranca normalmente');
@@ -866,15 +871,15 @@ NXEngine.prototype.press = function(tecla){
   e4.valores['P3.2'] = 25;
   e4.press('start'); // lazo abierto (default) arranca normal
   assert(e4.estadoDrive === 'run', 'precondición: drive en marcha con lazo abierto');
-  e4.ruta = ['M2', 'G2.6', 'P2.6.12'];
+  e4.ruta = ['M2', 'G2.6', 'P2.6.1'];
   e4.press('right'); // intenta editar el modo de control mientras está en marcha
-  assert(e4.modo === 'navegar', 'No entra a modo edición de P2.6.12 mientras el drive está en marcha');
+  assert(e4.modo === 'navegar', 'No entra a modo edición de P2.6.1 mientras el drive está en marcha');
   assert(e4._cambioModoControlBloqueado === true, 'La bandera estable registra el bloqueo (no depende de mensaje, que se limpia en cada render)');
 
   var e5 = new NXEngine();
-  e5.ruta = ['M2', 'G2.6', 'P2.6.12'];
+  e5.ruta = ['M2', 'G2.6', 'P2.6.1'];
   e5.press('right'); // drive detenido: sí debe poder editar
-  assert(e5.modo === 'editar', 'Con el drive detenido, sí se puede entrar a editar P2.6.12');
+  assert(e5.modo === 'editar', 'Con el drive detenido, sí se puede entrar a editar P2.6.1');
 
   window.runTestsIfRequested();
 })();
@@ -1003,12 +1008,12 @@ const NXModules = [
     id: 'identificacion',
     nombre: 'Identificación de motor',
     teoria: [
-      'El parámetro "Identificación" (P2.6.16, del grupo G2.6 — pertenece a las aplicaciones Estándar/Multipropósito, no a la Básica) tiene una opción "con motor en marcha" que exige el motor desacoplado de su carga mecánica. Si hay carga en el eje, la identificación típicamente falla y el convertidor reporta F57.',
+      'El parámetro "Identificación" (P2.6.13, del grupo G2.6 — pertenece a las aplicaciones Estándar/Multipropósito, no a la Básica) tiene una opción "con motor en marcha" que exige el motor desacoplado de su carga mecánica. Si hay carga en el eje, la identificación típicamente falla y el convertidor reporta F57.',
       'La opción "sin marcha" funciona con cualquier condición de carga — es la que se usa cuando no se puede desacoplar el motor. En el equipo real, la identificación se dispara dando la orden de marcha (START) después de fijar el parámetro.'
     ],
     tareas: [
-      { id:'identif-acoplado', enunciado:'El motor está acoplado a su carga (por defecto en este ejercicio). Poné P2.6.16 en "Identif. con marcha" (M2 → G2.6) y presioná START — la identificación debería fallar con F57.', pista:'M2 → derecha → G2.6 → P2.6.16 → derecha para editar → arriba hasta "Identif. con marcha" → Enter. Después START.', accion:function(e){ e.motorAcoplado = true; }, verificar:function(e){ return e.fallaActiva === 57; } },
-      { id:'identif-desacoplado', enunciado:'Reseteá la falla, y repetí: P2.6.16 en "Identif. con marcha" y START. El motor ya queda desacoplado para este ejercicio, así que ahora debería completar sin falla.', pista:'Botón reset primero para limpiar F57.', accion:function(e){ e.motorAcoplado = false; }, verificar:function(e){ return e.identificacionCompleta === true; } }
+      { id:'identif-acoplado', enunciado:'El motor está acoplado a su carga (por defecto en este ejercicio). Poné P2.6.13 en "Identif. con marcha" (M2 → G2.6) y presioná START — la identificación debería fallar con F57.', pista:'M2 → derecha → G2.6 → P2.6.13 → derecha para editar → arriba hasta "Identif. con marcha" → Enter. Después START.', accion:function(e){ e.motorAcoplado = true; }, verificar:function(e){ return e.fallaActiva === 57; } },
+      { id:'identif-desacoplado', enunciado:'Reseteá la falla, y repetí: P2.6.13 en "Identif. con marcha" y START. El motor ya queda desacoplado para este ejercicio, así que ahora debería completar sin falla.', pista:'Botón reset primero para limpiar F57.', accion:function(e){ e.motorAcoplado = false; }, verificar:function(e){ return e.identificacionCompleta === true; } }
     ]
   },
   {
@@ -1061,13 +1066,13 @@ const NXModules = [
     id: 'encoder',
     nombre: 'Lazo abierto/cerrado',
     teoria: [
-      'El "Modo de control" (P2.6.12, también del grupo G2.6) puede ponerse en Lazo cerrado, que requiere una señal real de realimentación de velocidad (encoder). En el equipo real esto implica una tarjeta de opción de encoder física instalada y parametrizada, no solo un ajuste de software.',
+      'El "Modo de control" (P2.6.1, también del grupo G2.6) puede ponerse en Lazo cerrado, que requiere una señal real de realimentación de velocidad (encoder). En el equipo real esto implica una tarjeta de opción de encoder física instalada y parametrizada, no solo un ajuste de software.',
       'El manual indica que el modo de control NO se puede cambiar entre lazo abierto y cerrado mientras el convertidor está en MARCHA — hay que detenerlo primero.'
     ],
     tareas: [
-      { id:'encoder-falta-tarjeta', enunciado:'Sin marcar el encoder como conectado, poné P2.6.12 en "Lazo cerrado" (M2 → G2.6) y arrancá con START. Debería dispararse F43 (falta la tarjeta de encoder).', pista:'El drive detecta que pediste lazo cerrado pero no hay tarjeta de encoder conectada.', verificar:function(e){ return e.fallaActiva === 43; } },
+      { id:'encoder-falta-tarjeta', enunciado:'Sin marcar el encoder como conectado, poné P2.6.1 en "Lazo cerrado" (M2 → G2.6) y arrancá con START. Debería dispararse F43 (falta la tarjeta de encoder).', pista:'El drive detecta que pediste lazo cerrado pero no hay tarjeta de encoder conectada.', verificar:function(e){ return e.fallaActiva === 43; } },
       { id:'encoder-conectado', enunciado:'Reseteá la falla, y arrancá de nuevo en Lazo cerrado — el encoder ya queda conectado para este ejercicio.', pista:'Botón reset primero.', accion:function(e){ e.encoderConectado = true; }, verificar:function(e){ return e.estadoDrive === 'run'; } },
-      { id:'encoder-bloqueo-en-marcha', enunciado:'Con el drive en marcha, intentá cambiar P2.6.12 a "Lazo abierto". No debería dejarte — el modo de control solo se cambia con el drive detenido.', pista:'Navegá a P2.6.12 e intentá entrar en modo edición (flecha derecha) mientras el motor sigue corriendo.', verificar:function(e){ return e._cambioModoControlBloqueado === true; } }
+      { id:'encoder-bloqueo-en-marcha', enunciado:'Con el drive en marcha, intentá cambiar P2.6.1 a "Lazo abierto". No debería dejarte — el modo de control solo se cambia con el drive detenido.', pista:'Navegá a P2.6.1 e intentá entrar en modo edición (flecha derecha) mientras el motor sigue corriendo.', verificar:function(e){ return e._cambioModoControlBloqueado === true; } }
     ]
   }
 ];
