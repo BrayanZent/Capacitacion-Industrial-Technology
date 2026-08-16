@@ -1312,6 +1312,12 @@ const TASKS_STORAGE_KEY = 'vfd_progress_vacon-nx-simulador';
 var moduloActual = NXModules[0].id;
 var indicePorModulo = {};
 NXModules.forEach(function(m){ indicePorModulo[m.id] = 0; });
+// Qué tarea se está VIENDO en pantalla, separado de indicePorModulo (progreso real).
+// Permite volver a revisar una tarea ya completada sin que accion()/verificar() se
+// vuelvan a disparar solo por mirarla (verificar() seguiría dando true y la
+// avanzaría de nuevo instantáneamente si no se separaran estos dos estados).
+var indiceVisiblePorModulo = {};
+NXModules.forEach(function(m){ indiceVisiblePorModulo[m.id] = 0; });
 var tareaAccionEjecutada = {};
 
 function cargarProgresoTareas(){
@@ -1323,6 +1329,7 @@ function cargarProgresoTareas(){
       NXModules.forEach(function(m){
         if (typeof datos.porModulo[m.id] === 'number'){
           indicePorModulo[m.id] = Math.min(datos.porModulo[m.id], m.tareas.length);
+          indiceVisiblePorModulo[m.id] = indicePorModulo[m.id];
         }
       });
     }
@@ -1344,23 +1351,28 @@ window.renderTareas = function(){
   if (!modulo) return;
 
   var idx = indicePorModulo[modulo.id];
-  if (idx < modulo.tareas.length){
+  // accion()/verificar() solo corren cuando se está mirando la tarea activa real
+  // (la "frontera" del progreso) — si el alumno volvió a revisar una tarea ya
+  // completada, verificar() seguiría dando true con el estado actual del motor y
+  // la haría avanzar de nuevo sola con solo mirarla. Ver indiceVisiblePorModulo.
+  if (idx === indiceVisiblePorModulo[modulo.id] && idx < modulo.tareas.length){
     var tarea = modulo.tareas[idx];
     var claveAccion = modulo.id + ':' + tarea.id;
     if (tarea.accion && !tareaAccionEjecutada[claveAccion]){ tarea.accion(engine); tareaAccionEjecutada[claveAccion] = true; }
     if (tarea.verificar(engine)){
       indicePorModulo[modulo.id] = idx + 1;
+      indiceVisiblePorModulo[modulo.id] = idx + 1; // seguir el avance automáticamente
       guardarProgresoTareas();
     }
   }
 
-  // Reconstruir el HTML (y los botones del selector) solo cuando el módulo o la
-  // tarea activa realmente cambiaron. Antes esto corría en cada frame del loop
-  // de animación (~60/seg), destruyendo y recreando los botones constantemente:
-  // eso causaba lentitud general y clicks perdidos cuando el mousedown/mouseup
-  // de un click real caían en nodos de DOM distintos por la reconstrucción de
-  // por medio.
-  var firmaActual = moduloActual + ':' + indicePorModulo[modulo.id];
+  // Reconstruir el HTML (y los botones del selector) solo cuando el módulo, la
+  // tarea activa, o la tarea que se está viendo realmente cambiaron. Antes esto
+  // corría en cada frame del loop de animación (~60/seg), destruyendo y
+  // recreando los botones constantemente: eso causaba lentitud general y clicks
+  // perdidos cuando el mousedown/mouseup de un click real caían en nodos de DOM
+  // distintos por la reconstrucción de por medio.
+  var firmaActual = moduloActual + ':' + indicePorModulo[modulo.id] + ':' + indiceVisiblePorModulo[modulo.id];
   if (firmaActual === _ultimaFirmaTareas) return;
   _ultimaFirmaTareas = firmaActual;
 
@@ -1371,16 +1383,27 @@ window.renderTareas = function(){
 
   var teoriaHtml = modulo.teoria.map(function(t){ return '<p style="font-size:12px; color:var(--text-dim); margin:6px 0;">' + t + '</p>'; }).join('');
 
-  var idxActual = indicePorModulo[modulo.id];
+  var idxReal = indicePorModulo[modulo.id];
+  var idxVisible = indiceVisiblePorModulo[modulo.id];
+  var esRevision = idxVisible < idxReal; // mirando una tarea ya completada, no la activa
+
+  var navHtml = '';
+  if (idxVisible > 0){
+    navHtml += '<button id="btn-tarea-anterior" style="margin-right:8px; padding:4px 10px; font-size:11px; border-radius:6px; border:1px solid var(--line); cursor:pointer; background:var(--panel-raised); color:var(--text);">← Tarea anterior</button>';
+  }
+  if (esRevision){
+    navHtml += '<button id="btn-tarea-siguiente" style="padding:4px 10px; font-size:11px; border-radius:6px; border:1px solid var(--line); cursor:pointer; background:var(--panel-raised); color:var(--text);">Volver a la tarea actual →</button>';
+  }
+
   var tareaHtml;
-  if (idxActual >= modulo.tareas.length){
+  if (idxVisible >= modulo.tareas.length){
     tareaHtml = modulo.tareas.length === 0
       ? '<p style="font-size:12px;color:var(--text-dim);">Este módulo todavía no tiene tareas.</p>'
       : '<p style="color:var(--emerald);font-family:var(--sans);">Completaste las ' + modulo.tareas.length + ' tareas de este módulo.</p>';
   } else {
-    var t = modulo.tareas[idxActual];
+    var t = modulo.tareas[idxVisible];
     tareaHtml =
-      '<div style="font-size:12px;color:var(--text-dim);">Tarea ' + (idxActual+1) + ' de ' + modulo.tareas.length + '</div>' +
+      '<div style="font-size:12px;color:var(--text-dim);">Tarea ' + (idxVisible+1) + ' de ' + modulo.tareas.length + (esRevision ? ' — revisando (ya completada)' : '') + '</div>' +
       '<p style="font-size:15px;">' + t.enunciado + '</p>' +
       '<p style="font-size:12px;color:var(--text-dim);">Pista: ' + t.pista + '</p>';
   }
@@ -1390,12 +1413,30 @@ window.renderTareas = function(){
     '<div>' + selector + '</div>' +
     '<h3 style="margin:10px 0 4px 0;">' + modulo.nombre + '</h3>' +
     teoriaHtml +
-    '<div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--line);">' + tareaHtml + '</div>' +
+    '<div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--line);">' +
+    (navHtml ? '<div style="margin-bottom:8px;">' + navHtml + '</div>' : '') +
+    tareaHtml +
+    '</div>' +
     '</div>';
 
   cont.querySelectorAll('button[data-modulo]').forEach(function(btn){
-    btn.onclick = function(){ moduloActual = btn.getAttribute('data-modulo'); window.renderTareas(); };
+    btn.onclick = function(){
+      moduloActual = btn.getAttribute('data-modulo');
+      indiceVisiblePorModulo[moduloActual] = indicePorModulo[moduloActual]; // siempre arranca en la tarea activa del módulo
+      window.renderTareas();
+    };
   });
+
+  var btnAnterior = document.getElementById('btn-tarea-anterior');
+  if (btnAnterior) btnAnterior.onclick = function(){
+    indiceVisiblePorModulo[modulo.id] = Math.max(0, indiceVisiblePorModulo[modulo.id] - 1);
+    window.renderTareas();
+  };
+  var btnSiguiente = document.getElementById('btn-tarea-siguiente');
+  if (btnSiguiente) btnSiguiente.onclick = function(){
+    indiceVisiblePorModulo[modulo.id] = indicePorModulo[modulo.id];
+    window.renderTareas();
+  };
 };
 
 cargarProgresoTareas();
