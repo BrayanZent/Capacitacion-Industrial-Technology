@@ -712,21 +712,102 @@ NXData.paramsG26 = [
   // modelada, y el valor 5 no es una opción real que el alumno elija.
 ];
 
+// Grupos G2.2-G2.5, G2.7, G2.8 — igual que G2.6, pertenecen a la Aplicación Estándar/
+// Multipropósito, no a la Básica. Se agregan como navegables (editables, sin lógica de
+// simulación detrás salvo donde ya se indica) para que el árbol de menús M2 se sienta
+// completo al navegar libremente, como en el equipo real. Selección curada: no se
+// transcriben los ~70 parámetros reales de estos grupos, solo los más representativos
+// para un técnico de mantenimiento — evitando duplicar conceptos que ya enseña G2.1
+// (ej. G2.4 tiene su propio "Tipo de marcha/paro" con otro ID, pero es el mismo
+// concepto que P2.11/P2.12 de G2.1, así que se omite acá para no confundir).
+NXData.paramsG22 = [
+  { id:'P2.2.4', nombre:'Mín escalado ref', tipo:'numeric', min:0.00, max:320.00, unidad:'Hz', porDefecto:0.00, paso:0.01 },
+  { id:'P2.2.5', nombre:'Máx escalado ref', tipo:'numeric', min:0.00, max:320.00, unidad:'Hz', porDefecto:0.00, paso:0.01 },
+  { id:'P2.2.6', nombre:'Inversión referencia', tipo:'enum', porDefecto:0, opciones:[
+    {valor:0, etiqueta:'No invertido'}, {valor:1, etiqueta:'Invertido'}
+  ]},
+  { id:'P2.2.7', nombre:'Tiempo filtrado ref', tipo:'numeric', min:0.00, max:10.00, unidad:'s', porDefecto:0.10, paso:0.01 }
+];
+
+NXData.paramsG23 = [
+  { id:'P2.3.2', nombre:'Func salida analóg1', tipo:'enum', porDefecto:1, opciones:[
+    {valor:0, etiqueta:'Sin utilizar'}, {valor:1, etiqueta:'Frec. salida'}, {valor:2, etiqueta:'Ref. frecuencia'},
+    {valor:3, etiqueta:'Veloc. motor'}, {valor:4, etiqueta:'Intens. salida'}, {valor:5, etiqueta:'Par motor'},
+    {valor:6, etiqueta:'Potencia motor'}, {valor:7, etiqueta:'Tensión motor'}, {valor:8, etiqueta:'Tensión bus CC'}
+  ]},
+  { id:'P2.3.3', nombre:'Tiempo filtro AO', tipo:'numeric', min:0.00, max:10.00, unidad:'s', porDefecto:1.00, paso:0.01 },
+  { id:'P2.3.6', nombre:'Escala salida AO', tipo:'numeric', min:10, max:1000, unidad:'%', porDefecto:100, paso:1 },
+  { id:'P2.3.7', nombre:'Func salida digital1', tipo:'enum', porDefecto:1, opciones:[
+    {valor:0, etiqueta:'Deshabilitado'}, {valor:1, etiqueta:'Listo'}, {valor:2, etiqueta:'Marcha'}, {valor:3, etiqueta:'Fallo'},
+    {valor:4, etiqueta:'Fallo invertido'}, {valor:5, etiqueta:'Advert. sobretemp FC'}, {valor:6, etiqueta:'Fallo/adv externo'},
+    {valor:7, etiqueta:'Fallo/adv referencia'}, {valor:8, etiqueta:'Advertencia'}, {valor:9, etiqueta:'Inversión giro'},
+    {valor:10, etiqueta:'Veloc. fija 1'}, {valor:11, etiqueta:'En velocidad'}, {valor:12, etiqueta:'Regulador motor activo'},
+    {valor:13, etiqueta:'Lím. supervis. frec OP1'}, {valor:14, etiqueta:'Lugar control I/O'}, {valor:15, etiqueta:'Fallo termistor/adv'}
+  ]}
+];
+
+NXData.paramsG24 = [
+  { id:'P2.4.1', nombre:'Forma de rampa 1', tipo:'numeric', min:0.0, max:10.0, unidad:'s', porDefecto:0.1, paso:0.1 },
+  { id:'P2.4.2', nombre:'Forma de rampa 2', tipo:'numeric', min:0.0, max:10.0, unidad:'s', porDefecto:0.0, paso:0.1 },
+  { id:'P2.4.8', nombre:'Intensidad freno CC', tipo:'numeric', min:0.00, max:8.40, unidad:'A', porDefecto:5.88, paso:0.1 },
+  { id:'P2.4.9', nombre:'T.freno CC paro', tipo:'numeric', min:0.00, max:600.00, unidad:'s', porDefecto:0.00, paso:0.1 },
+  { id:'P2.4.11', nombre:'T.freno CC arranque', tipo:'numeric', min:0.00, max:600.00, unidad:'s', porDefecto:0.00, paso:0.1 }
+];
+
+NXData.paramsG25 = [
+  { id:'P2.5.1', nombre:'Lím bajo frec.prohib', tipo:'numeric', min:0.00, max:320.00, unidad:'Hz', porDefecto:0.00, paso:0.01 },
+  { id:'P2.5.2', nombre:'Lím alto frec.prohib', tipo:'numeric', min:0.00, max:320.00, unidad:'Hz', porDefecto:0.00, paso:0.01 },
+  { id:'P2.5.3', nombre:'Rampa en frec.prohib', tipo:'numeric', min:0.1, max:10.0, unidad:'×', porDefecto:1.0, paso:0.1 }
+];
+
+var _respuestaFalloOpciones = [
+  {valor:0, etiqueta:'Sin respuesta'}, {valor:1, etiqueta:'Advertencia'},
+  {valor:2, etiqueta:'Fallo parada normal'}, {valor:3, etiqueta:'Fallo parada libre'}
+];
+NXData.paramsG27 = [
+  { id:'P2.7.3', nombre:'Resp. fallo externo', tipo:'enum', porDefecto:2, opciones:_respuestaFalloOpciones },
+  { id:'P2.7.4', nombre:'Supervis. fase entrada', tipo:'enum', porDefecto:0, opciones:_respuestaFalloOpciones },
+  { id:'P2.7.8', nombre:'Protec. térmica motor', tipo:'enum', porDefecto:2, opciones:_respuestaFalloOpciones },
+  { id:'P2.7.13', nombre:'Protec. bloqueo', tipo:'enum', porDefecto:0, opciones:_respuestaFalloOpciones },
+  { id:'P2.7.14', nombre:'Intensidad bloqueo', tipo:'numeric', min:0.00, max:16.80, unidad:'A', porDefecto:8.40, paso:0.1 }
+];
+
+NXData.paramsG28 = [
+  { id:'P2.8.1', nombre:'Tiempo de espera', tipo:'numeric', min:0.10, max:10.00, unidad:'s', porDefecto:0.50, paso:0.01 },
+  { id:'P2.8.2', nombre:'Tiempo de prueba', tipo:'numeric', min:0.00, max:60.00, unidad:'s', porDefecto:30.00, paso:0.1 },
+  { id:'P2.8.4', nombre:'Intentos baja tensión', tipo:'numeric', min:0, max:10, unidad:'', porDefecto:0, paso:1 },
+  { id:'P2.8.6', nombre:'Intentos sobreintens.', tipo:'numeric', min:0, max:3, unidad:'', porDefecto:0, paso:1 }
+];
+
+var _GRUPOS_M2 = ['G2.1', 'G2.2', 'G2.3', 'G2.4', 'G2.5', 'G2.6', 'G2.7', 'G2.8'];
+var _PARAMS_POR_GRUPO = {
+  'G2.1': NXData.paramsG21, 'G2.2': NXData.paramsG22, 'G2.3': NXData.paramsG23,
+  'G2.4': NXData.paramsG24, 'G2.5': NXData.paramsG25, 'G2.6': NXData.paramsG26,
+  'G2.7': NXData.paramsG27, 'G2.8': NXData.paramsG28
+};
+
 var _hijosDeG26 = NXEngine.prototype._hijosDe;
 NXEngine.prototype._hijosDe = function(ruta){
-  if (ruta[0] === 'M2' && ruta.length === 1) return ['G2.1', 'G2.6'];
-  if (ruta[0] === 'M2' && ruta[1] === 'G2.6' && ruta.length === 2) return NXData.paramsG26.map(function(p){ return p.id; });
+  if (ruta[0] === 'M2' && ruta.length === 1) return _GRUPOS_M2;
+  if (ruta[0] === 'M2' && _GRUPOS_M2.indexOf(ruta[1]) !== -1 && ruta.length === 2) return _PARAMS_POR_GRUPO[ruta[1]].map(function(p){ return p.id; });
   return _hijosDeG26.call(this, ruta);
 };
 
+// Función (no un array precalculado): paramsG26 todavía va a recibir un push()
+// más abajo en el archivo (Tarea 2, P2.6.1), así que hay que leer su contenido
+// en el momento en que esto se llama, no capturar una copia congelada acá.
+function _todosLosParamsExtra(){
+  return NXData.paramsG22.concat(NXData.paramsG23, NXData.paramsG24, NXData.paramsG25, NXData.paramsG26, NXData.paramsG27, NXData.paramsG28);
+}
+
 var _todosLosParamsG26 = NXEngine.prototype._todosLosParams;
 NXEngine.prototype._todosLosParams = function(){
-  return _todosLosParamsG26.call(this).concat(NXData.paramsG26);
+  return _todosLosParamsG26.call(this).concat(_todosLosParamsExtra());
 };
 
 var _todosLosParamsEstaticoG26 = NXEngine.prototype._todosLosParamsEstatico;
 NXEngine.prototype._todosLosParamsEstatico = function(){
-  return _todosLosParamsEstaticoG26.call(this).concat(NXData.paramsG26);
+  return _todosLosParamsEstaticoG26.call(this).concat(_todosLosParamsExtra());
 };
 
 var _NXEngineCtorIdent = NXEngine;
