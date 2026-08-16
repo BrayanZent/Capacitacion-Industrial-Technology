@@ -1060,8 +1060,15 @@ const NXModules = [
   {
     id: 'encoder',
     nombre: 'Lazo abierto/cerrado',
-    teoria: [],
-    tareas: []
+    teoria: [
+      'El "Modo de control" (P2.6.12, también del grupo G2.6) puede ponerse en Lazo cerrado, que requiere una señal real de realimentación de velocidad (encoder). En el equipo real esto implica una tarjeta de opción de encoder física instalada y parametrizada, no solo un ajuste de software.',
+      'El manual indica que el modo de control NO se puede cambiar entre lazo abierto y cerrado mientras el convertidor está en MARCHA — hay que detenerlo primero.'
+    ],
+    tareas: [
+      { id:'encoder-falta-tarjeta', enunciado:'Sin marcar el encoder como conectado, poné P2.6.12 en "Lazo cerrado" (M2 → G2.6) y arrancá con START. Debería dispararse F43 (falta la tarjeta de encoder).', pista:'El drive detecta que pediste lazo cerrado pero no hay tarjeta de encoder conectada.', verificar:function(e){ return e.fallaActiva === 43; } },
+      { id:'encoder-conectado', enunciado:'Reseteá la falla, y arrancá de nuevo en Lazo cerrado — el encoder ya queda conectado para este ejercicio.', pista:'Botón reset primero.', accion:function(e){ e.encoderConectado = true; }, verificar:function(e){ return e.estadoDrive === 'run'; } },
+      { id:'encoder-bloqueo-en-marcha', enunciado:'Con el drive en marcha, intentá cambiar P2.6.12 a "Lazo abierto". No debería dejarte — el modo de control solo se cambia con el drive detenido.', pista:'Navegá a P2.6.12 e intentá entrar en modo edición (flecha derecha) mientras el motor sigue corriendo.', verificar:function(e){ return e._cambioModoControlBloqueado === true; } }
+    ]
   }
 ];
 
