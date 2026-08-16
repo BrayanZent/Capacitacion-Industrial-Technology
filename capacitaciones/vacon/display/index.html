@@ -983,72 +983,145 @@ requestAnimationFrame(loop);
 render();
 </script>
 <script>
-const NXTasks = [
+const NXModules = [
   {
-    id: 'seleccionar-panel',
-    enunciado: 'Ve a M3 y pon el Lugar de control (P3.1) en "Panel".',
-    pista: 'M3 → flecha derecha para entrar → flecha derecha para editar P3.1 → arriba/abajo para cambiar → Enter para confirmar.',
-    verificar: function(e){ return e.valores['P3.1'] === 2; }
+    id: 'puestaEnMarcha',
+    nombre: 'Puesta en marcha',
+    teoria: [
+      'Antes de operar un variador hay que cargar los datos de placa del motor. VACON exige estos 5 valores cargados antes de correr cualquier identificación: tensión nominal (P2.6), frecuencia nominal (P2.7), velocidad nominal (P2.8), intensidad nominal (P2.9) y cos phi (P2.10).',
+      'La velocidad nominal de placa NO es la velocidad síncrona. Un motor de 4 polos a 50 Hz tiene una síncrona de 1500 rpm, pero la placa real muestra menos (ej. 1440 rpm) por el deslizamiento — VACON usa esa diferencia para calcular el modelo del motor.'
+    ],
+    tareas: [
+      { id:'placa-tension', enunciado:'Placa del motor: Tensión nominal = 400 V. Configurá P2.6 (M2 → G2.1).', pista:'M2 → derecha → G2.1 → buscá P2.6 → derecha para editar → arriba/abajo → Enter.', verificar:function(e){ return Math.abs(e.valores['P2.6'] - 400) < 0.5; } },
+      { id:'placa-frecuencia', enunciado:'Placa del motor: Frecuencia nominal = 50 Hz. Configurá P2.7.', pista:'Mismo grupo G2.1, el parámetro siguiente a P2.6.', verificar:function(e){ return Math.abs(e.valores['P2.7'] - 50) < 0.05; } },
+      { id:'placa-velocidad', enunciado:'Placa del motor: Velocidad nominal = 1440 rpm (no 1500 — esa es la síncrona). Configurá P2.8.', pista:'La velocidad de placa siempre es menor a la síncrona por el deslizamiento.', verificar:function(e){ return e.valores['P2.8'] === 1440; } },
+      { id:'placa-intensidad', enunciado:'Placa del motor: Intensidad nominal = 15.0 A. Configurá P2.9.', pista:'Mismo grupo, siguiente parámetro.', verificar:function(e){ return Math.abs(e.valores['P2.9'] - 15.0) < 0.05; } },
+      { id:'placa-cosphi', enunciado:'Placa del motor: Cos phi = 0.83. Configurá P2.10.', pista:'Último dato de la placa para este ejercicio.', verificar:function(e){ return Math.abs(e.valores['P2.10'] - 0.83) < 0.01; } }
+    ]
   },
   {
-    id: 'referencia-25hz',
-    enunciado: 'En M3 → P3.2 (Referencia panel), pon la referencia en 25.00 Hz.',
-    pista: 'Entra en modo edición con la flecha derecha y usa arriba/abajo. Confirma con Enter.',
-    verificar: function(e){ return Math.abs(e.valores['P3.2'] - 25.00) < 0.01; }
+    id: 'identificacion',
+    nombre: 'Identificación de motor',
+    teoria: [],
+    tareas: []
   },
   {
-    id: 'arrancar-y-llegar',
-    enunciado: 'Presiona START y espera a que la frecuencia de salida (M1 → V1.1) llegue a la referencia.',
-    pista: 'La rampa depende de P2.3 (tiempo de aceleración). Observa M1 → V1.1 mientras corre.',
-    verificar: function(e){ return e.estadoDrive === 'run' && Math.abs(e.freqActual - e.valores['P3.2']) < 0.05; }
+    id: 'rampas',
+    nombre: 'Rampas y protecciones',
+    teoria: [],
+    tareas: []
   },
   {
-    id: 'diagnosticar-falla',
-    enunciado: 'Se acaba de disparar una falla externa (F51). Ve a M4, identifica la falla, y resetéala con el botón "reset".',
-    pista: 'M4 muestra el código y el remedio. El botón reset limpia la falla activa.',
-    accion: function(e){ if (e.estadoDrive !== 'falla') e.forzarFalla(51); },
-    verificar: function(e){ return e.historialFallas[0] === 51 && e.estadoDrive !== 'falla'; }
+    id: 'panel',
+    nombre: 'Control desde el panel',
+    teoria: [
+      'El drive recibe sus órdenes desde Terminal I/O, Panel o Fieldbus (P3.1) — solo un lugar a la vez; si el panel no es el activo, START/STOP no tienen efecto y el LCD avisa "Control de panel NO ACTIVO".',
+      'La referencia (P3.2/V1.2) es lo que se pide; la frecuencia de salida real (V1.1) es lo que el motor tiene en cada instante — diagnosticar "no llega a velocidad" empieza comparando ambos.'
+    ],
+    tareas: [
+      { id:'seleccionar-panel', enunciado:'Ve a M3 y pon el Lugar de control (P3.1) en "Panel".', pista:'M3 → flecha derecha para entrar → flecha derecha para editar P3.1 → arriba/abajo para cambiar → Enter para confirmar.', verificar:function(e){ return e.valores['P3.1'] === 2; } },
+      { id:'referencia-25hz', enunciado:'En M3 → P3.2 (Referencia panel), pon la referencia en 25.00 Hz.', pista:'Entra en modo edición con la flecha derecha y usa arriba/abajo. Confirma con Enter.', verificar:function(e){ return Math.abs(e.valores['P3.2'] - 25.00) < 0.01; } },
+      { id:'arrancar-y-llegar', enunciado:'Presiona START y espera a que la frecuencia de salida (M1 → V1.1) llegue a la referencia.', pista:'La rampa depende de P2.3 (tiempo de aceleración). Observa M1 → V1.1 mientras corre.', verificar:function(e){ return e.estadoDrive === 'run' && Math.abs(e.freqActual - e.valores['P3.2']) < 0.05; } },
+      { id:'cambiar-referencia-en-marcha', enunciado:'Con el motor ya en marcha, subí la referencia (P3.2) a 40.00 Hz sin detenerlo.', pista:'Andá a M3 → P3.2, editá el valor. El motor sigue corriendo mientras lo hacés.', verificar:function(e){ return e.estadoDrive === 'run' && Math.abs(e.freqActual - 40.00) < 0.05; } },
+      { id:'parar-y-confirmar-cero', enunciado:'Presioná STOP y confirmá que la frecuencia baja a 0 y el drive vuelve a detenido.', pista:'Esperá a que termine la rampa de deceleración.', verificar:function(e){ return e.estadoDrive === 'stop' && e.freqActual === 0; } }
+    ]
+  },
+  {
+    id: 'fallas',
+    nombre: 'Diagnóstico de fallas',
+    teoria: [
+      'M4 muestra solo la falla que bloquea el drive ahora (o "sin fallas activas"); M5 conserva un historial de las últimas fallas aunque ya se hayan reseteado — revisar el historial ayuda a detectar patrones que la falla activa por sí sola no muestra.',
+      'Resetear una falla no resuelve su causa: si la condición sigue, vuelve a aparecer. El procedimiento correcto es identificar el código en M4, revisar causa/remedio, corregir la causa real, y recién entonces resetear.'
+    ],
+    tareas: [
+      { id:'diagnosticar-falla', enunciado:'Se acaba de disparar una falla externa (F51). Ve a M4, identifica la falla, y resetéala con el botón "reset".', pista:'M4 muestra el código y el remedio. El botón reset limpia la falla activa.', accion:function(e){ if (e.estadoDrive !== 'falla') e.forzarFalla(51); }, verificar:function(e){ return e.historialFallas[0] === 51 && e.estadoDrive !== 'falla'; } }
+    ]
+  },
+  {
+    id: 'encoder',
+    nombre: 'Lazo abierto/cerrado',
+    teoria: [],
+    tareas: []
   }
 ];
 
 const TASKS_STORAGE_KEY = 'vfd_progress_vacon-nx-simulador';
-var indiceTareaActual = 0;
-var tareaAccionEjecutada = false;
+var moduloActual = NXModules[0].id;
+var indicePorModulo = {};
+NXModules.forEach(function(m){ indicePorModulo[m.id] = 0; });
+var tareaAccionEjecutada = {};
 
 function cargarProgresoTareas(){
   try{
     var raw = localStorage.getItem(TASKS_STORAGE_KEY);
     if (!raw) return;
     var datos = JSON.parse(raw);
-    if (typeof datos.done === 'number') indiceTareaActual = Math.min(datos.done, NXTasks.length);
+    if (datos.porModulo){
+      NXModules.forEach(function(m){
+        if (typeof datos.porModulo[m.id] === 'number'){
+          indicePorModulo[m.id] = Math.min(datos.porModulo[m.id], m.tareas.length);
+        }
+      });
+    }
   }catch(e){ console.warn('No se pudo cargar el progreso de tareas:', e); }
 }
+function totalGlobal(){ return NXModules.reduce(function(s,m){ return s + m.tareas.length; }, 0); }
+function doneGlobal(){ return NXModules.reduce(function(s,m){ return s + indicePorModulo[m.id]; }, 0); }
 function guardarProgresoTareas(){
   try{
-    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify({ done: indiceTareaActual, total: NXTasks.length }));
-  }catch(e){ console.warn('No se pudo guardar el progreso de tareas:', e); }
+    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify({ porModulo: indicePorModulo, done: doneGlobal(), total: totalGlobal() }));
+  }catch(e){ console.warn('No se pudo guardar el progreso:', e); }
 }
 
 window.renderTareas = function(){
   var cont = document.getElementById('panel-tasks');
   if (!cont) return;
-  if (indiceTareaActual >= NXTasks.length){
-    cont.innerHTML = '<p style="color:var(--emerald);font-family:var(--sans);">Completaste las ' + NXTasks.length + ' tareas guiadas.</p>';
-    return;
+  var modulo = NXModules.filter(function(m){ return m.id === moduloActual; })[0];
+  if (!modulo) return;
+
+  var idx = indicePorModulo[modulo.id];
+  if (idx < modulo.tareas.length){
+    var tarea = modulo.tareas[idx];
+    var claveAccion = modulo.id + ':' + tarea.id;
+    if (tarea.accion && !tareaAccionEjecutada[claveAccion]){ tarea.accion(engine); tareaAccionEjecutada[claveAccion] = true; }
+    if (tarea.verificar(engine)){
+      indicePorModulo[modulo.id] = idx + 1;
+      guardarProgresoTareas();
+    }
   }
-  var tarea = NXTasks[indiceTareaActual];
-  if (tarea.accion && !tareaAccionEjecutada){ tarea.accion(engine); tareaAccionEjecutada = true; }
-  if (tarea.verificar(engine)){
-    indiceTareaActual++;
-    tareaAccionEjecutada = false;
-    guardarProgresoTareas();
+
+  var selector = NXModules.map(function(m){
+    var activo = m.id === moduloActual;
+    return '<button data-modulo="' + m.id + '" style="margin:2px; padding:6px 10px; font-size:11px; border-radius:6px; border:1px solid var(--line); cursor:pointer; background:' + (activo ? 'var(--sky-dim)' : 'var(--panel-raised)') + '; color:var(--text);">' + m.nombre + '</button>';
+  }).join('');
+
+  var teoriaHtml = modulo.teoria.map(function(t){ return '<p style="font-size:12px; color:var(--text-dim); margin:6px 0;">' + t + '</p>'; }).join('');
+
+  var idxActual = indicePorModulo[modulo.id];
+  var tareaHtml;
+  if (idxActual >= modulo.tareas.length){
+    tareaHtml = modulo.tareas.length === 0
+      ? '<p style="font-size:12px;color:var(--text-dim);">Este módulo todavía no tiene tareas.</p>'
+      : '<p style="color:var(--emerald);font-family:var(--sans);">Completaste las ' + modulo.tareas.length + ' tareas de este módulo.</p>';
+  } else {
+    var t = modulo.tareas[idxActual];
+    tareaHtml =
+      '<div style="font-size:12px;color:var(--text-dim);">Tarea ' + (idxActual+1) + ' de ' + modulo.tareas.length + '</div>' +
+      '<p style="font-size:15px;">' + t.enunciado + '</p>' +
+      '<p style="font-size:12px;color:var(--text-dim);">Pista: ' + t.pista + '</p>';
   }
+
   cont.innerHTML =
     '<div style="font-family:var(--sans);color:var(--text);">' +
-    '<div style="font-size:12px;color:var(--text-dim);">Tarea ' + (indiceTareaActual+1) + ' de ' + NXTasks.length + '</div>' +
-    '<p style="font-size:15px;">' + tarea.enunciado + '</p>' +
-    '<p style="font-size:12px;color:var(--text-dim);">Pista: ' + tarea.pista + '</p>' +
+    '<div>' + selector + '</div>' +
+    '<h3 style="margin:10px 0 4px 0;">' + modulo.nombre + '</h3>' +
+    teoriaHtml +
+    '<div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--line);">' + tareaHtml + '</div>' +
     '</div>';
+
+  cont.querySelectorAll('button[data-modulo]').forEach(function(btn){
+    btn.onclick = function(){ moduloActual = btn.getAttribute('data-modulo'); window.renderTareas(); };
+  });
 };
 
 cargarProgresoTareas();
