@@ -804,6 +804,82 @@ NXEngine.prototype.press = function(tecla){
 })();
 </script>
 <script>
+NXData.paramsG26.push(
+  { id:'P2.6.12', nombre:'Modo de control', tipo:'enum', porDefecto:0, opciones:[
+    {valor:0, etiqueta:'Lazo abierto'},
+    {valor:1, etiqueta:'Lazo cerrado'}
+  ]}
+);
+
+var _NXEngineCtorEncoder = NXEngine;
+NXEngine = function(){
+  _NXEngineCtorEncoder.call(this);
+  this.encoderConectado = false;
+  this._cambioModoControlBloqueado = false;
+};
+NXEngine.prototype = _NXEngineCtorEncoder.prototype;
+
+var _pressEncoder = NXEngine.prototype.press;
+NXEngine.prototype.press = function(tecla){
+  if (tecla === 'start' && this.estadoDrive === 'stop' && this.valores['P3.1'] === 2 &&
+      this.valores['P2.6.12'] === 1 && !this.encoderConectado){
+    // Sub-causa real de F43: "Falta la tarjeta de encoder" (una de las 5 sub-causas
+    // documentadas; las otras 4 requieren modelar cableado parcial, fuera de alcance).
+    this._dispararFalla(43);
+    return;
+  }
+  if (tecla === 'right' && this.modo === 'navegar'){
+    var idActual = this.ubicacionActual();
+    if (idActual === 'P2.6.12' && this.estadoDrive === 'run'){
+      this.mensaje = 'No se puede cambiar en MARCHA';
+      this._cambioModoControlBloqueado = true;
+      return;
+    }
+  }
+  return _pressEncoder.call(this, tecla);
+};
+</script>
+<script>
+(function(){
+  var e = new NXEngine();
+  assert(e.valores['P2.6.12'] === 0, 'Modo de control (P2.6.12) inicia en Lazo abierto por defecto');
+  assert(e.encoderConectado === false, 'encoderConectado inicia en false');
+
+  var hijosG26 = e._hijosDe(['M2', 'G2.6']);
+  assert(hijosG26.indexOf('P2.6.12') !== -1, 'G2.6 incluye P2.6.12 junto a P2.6.16');
+
+  var e2 = new NXEngine();
+  e2.valores['P3.1'] = 2;
+  e2.valores['P2.6.12'] = 1; // lazo cerrado
+  e2.press('start');
+  assert(e2.fallaActiva === 43, 'Lazo cerrado sin encoder conectado dispara F43 al intentar arrancar');
+
+  var e3 = new NXEngine();
+  e3.valores['P3.1'] = 2;
+  e3.valores['P2.6.12'] = 1;
+  e3.encoderConectado = true;
+  e3.press('start');
+  assert(e3.estadoDrive === 'run', 'Lazo cerrado con encoder conectado arranca normalmente');
+
+  var e4 = new NXEngine();
+  e4.valores['P3.1'] = 2;
+  e4.valores['P3.2'] = 25;
+  e4.press('start'); // lazo abierto (default) arranca normal
+  assert(e4.estadoDrive === 'run', 'precondición: drive en marcha con lazo abierto');
+  e4.ruta = ['M2', 'G2.6', 'P2.6.12'];
+  e4.press('right'); // intenta editar el modo de control mientras está en marcha
+  assert(e4.modo === 'navegar', 'No entra a modo edición de P2.6.12 mientras el drive está en marcha');
+  assert(e4._cambioModoControlBloqueado === true, 'La bandera estable registra el bloqueo (no depende de mensaje, que se limpia en cada render)');
+
+  var e5 = new NXEngine();
+  e5.ruta = ['M2', 'G2.6', 'P2.6.12'];
+  e5.press('right'); // drive detenido: sí debe poder editar
+  assert(e5.modo === 'editar', 'Con el drive detenido, sí se puede entrar a editar P2.6.12');
+
+  window.runTestsIfRequested();
+})();
+</script>
+<script>
 var engine = new NXEngine();
 
 function nombreDeUbicacion(id){
