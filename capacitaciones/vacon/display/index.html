@@ -977,6 +977,87 @@ NXEngine.prototype.press = function(tecla){
 })();
 </script>
 <script>
+// Multimonitor: función real del teclado VACON NX (menú de sistema M6, parámetro P6.5.4
+// "Multimonitoring items") que muestra 3 valores de monitoreo simultáneos en vez de navegar
+// uno por vez. El manual confirma el nombre y la ubicación en M6; NO confirma cuántos IDs de
+// parámetro distintos existen por posición ni el mecanismo exacto de activación desde teclado
+// (no hay tecla dedicada documentada) — por eso el simulador usa el botón SELECT (ya existía
+// en el panel físico sin función asignada) como mecanismo simplificado y lo aclara en la teoría.
+NXData.nombresGrupos.MULTI = 'Multimonitor';
+var _multimonitorOpciones = NXData.monitorValues.map(function(v){ return { valor: v.id, etiqueta: v.nombre + ' (' + v.id + ')' }; });
+NXData.paramsMulti = [
+  { id:'MULTI.1', nombre:'Multimonitor - Posición 1', tipo:'enum', porDefecto:'V1.9', opciones:_multimonitorOpciones },
+  { id:'MULTI.2', nombre:'Multimonitor - Posición 2', tipo:'enum', porDefecto:'V1.9', opciones:_multimonitorOpciones },
+  { id:'MULTI.3', nombre:'Multimonitor - Posición 3', tipo:'enum', porDefecto:'V1.9', opciones:_multimonitorOpciones }
+];
+
+var _ctorMulti = NXEngine;
+NXEngine = function(){
+  _ctorMulti.call(this);
+  this.multimonitorActivo = false;
+};
+NXEngine.prototype = _ctorMulti.prototype;
+
+var _hijosDeMulti = NXEngine.prototype._hijosDe;
+NXEngine.prototype._hijosDe = function(ruta){
+  if (ruta[0] === 'M1' && ruta.length === 1) return _hijosDeMulti.call(this, ruta).concat(['MULTI']);
+  if (ruta[0] === 'M1' && ruta[1] === 'MULTI' && ruta.length === 2) return ['MULTI.1', 'MULTI.2', 'MULTI.3'];
+  return _hijosDeMulti.call(this, ruta);
+};
+
+var _todosLosParamsMulti = NXEngine.prototype._todosLosParams;
+NXEngine.prototype._todosLosParams = function(){
+  return _todosLosParamsMulti.call(this).concat(NXData.paramsMulti);
+};
+var _todosLosParamsEstaticoMulti = NXEngine.prototype._todosLosParamsEstatico;
+NXEngine.prototype._todosLosParamsEstatico = function(){
+  return _todosLosParamsEstaticoMulti.call(this).concat(NXData.paramsMulti);
+};
+
+var _pressMulti = NXEngine.prototype.press;
+NXEngine.prototype.press = function(tecla){
+  if (tecla === 'select' && this.modo === 'navegar' && this.ruta[0] === 'M1'){
+    this.multimonitorActivo = !this.multimonitorActivo;
+    return;
+  }
+  return _pressMulti.call(this, tecla);
+};
+</script>
+<script>
+(function(){
+  var e = new NXEngine();
+  assert(e.multimonitorActivo === false, 'multimonitorActivo inicia en false');
+  assert(e.valores['MULTI.1'] === 'V1.9' && e.valores['MULTI.2'] === 'V1.9' && e.valores['MULTI.3'] === 'V1.9', 'Las 3 posiciones del multimonitor inician con un valor neutro (V1.9), no con las 3 que va a pedir el módulo — evita que las tareas se autocompleten');
+
+  var hijosM1 = e._hijosDe(['M1']);
+  assert(hijosM1.length === 18 && hijosM1[17] === 'MULTI', 'M1 ahora tiene los 17 valores reales + MULTI al final');
+  var hijosMulti = e._hijosDe(['M1', 'MULTI']);
+  assert(hijosMulti.length === 3 && hijosMulti[0] === 'MULTI.1', 'MULTI tiene 3 posiciones configurables');
+
+  assert(e.ubicacionActual() === 'M1', 'precondición: engine nuevo arranca en M1');
+  e.press('select');
+  assert(e.multimonitorActivo === true, 'SELECT en M1 activa el multimonitor');
+  e.press('select');
+  assert(e.multimonitorActivo === false, 'SELECT de nuevo lo desactiva (toggle)');
+
+  var e2 = new NXEngine();
+  e2.press('down'); // M1 -> M2
+  e2.press('select');
+  assert(e2.multimonitorActivo === false, 'SELECT fuera de M1 no activa el multimonitor');
+
+  var e3 = new NXEngine();
+  e3.ruta = ['M1', 'MULTI', 'MULTI.2'];
+  e3.press('right'); // entra a editar la posición 2
+  assert(e3.modo === 'editar', 'Las posiciones del multimonitor se editan igual que cualquier parámetro enum');
+  e3.press('up');
+  assert(e3.valores['MULTI.2'] !== 'V1.1', 'up cambia la posición 2 a otro valor de monitoreo');
+  e3.press('enter');
+  assert(e3.modo === 'navegar', 'enter confirma la selección');
+
+  window.runTestsIfRequested();
+})();
+</script>
+<script>
 var engine = new NXEngine();
 
 function nombreDeUbicacion(id){
@@ -1010,6 +1091,19 @@ function render(){
   }
   if (idActual === 'M6') loc = { k:'M6', l:'Menú Sistema', m: NXData.systemInfo.join(' · ') };
   if (idActual === 'M7') loc = { k:'M7', l:'Cartas Expansión', m: NXData.expanderInfo.join(' · ') };
+  if (idActual === 'MULTI'){
+    if (engine.multimonitorActivo){
+      // Layout real del equipo: código arriba, 2 valores chicos juntos, 1 valor grande abajo —
+      // solo valor+unidad en el LCD (sin nombre), igual que la foto real del panel. El nombre y
+      // a qué corresponde cada posición se explica en la teoría/enunciados, no en la pantalla.
+      var s1 = nombreDeUbicacion(engine.valores['MULTI.1']);
+      var s2 = nombreDeUbicacion(engine.valores['MULTI.2']);
+      var s3 = nombreDeUbicacion(engine.valores['MULTI.3']);
+      loc = { k: 'MULTI', l: s1.m + '        ' + s2.m, m: s3.m };
+    } else {
+      loc = { k:'MULTI', l:'Multimonitor', m:'Desactivado — SELECT para activar' };
+    }
+  }
 
   document.getElementById('lcd-linea-k').textContent = engine.mensaje || loc.k;
   document.getElementById('lcd-linea-l').textContent = loc.l;
@@ -1095,8 +1189,11 @@ const NXModules = [
     id: 'puestaEnMarcha',
     nombre: 'Puesta en marcha',
     teoria: [
+      'Antes de energizar: verificar el aislamiento del motor (megado), el torque de las conexiones de potencia, y que la tensión de red medida coincida con lo que vas a cargar en P2.6. En la primera prueba de marcha, el motor debe girar SIN la carga mecánica acoplada.',
+      'El bus de continua (V1.8 "Voltaje DC-link" en M1) no se descarga al instante al cortar la alimentación — los condensadores retienen tensión peligrosa durante varios minutos. Esperar el tiempo indicado en la placa del equipo antes de abrir el gabinete es la regla de seguridad más repetida del manual VACON.',
       'Antes de operar un variador hay que cargar los datos de placa del motor. VACON exige estos 5 valores cargados antes de correr cualquier identificación: tensión nominal (P2.6), frecuencia nominal (P2.7), velocidad nominal (P2.8), intensidad nominal (P2.9) y cos phi (P2.10).',
-      'La velocidad nominal de placa NO es la velocidad síncrona. Un motor de 4 polos a 60 Hz tiene una síncrona de 1800 rpm, pero la placa real muestra menos (ej. 1750 rpm) por el deslizamiento — VACON usa esa diferencia para calcular el modelo del motor.'
+      'La velocidad nominal de placa NO es la velocidad síncrona. Un motor de 4 polos a 60 Hz tiene una síncrona de 1800 rpm, pero la placa real muestra menos (ej. 1750 rpm) por el deslizamiento — VACON usa esa diferencia para calcular el modelo del motor.',
+      'Los grupos G2.2-G2.8 de M2 pertenecen a las aplicaciones Estándar/Multipropósito, no a la Aplicación Básica — en un equipo real, qué parámetros ves depende de qué macro/aplicación está cargada, no es fijo.'
     ],
     tareas: [
       { id:'placa-tension', enunciado:'Placa del motor: Tensión nominal = 460 V. Configurá P2.6 (M2 → G2.1).', pista:'M2 → derecha → G2.1 → buscá P2.6 → derecha para editar → arriba/abajo → Enter.', verificar:function(e){ return Math.abs(e.valores['P2.6'] - 460) < 0.5; } },
@@ -1110,12 +1207,14 @@ const NXModules = [
     id: 'identificacion',
     nombre: 'Identificación de motor',
     teoria: [
-      'El parámetro "Identificación" (P2.6.13, del grupo G2.6 — pertenece a las aplicaciones Estándar/Multipropósito, no a la Básica) tiene una opción "con motor en marcha" que exige el motor desacoplado de su carga mecánica. Si hay carga en el eje, la identificación típicamente falla y el convertidor reporta F57.',
-      'La opción "sin marcha" funciona con cualquier condición de carga — es la que se usa cuando no se puede desacoplar el motor. En el equipo real, la identificación se dispara dando la orden de marcha (START) después de fijar el parámetro.'
+      'Identificar el motor no es un trámite opcional: alimenta el modelo interno del convertidor (resistencia de estator, inductancias) con los valores reales de ESE motor, en vez de estimarlos a partir de los datos genéricos de placa. Sin identificación, el control pierde precisión de par sobre todo a baja velocidad — es el motivo real por el que se hace, no solo un paso del checklist.',
+      'El parámetro "Identificación" (P2.6.13, del grupo G2.6 — pertenece a las aplicaciones Estándar/Multipropósito, no a la Básica) te deja elegir el tipo de identificación según si podés desacoplar el motor de su carga o no: "Identif. sin marcha" funciona con el motor acoplado, sin moverlo de su posición ni desmontar nada; "Identif. con marcha" da un modelo más preciso, pero exige el motor desacoplado — si hay carga en el eje, típicamente falla y el convertidor reporta F57.',
+      'En el equipo real, la identificación se dispara dando la orden de marcha (START) después de fijar el parámetro.'
     ],
     tareas: [
       { id:'identif-acoplado', enunciado:'El motor está acoplado a su carga (por defecto en este ejercicio). Poné P2.6.13 en "Identif. con marcha" (M2 → G2.6) y presioná START — la identificación debería fallar con F57.', pista:'M2 → derecha → G2.6 → P2.6.13 → derecha para editar → arriba hasta "Identif. con marcha" → Enter. Después START.', accion:function(e){ e.motorAcoplado = true; }, verificar:function(e){ return e.fallaActiva === 57; } },
-      { id:'identif-desacoplado', enunciado:'Reseteá la falla, y repetí: P2.6.13 en "Identif. con marcha" y START. El motor ya queda desacoplado para este ejercicio, así que ahora debería completar sin falla.', pista:'Botón reset primero para limpiar F57.', accion:function(e){ e.motorAcoplado = false; }, verificar:function(e){ return e.identificacionCompleta === true; } }
+      { id:'identif-desacoplado', enunciado:'Reseteá la falla, y repetí: P2.6.13 en "Identif. con marcha" y START. El motor ya queda desacoplado para este ejercicio, así que ahora debería completar sin falla.', pista:'Botón reset primero para limpiar F57.', accion:function(e){ e.motorAcoplado = false; }, verificar:function(e){ return e.identificacionCompleta === true; } },
+      { id:'identif-sin-marcha-acoplado', enunciado:'Ahora el motor vuelve a estar acoplado a su carga, y no se puede desacoplar. Poné P2.6.13 en "Identif. sin marcha" y presioná START — con esta opción, la identificación completa igual sin necesitar desacoplar nada.', pista:'Esta es la opción que se usa en la mayoría de los equipos ya instalados en planta, donde desacoplar el motor implica parar el proceso.', accion:function(e){ e.motorAcoplado = true; e.identificacionCompleta = false; }, verificar:function(e){ return e.identificacionCompleta === true && e.fallaActiva === null; } }
     ]
   },
   {
@@ -1124,13 +1223,15 @@ const NXModules = [
     teoria: [
       'Los tiempos de rampa (P2.3/P2.4) se miden de 0 Hz a la frecuencia MÁXIMA (P2.2), no hasta la referencia pedida — fuente común de confusión en terreno.',
       'El límite de intensidad (P2.5) no es informativo: si la corriente real lo supera durante la marcha, dispara F1 y corta la salida.',
-      'Al frenar, la energía cinética de la carga sube la tensión del bus DC. Un P2.4 muy corto para la inercia real dispara F2 (Sobretensión) si el tipo de paro es en rampa (P2.12=1).'
+      'Al frenar, la energía cinética de la carga sube la tensión del bus DC. Un P2.4 muy corto para la inercia real dispara F2 (Sobretensión) si el tipo de paro es en rampa (P2.12=1).',
+      'Cuando el proceso exige frenar rápido y alargar P2.4 no es una opción, la solución real es instalar una resistencia de frenado externa (chopper) que disipa esa energía en vez de devolverla al bus DC. F12 (Supervisión chopper) avisa si la resistencia falta o está rota; F42 (Sobrecalentamiento resistencia de frenado) avisa que el frenado exigido superó lo que la resistencia puede disipar — la resistencia también tiene un límite, no es una solución infinita.'
     ],
     tareas: [
       { id:'config-rampa', enunciado:'Configurá P2.3 (tiempo de aceleración) a un valor entre 1.5 y 2.5 segundos.', pista:'M2 → G2.1 → P2.3.', verificar:function(e){ return e.valores['P2.3'] >= 1.5 && e.valores['P2.3'] <= 2.5; } },
       { id:'provocar-f1', enunciado:'Bajá P2.5 (límite de intensidad) por debajo de P2.9 (intensidad nominal), arrancá el motor, y esperá a que se dispare F1 por sí solo. Reseteala.', pista:'La corriente simulada sube con la frecuencia — si el límite queda muy bajo, F1 se dispara sin que la fuerces vos.', verificar:function(e){ return e.historialFallas[0] === 1 && e.estadoDrive !== 'falla'; } },
       { id:'provocar-f2', enunciado:'Poné P2.4 por debajo de 1.0 s, P2.12 en "Rampa", arrancá, esperá a que llegue a régimen, y presioná STOP. Debería dispararse F2. Reseteala.', pista:'La deceleración muy corta con carga en movimiento es justo el caso que dispara F2.', verificar:function(e){ return e.historialFallas[0] === 2 && e.estadoDrive !== 'falla'; } },
       { id:'corregir-f2', enunciado:'Subí P2.4 a 3.0 s o más, y repetí un ciclo completo de arranque/paro sin que F2 se repita.', pista:'Con un tiempo de deceleración razonable, el mismo ciclo ya no dispara la falla.', verificar:function(e){ return e.valores['P2.4'] >= 3.0 && e.estadoDrive === 'stop'; } },
+      { id:'resistencia-frenado', enunciado:'Ahora imaginá que instalaste una resistencia de frenado externa para poder frenar rápido sin tocar P2.4. Se disparó F42 (la resistencia recibió más frenado del que puede disipar) — diagnosticala en M4 y reseteala.', pista:'M4 te muestra el remedio real: aumentar el tiempo de deceleración, o usar una resistencia de mayor capacidad.', accion:function(e){ if (e.estadoDrive !== 'falla') e.forzarFalla(42); }, verificar:function(e){ return e.historialFallas[0] === 42 && e.estadoDrive !== 'falla'; } },
       { id:'clamp-frecuencia-max', enunciado:'Bajá P2.2 (frecuencia máxima) a menos de 50 Hz, y después intentá subir P3.2 más allá de ese nuevo máximo (mantené presionado ▲) — confirmá que no lo puede superar.', pista:'P2.2 acota el rango editable de P3.2 — el clamp se aplica cuando editás P3.2, no automáticamente al bajar P2.2.', verificar:function(e){ return e.valores['P2.2'] < 50 && e.valores['P3.2'] === e.valores['P2.2']; } }
     ]
   },
@@ -1150,15 +1251,38 @@ const NXModules = [
     ]
   },
   {
+    id: 'multimonitor',
+    nombre: 'Multimonitor',
+    teoria: [
+      'Navegar M1 un valor a la vez (V1.1, V1.2, V1.3...) es lento cuando en planta necesitás varios datos juntos para una lectura rápida. VACON NX tiene una función real para esto: "Multimonitoring items" (menú de sistema M6, parámetro cercano a P6.5.4) que muestra 3 valores de monitoreo simultáneos en la misma pantalla, en vez de uno por vez.',
+      'El manual no detalla públicamente si cada posición tiene su propio ID de parámetro o cómo se navega exactamente para asignarlas desde el teclado — el simulador simplifica esto usando el botón SELECT (ya existe en el panel físico) para activar/desactivar el multimonitor, y una entrada "Multimonitor" al final de la lista de M1 para elegir qué va en cada posición. El resto de M1 sigue funcionando exactamente igual que siempre: navegás cada valor (V1.1, V1.2...) de a uno, como antes. Las 3 variables combinadas solo aparecen cuando estás parado justo en esa entrada "Multimonitor", no en la pantalla principal de M1.',
+      'En planta, una combinación típica y útil es: Referencia (V1.2, lo que le estás pidiendo al drive), Velocidad real (V1.1 "Frec Salida", lo que el motor realmente tiene) y Corriente del motor (V1.4). Verlas juntas te deja notar de un vistazo si el motor no está llegando a la referencia, o si la corriente sube sin que cambie la carga — señales tempranas de un problema.',
+      'Igual que en el equipo real, la pantalla del multimonitor muestra solo valor y unidad (sin el nombre completo al lado) — Posición 1 y 2 quedan juntas arriba en letra chica, Posición 3 sola abajo en letra grande. Por eso conviene tener memorizado qué asignaste en cada posición: en este ejercicio, Posición 1 = V1.2 (Referencia), Posición 2 = V1.1 (Velocidad real) y Posición 3 = V1.4 (Corriente del motor).'
+    ],
+    tareas: [
+      { id:'activar-multimonitor', enunciado:'Desde M1 (nivel superior, sin entrar a ningún valor), presioná SELECT para activar el multimonitor.', pista:'SELECT es el botón que está abajo a la izquierda del panel — funciona directo desde M1, sin entrar a nada primero.', verificar:function(e){ return e.multimonitorActivo === true; } },
+      { id:'asignar-referencia', enunciado:'Andá a M1 → flecha derecha para entrar → mantené presionada la flecha abajo para llegar al final de la lista (después de V1.17) → entrá a "Multimonitor" → Posición 1, y asignale "Refer Frec (V1.2)".', pista:'Primero flecha derecha para entrar a la lista de valores; recién ahí abajo/arriba navega entre ellos. El auto-repetición de la flecha abajo te lleva rápido hasta el final sin tener que apretar 17 veces.', verificar:function(e){ return e.valores['MULTI.1'] === 'V1.2'; } },
+      { id:'asignar-velocidad', enunciado:'En la Posición 2 del multimonitor, asignale "Frec Salida (V1.1)" — la velocidad real del motor, no la referencia.', pista:'Desde la Posición 1 ya confirmada, flecha abajo te lleva directo a la Posición 2 (no hace falta salir a "Multimonitor" y volver a entrar). Ahí, flecha derecha para editar, arriba/abajo para elegir el valor, Enter para confirmar.', verificar:function(e){ return e.valores['MULTI.2'] === 'V1.1'; } },
+      { id:'asignar-corriente', enunciado:'En la Posición 3, asignale "Intensidad Motor (V1.4)".', pista:'Mismo mecanismo: flecha abajo desde la Posición 2 te lleva a la Posición 3. Con esto ya tenés las 3 variables típicas de planta: referencia, velocidad real y corriente.', verificar:function(e){ return e.valores['MULTI.3'] === 'V1.4'; } },
+      { id:'confirmar-vista-simultanea', enunciado:'Volvé una posición atrás (flecha izquierda) hasta quedar parado justo en "Multimonitor" (sin entrar a ninguna posición) y confirmá que ahí ves las 3 variables juntas, sin tener que navegar una por una.', pista:'El resto de M1 sigue mostrando un valor a la vez, como siempre. Es solo al llegar a la entrada "Multimonitor" que ves las 3 combinadas.', verificar:function(e){ return e.ruta.length === 2 && e.ruta[0] === 'M1' && e.ruta[1] === 'MULTI' && e.multimonitorActivo === true && e.valores['MULTI.1'] === 'V1.2' && e.valores['MULTI.2'] === 'V1.1' && e.valores['MULTI.3'] === 'V1.4'; } }
+    ]
+  },
+  {
     id: 'fallas',
     nombre: 'Diagnóstico de fallas',
     teoria: [
       'M4 muestra solo la falla que bloquea el drive ahora (o "sin fallas activas"); M5 conserva un historial de las últimas fallas aunque ya se hayan reseteado — revisar el historial ayuda a detectar patrones que la falla activa por sí sola no muestra.',
-      'Resetear una falla no resuelve su causa: si la condición sigue, vuelve a aparecer. El procedimiento correcto es identificar el código en M4, revisar causa/remedio, corregir la causa real, y recién entonces resetear.'
+      'Resetear una falla no resuelve su causa: si la condición sigue, vuelve a aparecer. El procedimiento correcto es identificar el código en M4, revisar causa/remedio, corregir la causa real, y recién entonces resetear.',
+      'F9 (Baja tensión) y F10 (Supervisión línea de entrada) son las fallas más comunes en campo, más que F1/F2: F9 avisa que el bus DC quedó por debajo del límite (red débil, fusible de entrada, interruptor de carga abierto); F10 avisa que directamente falta una fase de la alimentación de entrada. Ninguna de las dos es un problema del motor — ambas apuntan a la red o al tablero de entrada.',
+      'La protección térmica del motor tiene dos versiones: F16 (Exceso de temperatura del motor) sale de un modelo calculado por el convertidor a partir de la carga y el tiempo (V1.10 "TempMotor %" en M1 es ese cálculo), y P2.7.8 (grupo G2.7) define qué hace el drive cuando ese modelo se satura. F29 (Fallo termistor) en cambio viene de una medición directa con un sensor PTC en el bobinado — más rápida y precisa, pero solo existe si el motor tiene el termistor cableado hasta el convertidor.'
     ],
     tareas: [
       { id:'diagnosticar-falla', enunciado:'Se acaba de disparar una falla externa (F51). Ve a M4, identifica la falla, y resetéala con el botón "reset".', pista:'M4 muestra el código y el remedio. El botón reset limpia la falla activa.', accion:function(e){ if (e.estadoDrive !== 'falla') e.forzarFalla(51); }, verificar:function(e){ return e.historialFallas[0] === 51 && e.estadoDrive !== 'falla'; } },
       { id:'diagnosticar-f16', enunciado:'Se disparó F16 (Exceso de temperatura del motor). Ve a M4, leé la causa/remedio, y reseteala.', pista:'Mismo patrón que la falla anterior, código distinto.', accion:function(e){ if (e.estadoDrive !== 'falla') e.forzarFalla(16); }, verificar:function(e){ return e.historialFallas[0] === 16 && e.estadoDrive !== 'falla'; } },
+      { id:'diagnosticar-f29', enunciado:'Ahora se disparó F29 (Fallo termistor) — la misma protección térmica, pero medida por un sensor real en el bobinado, no calculada. Diagnosticala en M4 y reseteala.', pista:'Compará la causa/remedio de F29 con la de F16 que viste recién: una viene de un modelo, la otra de un sensor físico.', accion:function(e){ if (e.estadoDrive !== 'falla') e.forzarFalla(29); }, verificar:function(e){ return e.historialFallas[0] === 29 && e.estadoDrive !== 'falla'; } },
+      { id:'diagnosticar-f9', enunciado:'Se disparó F9 (Baja tensión) — la red bajó momentáneamente. Diagnosticala en M4 y reseteala.', pista:'F9 no es un problema del motor: revisá la causa en M4, apunta a la tensión de red o al circuito de entrada.', accion:function(e){ if (e.estadoDrive !== 'falla') e.forzarFalla(9); }, verificar:function(e){ return e.historialFallas[0] === 9 && e.estadoDrive !== 'falla'; } },
+      { id:'diagnosticar-f10', enunciado:'Ahora se disparó F10 (Supervisión línea de entrada) — falta una fase en la alimentación. Diagnosticala en M4 y reseteala.', pista:'Distinta de F9: acá directamente falta una fase completa, no solo bajó la tensión.', accion:function(e){ if (e.estadoDrive !== 'falla') e.forzarFalla(10); }, verificar:function(e){ return e.historialFallas[0] === 10 && e.estadoDrive !== 'falla'; } },
+      { id:'patron-en-historial', enunciado:'Este equipo viene con F9 (Baja tensión) disparándose varias veces en las últimas horas — no parece un corte puntual. Andá a M5 (Historial de fallas) y confirmá cuántas veces aparece F9 antes de resetear: si se repite, resetear una vez más no alcanza, hay que revisar la alimentación de raíz. Reseteá la falla activa.', pista:'M4 solo te muestra la falla que te tiene parado ahora. M5 conserva el historial completo — es ahí donde se nota el patrón de repetición, no en M4.', accion:function(e){ if (e.estadoDrive !== 'falla'){ e.historialFallas = [51, 9, 16, 9]; e.forzarFalla(9); } }, verificar:function(e){ return e.historialFallas.filter(function(c){ return c === 9; }).length >= 3 && e.estadoDrive !== 'falla'; } },
       { id:'secuencia-f1', enunciado:'Se disparó F1 (Sobreintensidad, forzada para este ejercicio). Reseteala.', pista:'Botón reset. Este es el primer paso de una secuencia de dos fallas — la siguiente tarea continúa desde acá.', accion:function(e){ if (e.estadoDrive !== 'falla') e.forzarFalla(1); }, verificar:function(e){ return e.historialFallas[0] === 1 && e.estadoDrive !== 'falla'; } },
       { id:'secuencia-f51-tras-f1', enunciado:'Ahora se disparó F51 (Fallo externo). Andá a M5 y confirmá que el historial muestra F51 primero y F1 segundo — la más reciente arriba. Después reseteala.', pista:'M5 conserva el orden: el código más reciente queda primero en la lista.', accion:function(e){ if (e.estadoDrive !== 'falla' && e.historialFallas[0] === 1) e.forzarFalla(51); }, verificar:function(e){ return e.historialFallas[0] === 51 && e.historialFallas[1] === 1 && e.estadoDrive !== 'falla'; } },
       { id:'contraste-f1-f2', enunciado:'Provocá F1 (sobrecorriente, bajando P2.5) y reseteala. Después provocá F2 (deceleración corta) y reseteala. Son dos protecciones distintas: una cuida el motor/cableado, la otra la electrónica de potencia.', pista:'Repetís lo que ya hiciste en el módulo de Rampas, pero esta vez en secuencia dentro del mismo ejercicio.', verificar:function(e){ return e.historialFallas[0] === 2 && e.historialFallas[1] === 1 && e.estadoDrive !== 'falla'; } }
@@ -1168,6 +1292,8 @@ const NXModules = [
     id: 'encoder',
     nombre: 'Lazo abierto/cerrado',
     teoria: [
+      'Elegir lazo abierto o cerrado es una decisión de aplicación, no solo de qué hardware hay disponible. Lazo abierto alcanza cuando no hace falta par pleno a velocidad cero ni gran precisión de velocidad: bombas, ventiladores, la mayoría de las cintas transportadoras. Lazo cerrado se justifica cuando hay que sostener carga a velocidad cero o casi cero, mantener tensión constante de un material, o seguir una referencia con precisión — casos típicos: izaje/elevación, bobinadoras, ejes coordinados.',
+      'El equipo real ofrece 5 modos en P2.6.1 "Modo control motor": Control frecuencia (U/f escalar, el más simple, sin sensor), Control velocidad lazo abierto (estima el deslizamiento, sin encoder), Control par lazo abierto, Control velocidad lazo cerrado (requiere encoder) y Control par lazo cerrado (requiere encoder — el más preciso, usado donde hace falta par exacto incluso parado). Este simulador reduce esas 5 opciones a la distinción binaria abierto/cerrado (P2.6.1 = 0 o 1) que alcanza para practicar la falla F43, sin modelar las variantes de control de par.',
       'El "Modo de control" (P2.6.1, también del grupo G2.6) puede ponerse en Lazo cerrado, que requiere una señal real de realimentación de velocidad (encoder). En el equipo real esto implica una tarjeta de opción de encoder física instalada y parametrizada, no solo un ajuste de software.',
       'El manual indica que el modo de control NO se puede cambiar entre lazo abierto y cerrado mientras el convertidor está en MARCHA — hay que detenerlo primero.'
     ],
