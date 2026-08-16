@@ -1221,6 +1221,7 @@ const NXModules = [
     id: 'rampas',
     nombre: 'Rampas y protecciones',
     teoria: [
+      'Este módulo usa START para provocar F1 y F2 — si todavía no pasaste por "Control desde el panel", primero poné el Lugar de control en Panel (M3 → P3.1 → "Panel"), o START no va a hacer nada.',
       'Los tiempos de rampa (P2.3/P2.4) se miden de 0 Hz a la frecuencia MÁXIMA (P2.2), no hasta la referencia pedida — fuente común de confusión en terreno.',
       'El límite de intensidad (P2.5) no es informativo: si la corriente real lo supera durante la marcha, dispara F1 y corta la salida.',
       'Al frenar, la energía cinética de la carga sube la tensión del bus DC. Un P2.4 muy corto para la inercia real dispara F2 (Sobretensión) si el tipo de paro es en rampa (P2.12=1).',
@@ -1228,7 +1229,7 @@ const NXModules = [
     ],
     tareas: [
       { id:'config-rampa', enunciado:'Configurá P2.3 (tiempo de aceleración) a un valor entre 1.5 y 2.5 segundos.', pista:'M2 → G2.1 → P2.3.', verificar:function(e){ return e.valores['P2.3'] >= 1.5 && e.valores['P2.3'] <= 2.5; } },
-      { id:'provocar-f1', enunciado:'Bajá P2.5 (límite de intensidad) por debajo de P2.9 (intensidad nominal), arrancá el motor, y esperá a que se dispare F1 por sí solo. Reseteala.', pista:'La corriente simulada sube con la frecuencia — si el límite queda muy bajo, F1 se dispara sin que la fuerces vos.', verificar:function(e){ return e.historialFallas[0] === 1 && e.estadoDrive !== 'falla'; } },
+      { id:'provocar-f1', enunciado:'Bajá P2.5 (límite de intensidad) por debajo de P2.9 (intensidad nominal), arrancá el motor, y esperá a que se dispare F1 por sí solo. Reseteala.', pista:'Si START no hace nada y el LCD avisa "Control de panel NO ACTIVO", primero poné el Lugar de control en Panel: M3 → P3.1 → editá → elegí "Panel" → Enter. Recién ahí START funciona. La corriente simulada sube con la frecuencia — si el límite queda muy bajo, F1 se dispara sin que la fuerces vos.', verificar:function(e){ return e.historialFallas[0] === 1 && e.estadoDrive !== 'falla'; } },
       { id:'provocar-f2', enunciado:'Poné P2.4 por debajo de 1.0 s, P2.12 en "Rampa", arrancá, esperá a que llegue a régimen, y presioná STOP. Debería dispararse F2. Reseteala.', pista:'La deceleración muy corta con carga en movimiento es justo el caso que dispara F2.', verificar:function(e){ return e.historialFallas[0] === 2 && e.estadoDrive !== 'falla'; } },
       { id:'corregir-f2', enunciado:'Subí P2.4 a 3.0 s o más, y repetí un ciclo completo de arranque/paro sin que F2 se repita.', pista:'Con un tiempo de deceleración razonable, el mismo ciclo ya no dispara la falla.', verificar:function(e){ return e.valores['P2.4'] >= 3.0 && e.estadoDrive === 'stop'; } },
       { id:'resistencia-frenado', enunciado:'Ahora imaginá que instalaste una resistencia de frenado externa para poder frenar rápido sin tocar P2.4. Se disparó F42 (la resistencia recibió más frenado del que puede disipar) — diagnosticala en M4 y reseteala.', pista:'M4 te muestra el remedio real: aumentar el tiempo de deceleración, o usar una resistencia de mayor capacidad.', accion:function(e){ if (e.estadoDrive !== 'falla') e.forzarFalla(42); }, verificar:function(e){ return e.historialFallas[0] === 42 && e.estadoDrive !== 'falla'; } },
