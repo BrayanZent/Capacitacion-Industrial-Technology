@@ -1002,8 +1002,14 @@ const NXModules = [
   {
     id: 'identificacion',
     nombre: 'Identificación de motor',
-    teoria: [],
-    tareas: []
+    teoria: [
+      'El parámetro "Identificación" (P2.6.16, del grupo G2.6 — pertenece a las aplicaciones Estándar/Multipropósito, no a la Básica) tiene una opción "con motor en marcha" que exige el motor desacoplado de su carga mecánica. Si hay carga en el eje, la identificación típicamente falla y el convertidor reporta F57.',
+      'La opción "sin marcha" funciona con cualquier condición de carga — es la que se usa cuando no se puede desacoplar el motor. En el equipo real, la identificación se dispara dando la orden de marcha (START) después de fijar el parámetro.'
+    ],
+    tareas: [
+      { id:'identif-acoplado', enunciado:'El motor está acoplado a su carga (por defecto en este ejercicio). Poné P2.6.16 en "Identif. con marcha" (M2 → G2.6) y presioná START — la identificación debería fallar con F57.', pista:'M2 → derecha → G2.6 → P2.6.16 → derecha para editar → arriba hasta "Identif. con marcha" → Enter. Después START.', accion:function(e){ e.motorAcoplado = true; }, verificar:function(e){ return e.fallaActiva === 57; } },
+      { id:'identif-desacoplado', enunciado:'Reseteá la falla, y repetí: P2.6.16 en "Identif. con marcha" y START. El motor ya queda desacoplado para este ejercicio, así que ahora debería completar sin falla.', pista:'Botón reset primero para limpiar F57.', accion:function(e){ e.motorAcoplado = false; }, verificar:function(e){ return e.identificacionCompleta === true; } }
+    ]
   },
   {
     id: 'rampas',
