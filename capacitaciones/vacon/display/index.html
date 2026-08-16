@@ -525,5 +525,106 @@ NXEngine.prototype.valorMonitor = function(id){
   window.runTestsIfRequested();
 })();
 </script>
+<script>
+var _NXEngineCtor2 = NXEngine;
+NXEngine = function(){
+  _NXEngineCtor2.call(this);
+  this.fallaActiva = null;
+  this.historialFallas = [];
+};
+NXEngine.prototype = _NXEngineCtor2.prototype;
+
+NXEngine.prototype._dispararFalla = function(codigo){
+  this.fallaActiva = codigo;
+  this.estadoDrive = 'falla';
+  this.freqActual = 0;
+  this.historialFallas.unshift(codigo);
+  if (this.historialFallas.length > 10) this.historialFallas.pop();
+};
+
+// Umbral de deceleración segura del motor de demostración: el manual no fija un número
+// (depende de la inercia real de cada motor), así que el simulador usa 1.0 s como
+// constante didáctica para poder enseñar la causa real documentada ("tiempo de
+// deceleración demasiado corto").
+NXEngine.prototype._UMBRAL_DECEL_SEGURO = 1.0;
+
+var _tickSim = NXEngine.prototype.tick;
+NXEngine.prototype.tick = function(dt){
+  if (this.estadoDrive === 'falla') return;
+  _tickSim.call(this, dt);
+  if (this.estadoDrive === 'run' && this._intensidadMotor() > this.valores['P2.5']){
+    this._dispararFalla(1); // F1 Sobreintensidad
+    return;
+  }
+  // No hace falta detectar el "borde" de la transición run->deteniendo: en cuanto
+  // dispara, estadoDrive pasa a 'falla' y el guard de arriba corta los ticks
+  // siguientes, así que esta condición solo puede disparar una vez por parada.
+  if (this.estadoDrive === 'deteniendo' && this.valores['P2.12'] === 1 &&
+      this.valores['P2.4'] < this._UMBRAL_DECEL_SEGURO){
+    this._dispararFalla(2); // F2 Sobretensión
+  }
+};
+
+// Usado solo por NXTasks (Task 8) para ejercicios que necesitan practicar el flujo de
+// diagnóstico/reset con fallas que no son prácticas de disparar por física simulada (ej. F51).
+NXEngine.prototype.forzarFalla = function(codigo){
+  this._dispararFalla(codigo);
+};
+
+NXEngine.prototype.resetearFalla = function(){
+  if (this.estadoDrive !== 'falla') return;
+  this.fallaActiva = null;
+  this.estadoDrive = 'stop';
+};
+
+NXEngine.prototype.infoFalla = function(codigo){
+  return NXData.faultCatalog.filter(function(f){ return f.codigo === codigo; })[0] || null;
+};
+
+// El botón físico "reset" del panel (Task 7) y las tareas guiadas (Task 8) llaman a
+// press('reset'); sin este branch la tecla no hace nada porque ningún press() anterior
+// la maneja.
+var _pressFalla = NXEngine.prototype.press;
+NXEngine.prototype.press = function(tecla){
+  if (tecla === 'reset'){ this.resetearFalla(); return; }
+  return _pressFalla.call(this, tecla);
+};
+</script>
+<script>
+(function(){
+  var e = new NXEngine();
+  e.valores['P3.1'] = 2;
+  e.valores['P3.2'] = e.valores['P2.7']; // referencia = frecuencia nominal => intensidad ≈ nominal, no dispara
+  e.valores['P2.5'] = 1.0; // límite de intensidad absurdamente bajo para forzar F1
+  e.press('start');
+  e.tick(100); // tiempo de sobra para llegar a régimen y superar el límite
+
+  assert(e.fallaActiva === 1, 'Corriente simulada por sobre P2.5 dispara F1 (Sobreintensidad)');
+  assert(e.estadoDrive === 'falla', 'estadoDrive pasa a falla al dispararse F1');
+  assert(e.infoFalla(1).nombre === 'Sobreintensidad', 'infoFalla(1) devuelve los datos reales del catálogo');
+  assert(e.historialFallas[0] === 1, 'F1 queda registrado como el más reciente en historialFallas');
+
+  e.press('reset'); // el botón físico reset debe resetear la falla igual que resetearFalla()
+  assert(e.fallaActiva === null && e.estadoDrive === 'stop', 'press(reset) limpia la falla y vuelve a stop (misma ruta que usan el panel y las tareas)');
+
+  var e2 = new NXEngine();
+  e2.forzarFalla(51);
+  assert(e2.fallaActiva === 51, 'forzarFalla dispara cualquier codigo del catalogo para uso de NXTasks');
+
+  var e3 = new NXEngine();
+  e3.valores['P3.1'] = 2;
+  e3.valores['P3.2'] = 50.00;
+  e3.valores['P2.3'] = 1.0;
+  e3.valores['P2.4'] = 0.5; // por debajo del umbral seguro de 1.0s
+  e3.valores['P2.12'] = 1; // tipo de paro = rampa
+  e3.press('start');
+  e3.tick(10); // llega a régimen
+  e3.press('stop');
+  e3.tick(0.01); // primer tick tras stop: entra a 'deteniendo' y evalua el umbral
+  assert(e3.fallaActiva === 2, 'Deceleracion por debajo del umbral seguro dispara F2 (Sobretension)');
+
+  window.runTestsIfRequested();
+})();
+</script>
 </body>
 </html>
