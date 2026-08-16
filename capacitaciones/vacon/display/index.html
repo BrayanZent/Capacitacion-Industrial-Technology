@@ -224,7 +224,7 @@ const NXData = {
 NXData.menu = [
   { id:'M1', nombre:'Monitor' },
   { id:'M2', nombre:'Parámetros' },
-  { id:'M3', nombre:'Control Panel' },
+  { id:'M3', nombre:'Control desde teclado' },
   { id:'M4', nombre:'Fallos Activos' },
   { id:'M5', nombre:'Historial Fallos' },
   { id:'M6', nombre:'Menú Sistema' },
@@ -1254,8 +1254,8 @@ const NXModules = [
     id: 'multimonitor',
     nombre: 'Multimonitor',
     teoria: [
-      'Navegar M1 un valor a la vez (V1.1, V1.2, V1.3...) es lento cuando en planta necesitás varios datos juntos para una lectura rápida. VACON NX tiene una función real para esto: "Multimonitoring items" (menú de sistema M6, parámetro cercano a P6.5.4) que muestra 3 valores de monitoreo simultáneos en la misma pantalla, en vez de uno por vez.',
-      'El manual no detalla públicamente si cada posición tiene su propio ID de parámetro o cómo se navega exactamente para asignarlas desde el teclado — el simulador simplifica esto usando el botón SELECT (ya existe en el panel físico) para activar/desactivar el multimonitor, y una entrada "Multimonitor" al final de la lista de M1 para elegir qué va en cada posición. El resto de M1 sigue funcionando exactamente igual que siempre: navegás cada valor (V1.1, V1.2...) de a uno, como antes. Las 3 variables combinadas solo aparecen cuando estás parado justo en esa entrada "Multimonitor", no en la pantalla principal de M1.',
+      'Navegar M1 un valor a la vez (V1.1, V1.2, V1.3...) es lento cuando en planta necesitás varios datos juntos para una lectura rápida. VACON NX tiene una función real para esto: "Multimonitoring items" (menú de sistema M6, parámetro P6.5.4) que muestra hasta 3 valores de monitoreo simultáneos en la misma pantalla, en vez de uno por vez.',
+      'El manual no detalla públicamente si cada posición tiene su propio ID de parámetro o cómo se navega exactamente para asignarlas desde el teclado — el simulador simplifica esto usando el botón SELECT (ya existe en el panel físico) para activar/desactivar el multimonitor, y una entrada "Multimonitor" al final de la lista de M1 para elegir qué va en cada posición. (V1.17 "Elementos multimon." es un valor real distinto de la Tabla 41 del manual, sin lógica simulada — no confundirlo con esta entrada "Multimonitor", que es el mecanismo funcional que sí construimos.) El resto de M1 sigue funcionando exactamente igual que siempre: navegás cada valor (V1.1, V1.2...) de a uno, como antes. Las 3 variables combinadas solo aparecen cuando estás parado justo en esa entrada "Multimonitor", no en la pantalla principal de M1.',
       'En planta, una combinación típica y útil es: Referencia (V1.2, lo que le estás pidiendo al drive), Velocidad real (V1.1 "Frec Salida", lo que el motor realmente tiene) y Corriente del motor (V1.4). Verlas juntas te deja notar de un vistazo si el motor no está llegando a la referencia, o si la corriente sube sin que cambie la carga — señales tempranas de un problema.',
       'Igual que en el equipo real, la pantalla del multimonitor muestra solo valor y unidad (sin el nombre completo al lado) — Posición 1 y 2 quedan juntas arriba en letra chica, Posición 3 sola abajo en letra grande. Por eso conviene tener memorizado qué asignaste en cada posición: en este ejercicio, Posición 1 = V1.2 (Referencia), Posición 2 = V1.1 (Velocidad real) y Posición 3 = V1.4 (Corriente del motor).'
     ],
@@ -1271,7 +1271,7 @@ const NXModules = [
     id: 'fallas',
     nombre: 'Diagnóstico de fallas',
     teoria: [
-      'M4 muestra solo la falla que bloquea el drive ahora (o "sin fallas activas"); M5 conserva un historial de las últimas fallas aunque ya se hayan reseteado — revisar el historial ayuda a detectar patrones que la falla activa por sí sola no muestra.',
+      'M4 muestra solo la falla que bloquea el drive ahora (o "sin fallas activas"); M5 conserva un historial de las últimas fallas aunque ya se hayan reseteado — revisar el historial ayuda a detectar patrones que la falla activa por sí sola no muestra. Simplificación del simulador: el equipo real puede acumular hasta 10 fallos activos simultáneos en M4 y hasta 30 entradas indexadas (F5.1 a F5.30) en M5; acá cada uno se simplifica a una sola falla activa y una lista sin límite fijo, suficiente para practicar el flujo de diagnóstico.',
       'Resetear una falla no resuelve su causa: si la condición sigue, vuelve a aparecer. El procedimiento correcto es identificar el código en M4, revisar causa/remedio, corregir la causa real, y recién entonces resetear.',
       'F9 (Baja tensión) y F10 (Supervisión línea de entrada) son las fallas más comunes en campo, más que F1/F2: F9 avisa que el bus DC quedó por debajo del límite (red débil, fusible de entrada, interruptor de carga abierto); F10 avisa que directamente falta una fase de la alimentación de entrada. Ninguna de las dos es un problema del motor — ambas apuntan a la red o al tablero de entrada.',
       'La protección térmica del motor tiene dos versiones: F16 (Exceso de temperatura del motor) sale de un modelo calculado por el convertidor a partir de la carga y el tiempo (V1.10 "TempMotor %" en M1 es ese cálculo), y P2.7.8 (grupo G2.7) define qué hace el drive cuando ese modelo se satura. F29 (Fallo termistor) en cambio viene de una medición directa con un sensor PTC en el bobinado — más rápida y precisa, pero solo existe si el motor tiene el termistor cableado hasta el convertidor.'
