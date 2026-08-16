@@ -989,12 +989,12 @@ const NXModules = [
     nombre: 'Puesta en marcha',
     teoria: [
       'Antes de operar un variador hay que cargar los datos de placa del motor. VACON exige estos 5 valores cargados antes de correr cualquier identificación: tensión nominal (P2.6), frecuencia nominal (P2.7), velocidad nominal (P2.8), intensidad nominal (P2.9) y cos phi (P2.10).',
-      'La velocidad nominal de placa NO es la velocidad síncrona. Un motor de 4 polos a 50 Hz tiene una síncrona de 1500 rpm, pero la placa real muestra menos (ej. 1440 rpm) por el deslizamiento — VACON usa esa diferencia para calcular el modelo del motor.'
+      'La velocidad nominal de placa NO es la velocidad síncrona. Un motor de 4 polos a 60 Hz tiene una síncrona de 1800 rpm, pero la placa real muestra menos (ej. 1750 rpm) por el deslizamiento — VACON usa esa diferencia para calcular el modelo del motor.'
     ],
     tareas: [
-      { id:'placa-tension', enunciado:'Placa del motor: Tensión nominal = 400 V. Configurá P2.6 (M2 → G2.1).', pista:'M2 → derecha → G2.1 → buscá P2.6 → derecha para editar → arriba/abajo → Enter.', verificar:function(e){ return Math.abs(e.valores['P2.6'] - 400) < 0.5; } },
-      { id:'placa-frecuencia', enunciado:'Placa del motor: Frecuencia nominal = 50 Hz. Configurá P2.7.', pista:'Mismo grupo G2.1, el parámetro siguiente a P2.6.', verificar:function(e){ return Math.abs(e.valores['P2.7'] - 50) < 0.05; } },
-      { id:'placa-velocidad', enunciado:'Placa del motor: Velocidad nominal = 1440 rpm (no 1500 — esa es la síncrona). Configurá P2.8.', pista:'La velocidad de placa siempre es menor a la síncrona por el deslizamiento.', verificar:function(e){ return e.valores['P2.8'] === 1440; } },
+      { id:'placa-tension', enunciado:'Placa del motor: Tensión nominal = 460 V. Configurá P2.6 (M2 → G2.1).', pista:'M2 → derecha → G2.1 → buscá P2.6 → derecha para editar → arriba/abajo → Enter.', verificar:function(e){ return Math.abs(e.valores['P2.6'] - 460) < 0.5; } },
+      { id:'placa-frecuencia', enunciado:'Placa del motor: Frecuencia nominal = 60 Hz. Configurá P2.7.', pista:'Mismo grupo G2.1, el parámetro siguiente a P2.6.', verificar:function(e){ return Math.abs(e.valores['P2.7'] - 60) < 0.05; } },
+      { id:'placa-velocidad', enunciado:'Placa del motor: Velocidad nominal = 1750 rpm (no 1800 — esa es la síncrona a 60 Hz). Configurá P2.8.', pista:'La velocidad de placa siempre es menor a la síncrona por el deslizamiento.', verificar:function(e){ return e.valores['P2.8'] === 1750; } },
       { id:'placa-intensidad', enunciado:'Placa del motor: Intensidad nominal = 15.0 A. Configurá P2.9.', pista:'Mismo grupo, siguiente parámetro.', verificar:function(e){ return Math.abs(e.valores['P2.9'] - 15.0) < 0.05; } },
       { id:'placa-cosphi', enunciado:'Placa del motor: Cos phi = 0.83. Configurá P2.10.', pista:'Último dato de la placa para este ejercicio.', verificar:function(e){ return Math.abs(e.valores['P2.10'] - 0.83) < 0.01; } }
     ]
