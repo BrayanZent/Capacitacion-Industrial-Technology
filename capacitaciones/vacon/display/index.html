@@ -626,6 +626,16 @@ NXEngine.prototype.press = function(tecla){
   window.runTestsIfRequested();
 })();
 </script>
+<div id="brand-header" style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; padding:14px 24px; background:var(--panel); border-bottom:1px solid var(--line);">
+  <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+    <span style="font-family:var(--mono); font-weight:700; color:var(--sky); font-size:14px; letter-spacing:.02em;">⚡ VDF ACADEMY</span>
+    <span style="font-family:var(--sans); color:var(--text-dim); font-size:13px;">VACON NX — Simulador de Teclado</span>
+  </div>
+  <div style="display:flex; align-items:center; gap:10px;">
+    <a href="../../../index.html" style="font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-dim); text-decoration:none; border:1px solid var(--line); padding:8px 10px; border-radius:6px;">← Volver al portal</a>
+    <button class="themebtn" id="themeToggle" style="font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.04em; background:transparent; color:var(--text-dim); border:1px solid var(--line); padding:8px 10px; border-radius:6px; cursor:pointer;">🌓 Cambiar tema</button>
+  </div>
+</div>
 <div id="panel-root" style="display:flex; gap:32px; align-items:flex-start; padding:24px; flex-wrap:wrap;">
   <div style="width:280px; background:#1c5fa8; border-radius:12px; padding:16px; box-shadow:0 8px 24px rgba(0,0,0,.4);">
     <div style="background:#2a2a1a; border-radius:4px; padding:10px; margin-bottom:14px;">
@@ -793,6 +803,19 @@ window.renderTareas = function(){
 };
 
 cargarProgresoTareas();
+</script>
+<script>
+const THEME_KEY = 'capacitacion-theme';
+function applyTheme(){
+  const saved = localStorage.getItem(THEME_KEY);
+  if(saved === 'light'){ document.documentElement.classList.add('light-theme'); }
+  else { document.documentElement.classList.remove('light-theme'); }
+}
+applyTheme();
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  const isLight = document.documentElement.classList.toggle('light-theme');
+  localStorage.setItem(THEME_KEY, isLight ? 'light' : 'dark');
+});
 </script>
 </body>
 </html>
