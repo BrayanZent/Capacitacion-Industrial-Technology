@@ -716,6 +716,33 @@ document.querySelectorAll('#panel-root button[data-key]').forEach(function(btn){
   btn.addEventListener('click', function(){ engine.press(btn.getAttribute('data-key')); render(); });
 });
 
+function habilitarAutoRepeticion(tecla){
+  var boton = document.querySelector('#panel-root button[data-key="' + tecla + '"]');
+  if (!boton) return;
+  var timeoutId = null;
+  var intervalId = null;
+  function disparar(){ engine.press(tecla); render(); }
+  function iniciar(ev){
+    ev.preventDefault();
+    detener(); // por si quedó algo colgado de una interacción previa
+    timeoutId = setTimeout(function(){
+      intervalId = setInterval(disparar, 60);
+    }, 400);
+  }
+  function detener(){
+    if (timeoutId){ clearTimeout(timeoutId); timeoutId = null; }
+    if (intervalId){ clearInterval(intervalId); intervalId = null; }
+  }
+  boton.addEventListener('mousedown', iniciar);
+  boton.addEventListener('mouseup', detener);
+  boton.addEventListener('mouseleave', detener);
+  boton.addEventListener('touchstart', iniciar, { passive: false });
+  boton.addEventListener('touchend', detener);
+  boton.addEventListener('touchcancel', detener);
+}
+habilitarAutoRepeticion('up');
+habilitarAutoRepeticion('down');
+
 var MAPA_TECLAS = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right', Enter:'enter', Escape:'reset' };
 document.addEventListener('keydown', function(ev){
   var k = MAPA_TECLAS[ev.key];
