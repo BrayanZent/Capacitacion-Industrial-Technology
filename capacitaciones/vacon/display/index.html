@@ -350,6 +350,17 @@ NXEngine.prototype._clamp = function(v, min, max){
   return Math.max(min, Math.min(max, v));
 };
 
+NXEngine.prototype.saltarEntero = function(tecla){
+  var id = this.ubicacionActual();
+  var param = id ? this.resolverParam(id) : null;
+  if (this.modo !== 'editar' || !param || param.tipo !== 'numeric') { this.press(tecla); return; }
+  var rango = this.rangoDe(param);
+  var actual = this.valores[param.id];
+  var nuevo = (tecla === 'up') ? Math.floor(actual) + 1 : Math.ceil(actual) - 1;
+  nuevo = Math.round(nuevo * 1000) / 1000;
+  this.valores[param.id] = this._clamp(nuevo, rango.min, rango.max);
+};
+
 var _pressNav = NXEngine.prototype.press;
 NXEngine.prototype.press = function(tecla){
   var idActual = this.ubicacionActual();
@@ -415,6 +426,29 @@ NXEngine.prototype.press = function(tecla){
   e3.press('right');
   e3.press('up');
   assert(e3.valores['P2.11'] === 1, 'up sobre un parámetro enum avanza a la siguiente opción (Arranque al vuelo)');
+
+  var e4 = new NXEngine();
+  e4.ruta = ['M3', 'P3.2'];
+  e4.press('right'); // entra a modo editar
+  e4.valores['P3.2'] = 24.97;
+  e4.saltarEntero('up');
+  assert(e4.valores['P3.2'] === 25, 'saltarEntero(up) desde 24.97 salta al entero siguiente (25)');
+
+  e4.valores['P3.2'] = 25.00;
+  e4.saltarEntero('up');
+  assert(e4.valores['P3.2'] === 26, 'saltarEntero(up) desde un entero exacto (25.00) avanza a 26, no se queda en 25');
+
+  e4.valores['P3.2'] = e4.valores['P2.2']; // en el máximo posible (P2.2, límite de P3.2)
+  var maxAntes = e4.valores['P3.2'];
+  e4.saltarEntero('up');
+  assert(e4.valores['P3.2'] === maxAntes, 'saltarEntero(up) en el máximo no lo excede (queda clamped)');
+
+  var e5 = new NXEngine();
+  e5.ruta = ['M2', 'G2.1', 'P2.11']; // parámetro enum, no numérico
+  e5.press('right'); // entra a modo editar
+  var valorEnumAntes = e5.valores['P2.11'];
+  e5.saltarEntero('up');
+  assert(e5.valores['P2.11'] !== valorEnumAntes, 'saltarEntero sobre un parametro enum hace fallback a press() normal (avanza una opcion), no falla');
 
   window.runTestsIfRequested();
 })();
@@ -684,9 +718,6 @@ function nombreDeUbicacion(id){
 }
 
 function render(){
-  if (engine.estadoDrive === 'falla' && !engine._verFallaEnM4){
-    // M4 se refleja automáticamente porque fallaActiva ya está seteado; no requiere acción aquí.
-  }
   var loc = nombreDeUbicacion(engine.ubicacionActual());
   var idActual = engine.ubicacionActual();
   if (idActual === 'M4'){
@@ -721,10 +752,17 @@ function habilitarAutoRepeticion(tecla){
   if (!boton) return;
   var timeoutId = null;
   var intervalId = null;
-  function disparar(){ engine.press(tecla); render(); }
+  var inicioMs = null;
+  function disparar(){
+    var mantenidoMs = inicioMs ? (Date.now() - inicioMs) : 0;
+    if (mantenidoMs >= 3000){ engine.saltarEntero(tecla); }
+    else { engine.press(tecla); }
+    render();
+  }
   function iniciar(ev){
     ev.preventDefault();
-    detener(); // por si quedó algo colgado de una interacción previa
+    detener();
+    inicioMs = Date.now();
     timeoutId = setTimeout(function(){
       intervalId = setInterval(disparar, 60);
     }, 400);
@@ -732,6 +770,7 @@ function habilitarAutoRepeticion(tecla){
   function detener(){
     if (timeoutId){ clearTimeout(timeoutId); timeoutId = null; }
     if (intervalId){ clearInterval(intervalId); intervalId = null; }
+    inicioMs = null;
   }
   boton.addEventListener('mousedown', iniciar);
   boton.addEventListener('mouseup', detener);
