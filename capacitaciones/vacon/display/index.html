@@ -723,5 +723,76 @@ function loop(ahora){
 requestAnimationFrame(loop);
 render();
 </script>
+<script>
+const NXTasks = [
+  {
+    id: 'seleccionar-panel',
+    enunciado: 'Ve a M3 y pon el Lugar de control (P3.1) en "Panel".',
+    pista: 'M3 → flecha derecha para entrar → flecha derecha para editar P3.1 → arriba/abajo para cambiar → Enter para confirmar.',
+    verificar: function(e){ return e.valores['P3.1'] === 2; }
+  },
+  {
+    id: 'referencia-25hz',
+    enunciado: 'En M3 → P3.2 (Referencia panel), pon la referencia en 25.00 Hz.',
+    pista: 'Entra en modo edición con la flecha derecha y usa arriba/abajo. Confirma con Enter.',
+    verificar: function(e){ return Math.abs(e.valores['P3.2'] - 25.00) < 0.01; }
+  },
+  {
+    id: 'arrancar-y-llegar',
+    enunciado: 'Presiona START y espera a que la frecuencia de salida (M1 → V1.1) llegue a la referencia.',
+    pista: 'La rampa depende de P2.3 (tiempo de aceleración). Observa M1 → V1.1 mientras corre.',
+    verificar: function(e){ return e.estadoDrive === 'run' && Math.abs(e.freqActual - e.valores['P3.2']) < 0.05; }
+  },
+  {
+    id: 'diagnosticar-falla',
+    enunciado: 'Se acaba de disparar una falla externa (F51). Ve a M4, identifica la falla, y resetéala con el botón "reset".',
+    pista: 'M4 muestra el código y el remedio. El botón reset limpia la falla activa.',
+    accion: function(e){ if (e.estadoDrive !== 'falla') e.forzarFalla(51); },
+    verificar: function(e){ return e.historialFallas[0] === 51 && e.estadoDrive !== 'falla'; }
+  }
+];
+
+const TASKS_STORAGE_KEY = 'vfd_progress_vacon-nx-simulador';
+var indiceTareaActual = 0;
+var tareaAccionEjecutada = false;
+
+function cargarProgresoTareas(){
+  try{
+    var raw = localStorage.getItem(TASKS_STORAGE_KEY);
+    if (!raw) return;
+    var datos = JSON.parse(raw);
+    if (typeof datos.done === 'number') indiceTareaActual = Math.min(datos.done, NXTasks.length);
+  }catch(e){ console.warn('No se pudo cargar el progreso de tareas:', e); }
+}
+function guardarProgresoTareas(){
+  try{
+    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify({ done: indiceTareaActual, total: NXTasks.length }));
+  }catch(e){ console.warn('No se pudo guardar el progreso de tareas:', e); }
+}
+
+window.renderTareas = function(){
+  var cont = document.getElementById('panel-tasks');
+  if (!cont) return;
+  if (indiceTareaActual >= NXTasks.length){
+    cont.innerHTML = '<p style="color:var(--emerald);font-family:var(--sans);">Completaste las ' + NXTasks.length + ' tareas guiadas.</p>';
+    return;
+  }
+  var tarea = NXTasks[indiceTareaActual];
+  if (tarea.accion && !tareaAccionEjecutada){ tarea.accion(engine); tareaAccionEjecutada = true; }
+  if (tarea.verificar(engine)){
+    indiceTareaActual++;
+    tareaAccionEjecutada = false;
+    guardarProgresoTareas();
+  }
+  cont.innerHTML =
+    '<div style="font-family:var(--sans);color:var(--text);">' +
+    '<div style="font-size:12px;color:var(--text-dim);">Tarea ' + (indiceTareaActual+1) + ' de ' + NXTasks.length + '</div>' +
+    '<p style="font-size:15px;">' + tarea.enunciado + '</p>' +
+    '<p style="font-size:12px;color:var(--text-dim);">Pista: ' + tarea.pista + '</p>' +
+    '</div>';
+};
+
+cargarProgresoTareas();
+</script>
 </body>
 </html>
