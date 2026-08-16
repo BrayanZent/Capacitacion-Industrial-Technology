@@ -626,5 +626,102 @@ NXEngine.prototype.press = function(tecla){
   window.runTestsIfRequested();
 })();
 </script>
+<div id="panel-root" style="display:flex; gap:32px; align-items:flex-start; padding:24px; flex-wrap:wrap;">
+  <div style="width:280px; background:#1c5fa8; border-radius:12px; padding:16px; box-shadow:0 8px 24px rgba(0,0,0,.4);">
+    <div style="background:#2a2a1a; border-radius:4px; padding:10px; margin-bottom:14px;">
+      <div id="lcd-linea-k" style="font-family:var(--mono); color:#c8d84a; font-size:11px; opacity:.85;"></div>
+      <div id="lcd-linea-l" style="font-family:var(--mono); color:#c8d84a; font-size:14px; font-weight:600; margin:2px 0;"></div>
+      <div id="lcd-linea-m" style="font-family:var(--mono); color:#c8d84a; font-size:18px;"></div>
+    </div>
+    <div style="display:flex; justify-content:space-around; font-family:var(--sans); font-size:11px; color:#fff; margin-bottom:10px;">
+      <span>ready <span id="led-ready" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#333;"></span></span>
+      <span>run <span id="led-run" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#333;"></span></span>
+      <span>fault <span id="led-fault" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#333;"></span></span>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; place-items:center;">
+      <button data-key="reset" style="grid-column:1;">reset</button>
+      <button data-key="up" style="grid-column:2;">▲</button>
+      <button data-key="start" style="grid-column:3; border-radius:50%; background:#3ecf5e; color:#fff;">▶</button>
+      <button data-key="left" style="grid-column:1;">◀</button>
+      <button data-key="right" style="grid-column:3; grid-row:2;">▶</button>
+      <button data-key="stop" style="grid-column:3; border-radius:50%; background:#e0433a; color:#fff;">■</button>
+      <button data-key="select" style="grid-column:1;">select</button>
+      <button data-key="down" style="grid-column:2;">▼</button>
+      <button data-key="enter" style="grid-column:3;">enter</button>
+    </div>
+  </div>
+  <div id="panel-tasks" style="flex:1; min-width:280px;"></div>
+</div>
+<script>
+var engine = new NXEngine();
+
+function nombreDeUbicacion(id){
+  if (!id) return { k:'', l:'Menú principal', m:'' };
+  var menuTop = NXData.menu.filter(function(m){ return m.id === id; })[0];
+  if (menuTop) return { k:id, l:menuTop.nombre, m:'' };
+  if (id === 'G2.1') return { k:id, l:'Parámetros básicos', m:'' };
+  var mv = NXData.monitorValues.filter(function(v){ return v.id === id; })[0];
+  if (mv) return { k:id, l:mv.nombre, m: engine.valorMonitor(id) + ' ' + mv.unidad };
+  var param = engine.resolverParam(id);
+  if (param){
+    var val = engine.valores[id];
+    var texto = param.tipo === 'enum'
+      ? param.opciones.filter(function(o){ return o.valor === val; })[0].etiqueta
+      : val.toFixed(2) + ' ' + param.unidad;
+    return { k:id, l:param.nombre, m: (engine.modo === 'editar' ? '[' + texto + ']' : texto) };
+  }
+  return { k:id, l:'', m:'' };
+}
+
+function render(){
+  if (engine.estadoDrive === 'falla' && !engine._verFallaEnM4){
+    // M4 se refleja automáticamente porque fallaActiva ya está seteado; no requiere acción aquí.
+  }
+  var loc = nombreDeUbicacion(engine.ubicacionActual());
+  var idActual = engine.ubicacionActual();
+  if (idActual === 'M4'){
+    loc = engine.fallaActiva
+      ? { k:'M4', l:'F' + engine.fallaActiva + ' ' + engine.infoFalla(engine.fallaActiva).nombre, m: engine.infoFalla(engine.fallaActiva).remedio }
+      : { k:'M4', l:'Fallos Activos', m:'Sin fallas activas' };
+  }
+  if (idActual === 'M5'){
+    loc = { k:'M5', l:'Historial Fallos', m: engine.historialFallas.length ? engine.historialFallas.map(function(c){return 'F'+c;}).join(' ') : 'Vacío' };
+  }
+  if (idActual === 'M6') loc = { k:'M6', l:'Menú Sistema', m: NXData.systemInfo.join(' · ') };
+  if (idActual === 'M7') loc = { k:'M7', l:'Cartas Expansión', m: NXData.expanderInfo.join(' · ') };
+
+  document.getElementById('lcd-linea-k').textContent = engine.mensaje || loc.k;
+  document.getElementById('lcd-linea-l').textContent = loc.l;
+  document.getElementById('lcd-linea-m').textContent = loc.m;
+
+  document.getElementById('led-ready').style.background = (engine.estadoDrive !== 'falla') ? '#3ecf5e' : '#333';
+  document.getElementById('led-run').style.background = (engine.estadoDrive === 'run') ? '#3ecf5e' : '#333';
+  document.getElementById('led-fault').style.background = (engine.estadoDrive === 'falla') ? '#e0433a' : '#333';
+
+  engine.mensaje = null; // mensaje transitorio: se muestra un render y se limpia
+  if (window.renderTareas) window.renderTareas();
+}
+
+document.querySelectorAll('#panel-root button[data-key]').forEach(function(btn){
+  btn.addEventListener('click', function(){ engine.press(btn.getAttribute('data-key')); render(); });
+});
+
+var MAPA_TECLAS = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right', Enter:'enter', Escape:'reset' };
+document.addEventListener('keydown', function(ev){
+  var k = MAPA_TECLAS[ev.key];
+  if (k){ engine.press(k); render(); }
+});
+
+var _ultimoTick = performance.now();
+function loop(ahora){
+  var dt = (ahora - _ultimoTick) / 1000;
+  _ultimoTick = ahora;
+  engine.tick(Math.min(dt, 0.25)); // clamp: evita saltos grandes si la pestaña estuvo en background
+  render();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+render();
+</script>
 </body>
 </html>
