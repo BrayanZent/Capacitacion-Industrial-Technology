@@ -697,6 +697,113 @@ NXEngine.prototype.press = function(tecla){
   <div id="panel-tasks" style="flex:1; min-width:280px;"></div>
 </div>
 <script>
+// Grupo G2.6 "Control de motor" — pertenece a las aplicaciones Estándar/Multipropósito
+// de VACON NX, no a la Aplicación Básica (G2.1). Se simula aquí para los módulos de
+// identificación y lazo cerrado, documentando explícitamente su origen real.
+NXData.paramsG26 = [
+  { id:'P2.6.16', nombre:'Identificación', tipo:'enum', porDefecto:0, opciones:[
+    {valor:0, etiqueta:'Sin acción'},
+    {valor:1, etiqueta:'Identif. sin marcha'},
+    {valor:2, etiqueta:'Identif. con marcha'}
+  ]}
+  // Nota: el manual real (ID631) también lista "Identificación de marcha de encoder" (valor 3,
+  // solo motor PMS con encoder absoluto) y "Fallo de identificación" (valor 5, estado interno,
+  // no seleccionable por el usuario). Se excluyen de este simulador: no hay física de motor PMS
+  // modelada, y el valor 5 no es una opción real que el alumno elija.
+];
+
+var _hijosDeG26 = NXEngine.prototype._hijosDe;
+NXEngine.prototype._hijosDe = function(ruta){
+  if (ruta[0] === 'M2' && ruta.length === 1) return ['G2.1', 'G2.6'];
+  if (ruta[0] === 'M2' && ruta[1] === 'G2.6' && ruta.length === 2) return NXData.paramsG26.map(function(p){ return p.id; });
+  return _hijosDeG26.call(this, ruta);
+};
+
+var _todosLosParamsG26 = NXEngine.prototype._todosLosParams;
+NXEngine.prototype._todosLosParams = function(){
+  return _todosLosParamsG26.call(this).concat(NXData.paramsG26);
+};
+
+var _todosLosParamsEstaticoG26 = NXEngine.prototype._todosLosParamsEstatico;
+NXEngine.prototype._todosLosParamsEstatico = function(){
+  return _todosLosParamsEstaticoG26.call(this).concat(NXData.paramsG26);
+};
+
+var _NXEngineCtorIdent = NXEngine;
+NXEngine = function(){
+  _NXEngineCtorIdent.call(this);
+  this.motorAcoplado = false;
+  this.identificacionCompleta = false;
+};
+NXEngine.prototype = _NXEngineCtorIdent.prototype;
+
+NXEngine.prototype.correrIdentificacion = function(){
+  var modo = this.valores['P2.6.16'];
+  if (modo === 2 && this.motorAcoplado){
+    this._dispararFalla(57);
+    return;
+  }
+  if (modo === 2 && !this.motorAcoplado){
+    this.identificacionCompleta = true;
+    return;
+  }
+  if (modo === 1){
+    this.identificacionCompleta = true;
+    return;
+  }
+  // modo === 0 (Sin acción): no hace nada.
+};
+
+var _pressIdent = NXEngine.prototype.press;
+NXEngine.prototype.press = function(tecla){
+  if (tecla === 'start' && this.estadoDrive === 'stop' && this.valores['P2.6.16'] !== 0){
+    this.correrIdentificacion();
+    this.valores['P2.6.16'] = 0; // vuelve a "Sin acción" tras ejecutar, como el equipo real
+    return;
+  }
+  return _pressIdent.call(this, tecla);
+};
+</script>
+<script>
+(function(){
+  var e = new NXEngine();
+  assert(e.valores['P2.6.16'] === 0, 'Identificación (P2.6.16) inicia en "Sin acción" por defecto');
+  assert(e.motorAcoplado === false, 'motorAcoplado inicia en false');
+  assert(e.identificacionCompleta === false, 'identificacionCompleta inicia en false');
+
+  var hijosM2 = e._hijosDe(['M2']);
+  assert(hijosM2.indexOf('G2.6') !== -1, 'M2 ahora incluye el grupo G2.6 junto a G2.1');
+  var hijosG26 = e._hijosDe(['M2', 'G2.6']);
+  assert(hijosG26.indexOf('P2.6.16') !== -1, 'G2.6 incluye el parámetro P2.6.16 (Identificación)');
+
+  var e2 = new NXEngine();
+  e2.motorAcoplado = true;
+  e2.valores['P2.6.16'] = 2; // identificación con marcha
+  e2.press('start');
+  assert(e2.fallaActiva === 57, 'START con identificación "con marcha" y motor acoplado dispara F57');
+  assert(e2.valores['P2.6.16'] === 0, 'P2.6.16 vuelve a "Sin acción" tras ejecutar, igual que el equipo real');
+
+  var e3 = new NXEngine();
+  e3.motorAcoplado = false;
+  e3.valores['P2.6.16'] = 2;
+  e3.press('start');
+  assert(e3.identificacionCompleta === true && e3.fallaActiva === null, 'Identificación "con marcha" y motor desacoplado completa sin falla');
+
+  var e4 = new NXEngine();
+  e4.motorAcoplado = true; // no debería importar en modo 1
+  e4.valores['P2.6.16'] = 1;
+  e4.press('start');
+  assert(e4.identificacionCompleta === true, 'Identificación "sin marcha" completa independientemente de motorAcoplado');
+
+  var e5 = new NXEngine();
+  e5.valores['P2.6.16'] = 0;
+  e5.press('start'); // sin P3.1=Panel, y sin pedir identificación: debe comportarse como el START original
+  assert(e5.mensaje === 'Control de panel NO ACTIVO', 'START normal (sin identificación pedida) sigue delegando al comportamiento original');
+
+  window.runTestsIfRequested();
+})();
+</script>
+<script>
 var engine = new NXEngine();
 
 function nombreDeUbicacion(id){
