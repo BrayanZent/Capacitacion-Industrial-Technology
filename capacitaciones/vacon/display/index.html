@@ -419,5 +419,111 @@ NXEngine.prototype.press = function(tecla){
   window.runTestsIfRequested();
 })();
 </script>
+<script>
+var _NXEngineCtor = NXEngine;
+NXEngine = function(){
+  _NXEngineCtor.call(this);
+  this.estadoDrive = 'stop';
+  this.freqActual = 0;
+  this.mensaje = null; // mensaje transitorio, ej. 'Control de panel NO ACTIVO'
+};
+NXEngine.prototype = _NXEngineCtor.prototype;
+
+var _pressEdit = NXEngine.prototype.press;
+NXEngine.prototype.press = function(tecla){
+  if (tecla === 'start'){
+    if (this.valores['P3.1'] !== 2){
+      this.mensaje = 'Control de panel NO ACTIVO';
+      return;
+    }
+    if (this.estadoDrive === 'stop') this.estadoDrive = 'run';
+    return;
+  }
+  if (tecla === 'stop'){
+    if (this.estadoDrive === 'run') this.estadoDrive = 'deteniendo';
+    return;
+  }
+  return _pressEdit.call(this, tecla);
+};
+
+// Tiempos de rampa del manual: se definen como tiempo de 0 a frecuencia MÁXIMA (P2.2),
+// no como tiempo a la referencia puntual. Es la definición real de VACON para P2.3/P2.4.
+NXEngine.prototype.tick = function(dt){
+  var fmax = this.valores['P2.2'];
+  if (this.estadoDrive === 'run'){
+    var ref = this.valores['P3.2'];
+    var tasaAccel = fmax / this.valores['P2.3'];
+    var tasaDecel = fmax / this.valores['P2.4'];
+    if (this.freqActual < ref) this.freqActual = Math.min(ref, this.freqActual + tasaAccel * dt);
+    else if (this.freqActual > ref) this.freqActual = Math.max(ref, this.freqActual - tasaDecel * dt);
+  } else if (this.estadoDrive === 'deteniendo'){
+    if (this.valores['P2.12'] === 0){
+      this.freqActual = 0; // frenado libre: paro inmediato
+    } else {
+      var tasaDecelParo = fmax / this.valores['P2.4'];
+      this.freqActual = Math.max(0, this.freqActual - tasaDecelParo * dt);
+    }
+    if (this.freqActual === 0) this.estadoDrive = 'stop';
+  }
+};
+
+// Modelo simplificado y declarado del motor de demostración (no hay físicas reales de carga).
+NXEngine.prototype._intensidadMotor = function(){
+  var fn = this.valores['P2.7'], in_ = this.valores['P2.9'];
+  var frac = fn > 0 ? Math.min(1, this.freqActual / fn) : 0;
+  return in_ * (0.3 + 0.7 * frac);
+};
+
+NXEngine.prototype.valorMonitor = function(id){
+  var fn = this.valores['P2.7'], vn = this.valores['P2.6'], in_ = this.valores['P2.9'];
+  var intensidad = this._intensidadMotor();
+  var parPct = in_ > 0 ? Math.round(intensidad / in_ * 100) : 0;
+  switch(id){
+    case 'V1.1': return this.freqActual.toFixed(2);
+    case 'V1.2': return this.valores['P3.2'].toFixed(2);
+    case 'V1.3': return fn > 0 ? Math.round(this.freqActual / fn * this.valores['P2.8']) : 0;
+    case 'V1.4': return intensidad.toFixed(1);
+    case 'V1.5': return parPct;
+    case 'V1.6': return fn > 0 ? Math.round(parPct * this.freqActual / fn) : 0;
+    case 'V1.7': return fn > 0 ? Math.round(vn * Math.min(1, this.freqActual / fn)) : 0;
+    case 'V1.8': return Math.round(vn * 1.35);
+    case 'V1.9': return this.estadoDrive === 'run' ? (35 + Math.round(intensidad / in_ * 25)) : 30;
+    case 'V1.10': return in_ > 0 ? Math.round(intensidad / in_ * 100) : 0;
+    default: return 0; // V1.11-V1.17: E/S no simulada en v1, se documenta en el spec
+  }
+};
+</script>
+<script>
+(function(){
+  var e = new NXEngine();
+  e.press('start');
+  assert(e.mensaje === 'Control de panel NO ACTIVO', 'START sin P3.1=Panel muestra el mensaje real del manual');
+  assert(e.estadoDrive === 'stop', 'El drive no arranca si el panel no es el lugar de control activo');
+
+  e.ruta = ['M3', 'P3.1']; e.press('right'); e.press('up'); e.press('enter'); // P3.1: 1 -> 2 (Panel)
+  assert(e.valores['P3.1'] === 2, 'P3.1 quedó en Panel');
+
+  e.ruta = ['M3', 'P3.2']; e.press('right');
+  for (var i = 0; i < 25; i++) e.press('up'); // sube referencia de a 0.01 Hz... usar salto mayor
+  e.press('enter');
+
+  var e2 = new NXEngine();
+  e2.valores['P3.1'] = 2;
+  e2.valores['P3.2'] = 25.00;
+  e2.valores['P2.3'] = 5.0; // rampa: 50Hz/5s = 10 Hz/s
+  e2.press('start');
+  assert(e2.estadoDrive === 'run', 'START con P3.1=Panel pone el drive en marcha');
+  e2.tick(2.5); // 2.5s * 10Hz/s = 25 Hz => llega exactamente a la referencia
+  assert(Math.abs(e2.freqActual - 25.00) < 0.01, 'Tras 2.5s de rampa a 10 Hz/s, freqActual llega a los 25 Hz de referencia');
+
+  e2.press('stop');
+  assert(e2.estadoDrive === 'deteniendo', 'STOP desde run pasa a deteniendo');
+  e2.valores['P2.12'] = 1; // rampa
+  e2.tick(2.5); // decel: 50Hz/3s ≈ 16.67 Hz/s * 2.5s ≈ 41.7 Hz de caída, más que suficiente
+  assert(e2.freqActual === 0 && e2.estadoDrive === 'stop', 'Paro en rampa llega a 0 Hz y el drive vuelve a stop');
+
+  window.runTestsIfRequested();
+})();
+</script>
 </body>
 </html>
