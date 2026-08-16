@@ -1100,6 +1100,7 @@ function guardarProgresoTareas(){
   }catch(e){ console.warn('No se pudo guardar el progreso:', e); }
 }
 
+var _ultimaFirmaTareas = null;
 window.renderTareas = function(){
   var cont = document.getElementById('panel-tasks');
   if (!cont) return;
@@ -1116,6 +1117,16 @@ window.renderTareas = function(){
       guardarProgresoTareas();
     }
   }
+
+  // Reconstruir el HTML (y los botones del selector) solo cuando el módulo o la
+  // tarea activa realmente cambiaron. Antes esto corría en cada frame del loop
+  // de animación (~60/seg), destruyendo y recreando los botones constantemente:
+  // eso causaba lentitud general y clicks perdidos cuando el mousedown/mouseup
+  // de un click real caían en nodos de DOM distintos por la reconstrucción de
+  // por medio.
+  var firmaActual = moduloActual + ':' + indicePorModulo[modulo.id];
+  if (firmaActual === _ultimaFirmaTareas) return;
+  _ultimaFirmaTareas = firmaActual;
 
   var selector = NXModules.map(function(m){
     var activo = m.id === moduloActual;
