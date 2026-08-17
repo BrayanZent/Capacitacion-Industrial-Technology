@@ -470,6 +470,7 @@ NXEngine = function(){
   this.estadoDrive = 'stop';
   this.freqActual = 0;
   this.mensaje = null; // mensaje transitorio, ej. 'Control de panel NO ACTIVO'
+  this._resetBloqueadoPor = null;
 };
 NXEngine.prototype = _NXEngineCtor.prototype;
 
@@ -615,10 +616,39 @@ NXEngine.prototype.forzarFalla = function(codigo){
   this._dispararFalla(codigo);
 };
 
+// _resetBloqueadoPor: funcion opcional (engine)=>boolean que una tarea guiada puede
+// setear al forzar una falla, para simular que el equipo real NO limpia la falla con
+// el boton reset si la condicion que la causo sigue presente. Se limpia sola apenas
+// el reset tiene exito, para no afectar a ninguna otra tarea/modulo despues.
 NXEngine.prototype.resetearFalla = function(){
   if (this.estadoDrive !== 'falla') return;
+  if (this._resetBloqueadoPor && this._resetBloqueadoPor(this)){
+    this.mensaje = 'Reset sin efecto: la causa real de la falla sigue presente.';
+    return;
+  }
   this.fallaActiva = null;
   this.estadoDrive = 'stop';
+  this._resetBloqueadoPor = null;
+};
+
+// Control desde Terminal I/O (P3.1 = 1): en el equipo real, con el Lugar de control en
+// Terminal, el arranque/paro llegan por entradas digitales cableadas, no por los botones
+// físicos del teclado (esos solo responden con P3.1 = 2, Panel). Estos métodos simulan
+// esas entradas digitales para el módulo de diagnóstico ("no hay falla, tampoco control
+// desde el panel — hay que operar por donde el equipo está realmente configurado").
+NXEngine.prototype.iniciarDesdeTerminal = function(){
+  if (this.valores['P3.1'] !== 1){ this.mensaje = 'Terminal I/O no es el Lugar de control activo.'; return; }
+  if (this.estadoDrive === 'stop') this.estadoDrive = 'run';
+};
+NXEngine.prototype.pararDesdeTerminal = function(){
+  if (this.valores['P3.1'] !== 1) return;
+  if (this.estadoDrive === 'run') this.estadoDrive = 'deteniendo';
+};
+NXEngine.prototype.paroEmergenciaDesdeTerminal = function(){
+  // El paro de emergencia es una función de seguridad: corta ya, sin importar el
+  // Lugar de control activo ni el tiempo de rampa configurado.
+  this.estadoDrive = 'stop';
+  this.freqActual = 0;
 };
 
 NXEngine.prototype.infoFalla = function(codigo){
@@ -654,6 +684,38 @@ NXEngine.prototype.press = function(tecla){
   var e2 = new NXEngine();
   e2.forzarFalla(51);
   assert(e2.fallaActiva === 51, 'forzarFalla dispara cualquier codigo del catalogo para uso de NXTasks');
+
+  var eBloq = new NXEngine();
+  eBloq.forzarFalla(1);
+  eBloq._resetBloqueadoPor = function(eng){ return eng.valores['P2.5'] < 10; };
+  eBloq.valores['P2.5'] = 3.0;
+  eBloq.press('reset');
+  assert(eBloq.fallaActiva === 1 && eBloq.estadoDrive === 'falla', 'reset NO limpia la falla mientras _resetBloqueadoPor siga dando true');
+  assert(eBloq.mensaje === 'Reset sin efecto: la causa real de la falla sigue presente.', 'muestra el mensaje explicando por que no se reseteo');
+  eBloq.valores['P2.5'] = 16.0;
+  eBloq.press('reset');
+  assert(eBloq.fallaActiva === null && eBloq.estadoDrive === 'stop', 'una vez corregida la causa, reset SI limpia la falla');
+  assert(eBloq._resetBloqueadoPor === null, '_resetBloqueadoPor se limpia solo tras un reset exitoso, no afecta a la proxima falla');
+
+  var eTerm = new NXEngine();
+  eTerm.valores['P3.1'] = 1; // Terminal I/O (default real)
+  eTerm.valores['P3.2'] = 25;
+  eTerm.iniciarDesdeTerminal();
+  assert(eTerm.estadoDrive === 'run', 'iniciarDesdeTerminal arranca el drive cuando P3.1=Terminal I/O');
+  eTerm.pararDesdeTerminal();
+  assert(eTerm.estadoDrive === 'deteniendo', 'pararDesdeTerminal inicia la rampa de paro');
+
+  var eTerm2 = new NXEngine();
+  eTerm2.valores['P3.1'] = 2; // Panel, NO Terminal
+  eTerm2.iniciarDesdeTerminal();
+  assert(eTerm2.estadoDrive === 'stop', 'iniciarDesdeTerminal NO arranca si el Lugar de control activo es otro (Panel)');
+
+  var eTerm3 = new NXEngine();
+  eTerm3.valores['P3.1'] = 1;
+  eTerm3.iniciarDesdeTerminal();
+  eTerm3.freqActual = 30;
+  eTerm3.paroEmergenciaDesdeTerminal();
+  assert(eTerm3.estadoDrive === 'stop' && eTerm3.freqActual === 0, 'paroEmergenciaDesdeTerminal corta ya, sin rampa');
 
   var e3 = new NXEngine();
   e3.valores['P3.1'] = 2;
@@ -1299,17 +1361,19 @@ const NXModules = [
     teoria: [
       'Las últimas tareas de este módulo (contraste F1/F2) usan START — si todavía no pasaste por "Control desde el panel", primero poné el Lugar de control en Panel (M3 → P3.1 → "Panel"), o START no va a hacer nada.',
       'M4 muestra solo la falla que bloquea el drive ahora (o "sin fallas activas"); M5 conserva un historial de las últimas fallas aunque ya se hayan reseteado — revisar el historial ayuda a detectar patrones que la falla activa por sí sola no muestra. Simplificación del simulador: el equipo real puede acumular hasta 10 fallos activos simultáneos en M4 y hasta 30 entradas indexadas (F5.1 a F5.30) en M5; acá cada uno se simplifica a una sola falla activa y una lista sin límite fijo, suficiente para practicar el flujo de diagnóstico.',
-      'Resetear una falla no resuelve su causa: si la condición sigue, vuelve a aparecer. El procedimiento correcto es identificar el código en M4, revisar causa/remedio, corregir la causa real, y recién entonces resetear.',
+      'Resetear una falla no resuelve su causa: si la condición sigue, vuelve a aparecer — y en algunos casos ni siquiera te deja resetear hasta que la corrijas. El procedimiento correcto es identificar el código en M4, revisar causa/remedio, corregir la causa real, y recién entonces resetear.',
+      'No todo lo que impide arrancar es una falla. Si el LED de falla no se prende y aun así START no hace nada, revisá la configuración (ej. el Lugar de control en M3) antes de buscar un código en M4 — puede que el equipo esté bien y simplemente esperando la orden por otro lado.',
       'F9 (Baja tensión) y F10 (Supervisión línea de entrada) son las fallas más comunes en campo, más que F1/F2: F9 avisa que el bus DC quedó por debajo del límite (red débil, fusible de entrada, interruptor de carga abierto); F10 avisa que directamente falta una fase de la alimentación de entrada. Ninguna de las dos es un problema del motor — ambas apuntan a la red o al tablero de entrada.',
       'La protección térmica del motor tiene dos versiones: F16 (Exceso de temperatura del motor) sale de un modelo calculado por el convertidor a partir de la carga y el tiempo (V1.10 "TempMotor" en M1, en %, es ese cálculo), y P2.7.8 (grupo G2.7) define qué hace el drive cuando ese modelo se satura. F29 (Fallo termistor) en cambio viene de una medición directa con un sensor PTC en el bobinado — más rápida y precisa, pero solo existe si el motor tiene el termistor cableado hasta el convertidor.'
     ],
     tareas: [
-      { id:'diagnosticar-falla', pasos:['Se acaba de disparar una falla externa (F51).', 'Andá a M4, identificá la falla, y reseteala con el botón "reset".'], pista:'M4 muestra el código y el remedio. El botón reset limpia la falla activa.', accion:function(e){ if (e.estadoDrive !== 'falla') e.forzarFalla(51); }, verificar:function(e){ return e.historialFallas[0] === 51 && e.estadoDrive !== 'falla'; } },
-      { id:'diagnosticar-f16', pasos:['Se disparó F16 (Exceso de temperatura del motor).', 'Andá a M4, leé la causa/remedio, y reseteala.'], pista:'Mismo patrón que la falla anterior, código distinto.', accion:function(e){ if (e.estadoDrive !== 'falla') e.forzarFalla(16); }, verificar:function(e){ return e.historialFallas[0] === 16 && e.estadoDrive !== 'falla'; } },
+      { id:'diagnosticar-causa-real', pasos:['Arrancá el motor y esperá a que se dispare F1 (Sobreintensidad) por sí solo.', 'Probá resetear con el botón "reset" — no debería pasar nada todavía.', 'Andá a M1, compará la corriente real (V1.4) contra el límite P2.5, y subí P2.5 a un valor que ya no dispare la falla. Recién ahí reseteá.'], pista:'Esta vez el botón reset no va a limpiar la falla mientras la corriente real siga superando P2.5 — igual que en el equipo real, resetear no arregla la causa. Hay que corregir P2.5 primero.', accion:function(e){ e.valores['P3.1']=2; if (e.valores['P3.2']<=0) e.valores['P3.2']=25; e.valores['P2.5']=3.0; e._resetBloqueadoPor=function(eng){ return eng.valores['P2.5'] < eng.valores['P2.9']; }; }, verificar:function(e){ return e.historialFallas[0]===1 && e.fallaActiva===null && e.estadoDrive!=='falla'; } },
+      { id:'no-hay-control-ni-falla', pasos:['Alguien cambió el Lugar de control (P3.1) sin avisarte — ahora está en "Terminal I/O", no en "Panel".', 'Presioná START desde el panel — no debería pasar nada, y fijate que el LED de falla NO se prende: esto no es una falla.', 'Como el equipo está configurado para Terminal I/O, arrancalo desde ahí: usá los botones de entrada digital que aparecen abajo (Marcha, Paro, referencia, Paro de emergencia).'], pista:'No todo lo que impide arrancar es una falla — a veces es una configuración distinta, y hay que operar por donde el equipo realmente está cableado, no forzar el teclado. No hace falta volver a poner P3.1 en "Panel": el objetivo es arrancarlo desde Terminal I/O.', accion:function(e){ e.valores['P3.1']=1; e.valores['P3.2']=25; }, verificar:function(e){ return e.estadoDrive==='run' && e.valores['P3.1']===1; } },
       { id:'diagnosticar-f29', pasos:['Ahora se disparó F29 (Fallo termistor) — la misma protección térmica, pero medida por un sensor real en el bobinado, no calculada.', 'Diagnosticala en M4 y reseteala.'], pista:'Compará la causa/remedio de F29 con la de F16 que viste recién: una viene de un modelo, la otra de un sensor físico.', accion:function(e){ if (e.estadoDrive !== 'falla') e.forzarFalla(29); }, verificar:function(e){ return e.historialFallas[0] === 29 && e.estadoDrive !== 'falla'; } },
       { id:'diagnosticar-f9', pasos:['Se disparó F9 (Baja tensión) — la red bajó momentáneamente.', 'Diagnosticala en M4 y reseteala.'], pista:'F9 no es un problema del motor: revisá la causa en M4, apunta a la tensión de red o al circuito de entrada.', accion:function(e){ if (e.estadoDrive !== 'falla') e.forzarFalla(9); }, verificar:function(e){ return e.historialFallas[0] === 9 && e.estadoDrive !== 'falla'; } },
       { id:'diagnosticar-f10', pasos:['Ahora se disparó F10 (Supervisión línea de entrada) — falta una fase en la alimentación.', 'Diagnosticala en M4 y reseteala.'], pista:'Distinta de F9: acá directamente falta una fase completa, no solo bajó la tensión.', accion:function(e){ if (e.estadoDrive !== 'falla') e.forzarFalla(10); }, verificar:function(e){ return e.historialFallas[0] === 10 && e.estadoDrive !== 'falla'; } },
-      { id:'patron-en-historial', pasos:['Este equipo viene con F9 (Baja tensión) disparándose varias veces en las últimas horas — no parece un corte puntual.', 'Andá a M5 (Historial de fallas) y contá cuántas veces aparece F9.', 'Reseteá la falla activa.'], pista:'M4 solo te muestra la falla que te tiene parado ahora. M5 conserva el historial completo — es ahí donde se nota el patrón de repetición, no en M4. Si F9 se repite varias veces, resetear una vez más no alcanza — hay que revisar la alimentación de raíz.', accion:function(e){ if (e.estadoDrive !== 'falla'){ e.historialFallas = [51, 9, 16, 9]; e.forzarFalla(9); } }, verificar:function(e){ return e.historialFallas.filter(function(c){ return c === 9; }).length >= 3 && e.estadoDrive !== 'falla'; } },
+      { id:'f9-aislada', pasos:['Se disparó F9 (Baja tensión) una sola vez — no hay nada raro en el historial.', 'Confirmá en M5 que es la única F9 reciente, y reseteala. Con un corte puntual de red, resetear alcanza.'], pista:'Revisá M5: si no se repite, no hay que ir más allá de resetear.', accion:function(e){ if (e.estadoDrive !== 'falla'){ e.historialFallas = [51]; e.forzarFalla(9); } }, verificar:function(e){ return e.historialFallas[0] === 9 && e.estadoDrive !== 'falla'; } },
+      { id:'f9-repetida', pasos:['Ahora F9 viene repitiéndose varias veces junto con F10 intercalada — un patrón distinto al anterior.', 'Andá a M5, notá el patrón, y reseteá esta última.'], pista:'F9 y F10 alternándose varias veces no es un corte puntual — apunta a una fase que entra y sale, o una red débil que cae bajo carga. Resetear sirve para volver a operar ahora, pero la causa real sigue ahí hasta que se revise la alimentación de raíz.', accion:function(e){ if (e.estadoDrive !== 'falla'){ e.historialFallas = [10, 9, 10, 9, 51]; e.forzarFalla(9); } }, verificar:function(e){ return e.historialFallas.filter(function(c){ return c === 9; }).length >= 3 && e.historialFallas.filter(function(c){ return c === 10; }).length >= 2 && e.estadoDrive !== 'falla'; } },
       { id:'secuencia-f1', pasos:['Se disparó F1 (Sobreintensidad, forzada para este ejercicio).', 'Reseteala.'], pista:'Botón reset. Este es el primer paso de una secuencia de dos fallas — la siguiente tarea continúa desde acá.', accion:function(e){ if (e.estadoDrive !== 'falla') e.forzarFalla(1); }, verificar:function(e){ return e.historialFallas[0] === 1 && e.estadoDrive !== 'falla'; } },
       { id:'secuencia-f51-tras-f1', pasos:['Ahora se disparó F51 (Fallo externo).', 'Andá a M5 y confirmá que el historial muestra F51 primero y F1 segundo — la más reciente arriba.', 'Reseteala.'], pista:'M5 conserva el orden: el código más reciente queda primero en la lista.', accion:function(e){ if (e.estadoDrive !== 'falla' && e.historialFallas[0] === 1) e.forzarFalla(51); }, verificar:function(e){ return e.historialFallas[0] === 51 && e.historialFallas[1] === 1 && e.estadoDrive !== 'falla'; } },
       { id:'contraste-f1-f2', pasos:['Provocá F1 (Sobreintensidad, bajando P2.5) y reseteala.', 'Subí P2.5 de nuevo (a su valor máximo, 16.80 A, para que no te interfiera) y provocá F2 (deceleración corta).'], pista:'Repetís lo que ya hiciste en el módulo de Rampas, pero esta vez en secuencia dentro del mismo ejercicio. Son dos protecciones independientes: F1 vigila la corriente en el cable del motor, F2 vigila la sobretensión del bus DC al frenar. Ojo: si dejás P2.5 bajo después de provocar F1, te va a volver a disparar F1 apenas arranques para probar F2, y nunca vas a llegar a régimen — por eso hay que subirlo de nuevo antes del segundo intento. Si START no responde ("Control de panel NO ACTIVO") o el motor arranca pero nada se mueve, revisá en M3: P3.1 en "Panel" y P3.2 (Referencia) mayor a 0 Hz.', verificar:function(e){ return e.historialFallas[0] === 2 && e.historialFallas[1] === 1 && e.estadoDrive !== 'falla'; } }
@@ -1436,6 +1500,21 @@ window.renderTareas = function(){
     tareaHtml =
       '<p style="font-size:13px;color:var(--text-dim);">Pista: ' + t.pista + '</p>' +
       '<ul style="margin:8px 0 0 18px; padding:0; font-size:15px;">' + pasosHtml + '</ul>';
+    // Mini-panel de entradas digitales simuladas -- solo para el ejercicio de
+    // "no hay falla, tampoco control desde el panel" (Terminal I/O). No es parte del
+    // panel físico principal porque solo tiene sentido en este ejercicio puntual.
+    if (modulo.id === 'fallas' && t.id === 'no-hay-control-ni-falla'){
+      tareaHtml +=
+        '<div style="margin-top:12px; padding:10px; border:1px dashed var(--line); border-radius:8px;">' +
+        '<div style="font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px;">Entradas digitales simuladas (Terminal I/O)</div>' +
+        '<div style="display:flex; gap:8px; flex-wrap:wrap;">' +
+        '<button id="btn-di-marcha" style="padding:6px 12px;">Marcha</button>' +
+        '<button id="btn-di-paro" style="padding:6px 12px;">Paro</button>' +
+        '<button id="btn-di-paro-emergencia" style="padding:6px 12px; background:#e0433a; color:#fff;">Paro emergencia</button>' +
+        '<button id="btn-di-ref-menos" style="padding:6px 12px;">Ref ▼</button>' +
+        '<button id="btn-di-ref-mas" style="padding:6px 12px;">Ref ▲</button>' +
+        '</div></div>';
+    }
   }
 
   cont.innerHTML =
@@ -1476,6 +1555,25 @@ window.renderTareas = function(){
     guardarProgresoTareas();
     _ultimaFirmaTareas = null;
     window.renderTareas();
+  };
+
+  var btnDiMarcha = document.getElementById('btn-di-marcha');
+  if (btnDiMarcha) btnDiMarcha.onclick = function(){ engine.iniciarDesdeTerminal(); render(); window.renderTareas(); };
+  var btnDiParo = document.getElementById('btn-di-paro');
+  if (btnDiParo) btnDiParo.onclick = function(){ engine.pararDesdeTerminal(); render(); window.renderTareas(); };
+  var btnDiParoEmergencia = document.getElementById('btn-di-paro-emergencia');
+  if (btnDiParoEmergencia) btnDiParoEmergencia.onclick = function(){ engine.paroEmergenciaDesdeTerminal(); render(); window.renderTareas(); };
+  var btnDiRefMas = document.getElementById('btn-di-ref-mas');
+  if (btnDiRefMas) btnDiRefMas.onclick = function(){
+    var rango = engine.rangoDe(engine.resolverParam('P3.2'));
+    engine.valores['P3.2'] = engine._clamp(Math.round((engine.valores['P3.2'] + 1) * 1000) / 1000, rango.min, rango.max);
+    render(); window.renderTareas();
+  };
+  var btnDiRefMenos = document.getElementById('btn-di-ref-menos');
+  if (btnDiRefMenos) btnDiRefMenos.onclick = function(){
+    var rango = engine.rangoDe(engine.resolverParam('P3.2'));
+    engine.valores['P3.2'] = engine._clamp(Math.round((engine.valores['P3.2'] - 1) * 1000) / 1000, rango.min, rango.max);
+    render(); window.renderTareas();
   };
 };
 
