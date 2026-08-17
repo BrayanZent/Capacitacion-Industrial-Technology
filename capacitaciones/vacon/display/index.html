@@ -361,6 +361,14 @@ NXEngine.prototype.saltarEntero = function(tecla){
   this.valores[param.id] = this._clamp(nuevo, rango.min, rango.max);
 };
 
+NXEngine.prototype.ciclarEnum = function(id, delta){
+  var param = this.resolverParam(id);
+  var vals = param.opciones.map(function(o){ return o.valor; });
+  var i = vals.indexOf(this.valores[id]);
+  var nuevoI = (i + delta + vals.length) % vals.length;
+  this.valores[id] = vals[nuevoI];
+};
+
 var _pressNav = NXEngine.prototype.press;
 NXEngine.prototype.press = function(tecla){
   var idActual = this.ubicacionActual();
@@ -390,10 +398,7 @@ NXEngine.prototype.press = function(tecla){
       var nuevo = Math.round((this.valores[param.id] + delta) * 1000) / 1000;
       this.valores[param.id] = this._clamp(nuevo, rango.min, rango.max);
     } else if (param.tipo === 'enum'){
-      var vals = param.opciones.map(function(o){ return o.valor; });
-      var i = vals.indexOf(this.valores[param.id]);
-      var nuevoI = (i + (tecla === 'up' ? 1 : -1) + vals.length) % vals.length;
-      this.valores[param.id] = vals[nuevoI];
+      this.ciclarEnum(param.id, tecla === 'up' ? 1 : -1);
     }
     return;
   }
@@ -426,6 +431,11 @@ NXEngine.prototype.press = function(tecla){
   e3.press('right');
   e3.press('up');
   assert(e3.valores['P2.11'] === 1, 'up sobre un parámetro enum avanza a la siguiente opción (Arranque al vuelo)');
+
+  var eCiclo = new NXEngine();
+  var valorInicial = eCiclo.valores['P2.11'];
+  eCiclo.ciclarEnum('P2.11', 1);
+  assert(eCiclo.valores['P2.11'] !== valorInicial, 'ciclarEnum cambia el valor directamente, sin pasar por ruta/modo');
 
   var e4 = new NXEngine();
   e4.ruta = ['M3', 'P3.2'];
@@ -671,27 +681,42 @@ NXEngine.prototype.press = function(tecla){
   </div>
 </div>
 <div id="panel-root" style="display:flex; gap:32px; align-items:flex-start; padding:24px; flex-wrap:wrap;">
-  <div style="width:280px; background:#1c5fa8; border-radius:12px; padding:16px; box-shadow:0 8px 24px rgba(0,0,0,.4);">
-    <div style="background:#2a2a1a; border-radius:4px; padding:10px; margin-bottom:14px; min-height:100px; box-sizing:border-box;">
-      <div id="lcd-linea-k" style="font-family:var(--mono); color:#c8d84a; font-size:11px; opacity:.85;"></div>
-      <div id="lcd-linea-l" style="font-family:var(--mono); color:#c8d84a; font-size:14px; font-weight:600; margin:2px 0;"></div>
-      <div id="lcd-linea-m" style="font-family:var(--mono); color:#c8d84a; font-size:18px;"></div>
+  <div style="display:flex; flex-direction:column; gap:16px;">
+    <div style="width:280px; background:#1c5fa8; border-radius:12px; padding:16px; box-shadow:0 8px 24px rgba(0,0,0,.4);">
+      <div style="background:#2a2a1a; border-radius:4px; padding:10px; margin-bottom:14px; min-height:100px; box-sizing:border-box;">
+        <div id="lcd-linea-k" style="font-family:var(--mono); color:#c8d84a; font-size:11px; opacity:.85;"></div>
+        <div id="lcd-linea-l" style="font-family:var(--mono); color:#c8d84a; font-size:14px; font-weight:600; margin:2px 0;"></div>
+        <div id="lcd-linea-m" style="font-family:var(--mono); color:#c8d84a; font-size:18px;"></div>
+      </div>
+      <div style="display:flex; justify-content:space-around; font-family:var(--sans); font-size:11px; color:#fff; margin-bottom:10px;">
+        <span>ready <span id="led-ready" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#333;"></span></span>
+        <span>run <span id="led-run" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#333;"></span></span>
+        <span>fault <span id="led-fault" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#333;"></span></span>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; place-items:center;">
+        <button data-key="reset" style="grid-column:1;">reset</button>
+        <button data-key="up" style="grid-column:2;">▲</button>
+        <button data-key="start" style="grid-column:3; border-radius:50%; background:#3ecf5e; color:#fff;">▶</button>
+        <button data-key="left" style="grid-column:1;">◀</button>
+        <button data-key="right" style="grid-column:3; grid-row:2;">▶</button>
+        <button data-key="stop" style="grid-column:3; border-radius:50%; background:#e0433a; color:#fff;">■</button>
+        <button data-key="select" style="grid-column:1;">select</button>
+        <button data-key="down" style="grid-column:2;">▼</button>
+        <button data-key="enter" style="grid-column:3;">enter</button>
+      </div>
     </div>
-    <div style="display:flex; justify-content:space-around; font-family:var(--sans); font-size:11px; color:#fff; margin-bottom:10px;">
-      <span>ready <span id="led-ready" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#333;"></span></span>
-      <span>run <span id="led-run" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#333;"></span></span>
-      <span>fault <span id="led-fault" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#333;"></span></span>
-    </div>
-    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; place-items:center;">
-      <button data-key="reset" style="grid-column:1;">reset</button>
-      <button data-key="up" style="grid-column:2;">▲</button>
-      <button data-key="start" style="grid-column:3; border-radius:50%; background:#3ecf5e; color:#fff;">▶</button>
-      <button data-key="left" style="grid-column:1;">◀</button>
-      <button data-key="right" style="grid-column:3; grid-row:2;">▶</button>
-      <button data-key="stop" style="grid-column:3; border-radius:50%; background:#e0433a; color:#fff;">■</button>
-      <button data-key="select" style="grid-column:1;">select</button>
-      <button data-key="down" style="grid-column:2;">▼</button>
-      <button data-key="enter" style="grid-column:3;">enter</button>
+    <div id="multimonitor-panel-root" style="width:280px; background:#1c5fa8; border-radius:12px; padding:16px; box-shadow:0 8px 24px rgba(0,0,0,.4); display:none; box-sizing:border-box;">
+      <div style="font-family:var(--sans); font-size:11px; color:#fff; text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px;">Multimonitor — vista secundaria</div>
+      <div style="background:#2a2a1a; border-radius:4px; padding:10px; margin-bottom:14px; min-height:100px; box-sizing:border-box;">
+        <div id="mm2-linea-1" style="font-family:var(--mono); color:#c8d84a; font-size:13px; margin:2px 0;"></div>
+        <div id="mm2-linea-2" style="font-family:var(--mono); color:#c8d84a; font-size:13px; margin:2px 0;"></div>
+        <div id="mm2-linea-3" style="font-family:var(--mono); color:#c8d84a; font-size:13px; margin:2px 0;"></div>
+      </div>
+      <div style="display:flex; justify-content:center; gap:10px;">
+        <button data-mm2-key="up" style="padding:6px 14px;">▲</button>
+        <button data-mm2-key="enter" style="padding:6px 14px;">enter</button>
+        <button data-mm2-key="down" style="padding:6px 14px;">▼</button>
+      </div>
     </div>
   </div>
   <div id="panel-tasks" style="flex:1; min-width:280px;"></div>
@@ -1178,6 +1203,7 @@ function loop(ahora){
   _ultimoTick = ahora;
   engine.tick(Math.min(dt, 0.25)); // clamp: evita saltos grandes si la pestaña estuvo en background
   render();
+  if (typeof renderMultimonitorPanel === 'function') renderMultimonitorPanel();
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
@@ -1452,6 +1478,42 @@ window.renderTareas = function(){
     window.renderTareas();
   };
 };
+
+var multimonitorPanelSlot = 0; // 0, 1 o 2 -- cual posicion esta seleccionada para editar en el panel secundario
+
+function multimonitorDesbloqueado(){
+  var modulo = NXModules.filter(function(m){ return m.id === 'multimonitor'; })[0];
+  return modulo && indicePorModulo['multimonitor'] >= modulo.tareas.length;
+}
+
+function renderMultimonitorPanel(){
+  var cont = document.getElementById('multimonitor-panel-root');
+  if (!cont) return;
+  var desbloqueado = multimonitorDesbloqueado();
+  cont.style.display = desbloqueado ? 'block' : 'none';
+  if (!desbloqueado) return;
+
+  for (var i = 0; i < 3; i++){
+    var slotId = 'MULTI.' + (i + 1);
+    var loc = nombreDeUbicacion(engine.valores[slotId]);
+    var linea = document.getElementById('mm2-linea-' + (i + 1));
+    var marca = (i === multimonitorPanelSlot) ? '> ' : '  ';
+    linea.textContent = marca + loc.l + ': ' + loc.m;
+  }
+}
+
+document.querySelectorAll('#multimonitor-panel-root button[data-mm2-key]').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var key = btn.getAttribute('data-mm2-key');
+    if (key === 'enter'){
+      multimonitorPanelSlot = (multimonitorPanelSlot + 1) % 3;
+    } else if (key === 'up' || key === 'down'){
+      var slotId = 'MULTI.' + (multimonitorPanelSlot + 1);
+      engine.ciclarEnum(slotId, key === 'up' ? 1 : -1);
+    }
+    renderMultimonitorPanel();
+  });
+});
 
 cargarProgresoTareas();
 </script>
