@@ -1384,16 +1384,20 @@ window.renderTareas = function(){
 
   var idxReal = indicePorModulo[modulo.id];
   var idxVisible = indiceVisiblePorModulo[modulo.id];
-  var esRevision = idxVisible < idxReal; // mirando una tarea ya completada, no la activa
 
   var navHtml = '';
   if (idxVisible > 0){
     navHtml += '<button id="btn-tarea-anterior" style="margin-right:8px; padding:4px 10px; font-size:11px; border-radius:6px; border:1px solid var(--line); cursor:pointer; background:var(--panel-raised); color:var(--text);">← Tarea anterior</button>';
   }
-  if (esRevision){
-    navHtml += '<button id="btn-tarea-siguiente" style="margin-right:8px; padding:4px 10px; font-size:11px; border-radius:6px; border:1px solid var(--line); cursor:pointer; background:var(--panel-raised); color:var(--text);">Volver a la tarea actual →</button>';
+  if (idxVisible < modulo.tareas.length - 1){
+    navHtml += '<button id="btn-tarea-siguiente" style="margin-right:8px; padding:4px 10px; font-size:11px; border-radius:6px; border:1px solid var(--line); cursor:pointer; background:var(--panel-raised); color:var(--text);">Tarea siguiente →</button>';
   }
   navHtml += '<button id="btn-reiniciar-modulo" style="padding:4px 10px; font-size:11px; border-radius:6px; border:1px solid var(--line); cursor:pointer; background:var(--panel-raised); color:var(--text);">↻ Reiniciar módulo</button>';
+
+  var estadoLabel = 'Tarea ' + (Math.min(idxVisible, modulo.tareas.length - 1) + 1) + ' de ' + modulo.tareas.length;
+  if (idxVisible < idxReal) estadoLabel += ' — ya completada';
+  else if (idxVisible > idxReal) estadoLabel += ' — todavía no llegaste acá';
+  navHtml += '<div style="font-size:12px;color:var(--text-dim);margin-top:6px;">' + estadoLabel + '</div>';
 
   var tareaHtml;
   if (idxVisible >= modulo.tareas.length){
@@ -1434,19 +1438,17 @@ window.renderTareas = function(){
   };
   var btnSiguiente = document.getElementById('btn-tarea-siguiente');
   if (btnSiguiente) btnSiguiente.onclick = function(){
-    indiceVisiblePorModulo[modulo.id] = indicePorModulo[modulo.id];
+    indiceVisiblePorModulo[modulo.id] = Math.min(modulo.tareas.length - 1, indiceVisiblePorModulo[modulo.id] + 1);
     window.renderTareas();
   };
   var btnReiniciar = document.getElementById('btn-reiniciar-modulo');
   if (btnReiniciar) btnReiniciar.onclick = function(){
-    if (!window.confirm('¿Reiniciar "' + modulo.nombre + '"? Volvés a la Tarea 1 de este módulo y el simulador vuelve a su estado inicial (no afecta a los demás módulos).')) return;
+    if (!window.confirm('¿Reiniciar "' + modulo.nombre + '"? Volvés a la Tarea 1 de este módulo. No se tocan los parámetros del equipo ni el progreso de los demás módulos.')) return;
     indicePorModulo[modulo.id] = 0;
     indiceVisiblePorModulo[modulo.id] = 0;
     Object.keys(tareaAccionEjecutada).forEach(function(k){ if (k.indexOf(modulo.id + ':') === 0) delete tareaAccionEjecutada[k]; });
-    engine = new NXEngine();
     guardarProgresoTareas();
     _ultimaFirmaTareas = null;
-    render();
     window.renderTareas();
   };
 };
